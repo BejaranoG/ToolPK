@@ -1529,7 +1529,29 @@ function AforoApp() {
 
   const today = new Date().toLocaleDateString("es-MX", { day: "2-digit", month: "2-digit", year: "numeric" });
 
+  const validateRequired = () => {
+    const missing = [];
+    if (!nombre.trim())       missing.push("Nombre del acreditado");
+    if (!montoNum)            missing.push("Monto solicitado");
+    if (!calidadKey)          missing.push("Calidad del acreditado");
+    if (!giroKey)             missing.push("Tipo de crédito / Giro");
+    if (!plazoKey)            missing.push("Plazo del crédito");
+    if (!ubicacionKey)        missing.push("Ubicación geográfica");
+    if (!tipoBienKey)         missing.push("Tipo de bien en garantía");
+    if (!contratacionKey)     missing.push("Tipo de contratación");
+    if (tipoBienGrupo === 2) {
+      if (edificacion === null)  missing.push("Edificación terminada/corrales (Agroindustrial)");
+      if (derechosAgua === null) missing.push("Derechos de agua cedibles (Agroindustrial)");
+    }
+    return missing;
+  };
+
   const generatePDF = () => {
+    const missing = validateRequired();
+    if (missing.length > 0) {
+      alert("Por favor completa los siguientes campos obligatorios antes de generar el PDF:\n\n• " + missing.join("\n• "));
+      return;
+    }
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "letter" });
     const W = 215.9;
@@ -1927,9 +1949,20 @@ function AforoApp() {
                 )}
               </div>
 
-              <button className="aforo-pdf-btn" onClick={generatePDF}>
-                ⬇ Generar PDF
-              </button>
+              {(() => {
+                const missing = validateRequired();
+                return (
+                  <button
+                    className="aforo-pdf-btn"
+                    onClick={generatePDF}
+                    disabled={missing.length > 0}
+                    title={missing.length > 0 ? "Completa: " + missing.join(", ") : "Generar PDF"}
+                    style={{opacity: missing.length > 0 ? 0.45 : 1, cursor: missing.length > 0 ? "not-allowed" : "pointer"}}
+                  >
+                    {missing.length > 0 ? `⬇ Generar PDF (${missing.length} campo${missing.length>1?"s":""} pendiente${missing.length>1?"s":""})` : "⬇ Generar PDF"}
+                  </button>
+                );
+              })()}
 
             </>) : (
               <div className="aforo-empty">Ingresa el monto y completa el formulario para ver el resultado en tiempo real.</div>
