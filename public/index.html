@@ -258,7 +258,7 @@ html, body { height: 100%; font-family: "IBM Plex Sans", sans-serif; color: var(
   <div class="upload-grid">
     <!-- Contrato -->
     <div class="upload-card" id="card-contrato">
-      <input type="file" id="inp-contrato" accept=".pdf,.docx,.doc" onchange="handleFile('contrato',this)">
+      <input type="file" id="inp-contrato" accept=".pdf,.docx" onchange="handleFile('contrato',this)">
       <span class="icon">📑</span>
       <h3>Contrato</h3>
       <p>Documento base con todos los términos del crédito</p>
@@ -268,7 +268,7 @@ html, body { height: 100%; font-family: "IBM Plex Sans", sans-serif; color: var(
     </div>
     <!-- Pagaré -->
     <div class="upload-card" id="card-pagare">
-      <input type="file" id="inp-pagare" accept=".docx,.doc" onchange="handleFile('pagare',this)">
+      <input type="file" id="inp-pagare" accept=".docx" onchange="handleFile('pagare',this)">
       <span class="icon">📄</span>
       <h3>Pagaré</h3>
       <p>Documento Word a revisar y cotejar contra contrato</p>
@@ -373,6 +373,10 @@ async function handleFile(type, input) {
   fn.textContent = '⏳ Leyendo...';
   try {
     var text = '';
+    // Reject .doc files early with clear message
+    if (file.name.toLowerCase().endsWith('.doc') && !file.name.toLowerCase().endsWith('.docx')) {
+      throw new Error('Formato .doc no compatible. Por favor convierte el archivo a .docx en Word: Archivo → Guardar como → Word (.docx)');
+    }
     if (type === 'contrato') {
       if (file.name.toLowerCase().endsWith('.pdf')) {
         text = await readPdf(file);
@@ -398,9 +402,18 @@ async function handleFile(type, input) {
 }
 
 async function readDocx(file) {
-  var ab = await file.arrayBuffer();
-  var r  = await mammoth.extractRawText({ arrayBuffer: ab });
-  return r.value.trim() || '[Sin texto]';
+  try {
+    var ab = await file.arrayBuffer();
+    var r  = await mammoth.extractRawText({ arrayBuffer: ab });
+    var text = r.value ? r.value.trim() : '';
+    if (!text || text.length < 20) throw new Error('El archivo DOCX no contiene texto legible o está dañado.');
+    return text;
+  } catch(e) {
+    if (e.message && e.message.includes('children')) {
+      throw new Error('El archivo DOCX no pudo leerse correctamente. Verifica que sea un archivo Word válido (.docx) y no esté protegido o dañado.');
+    }
+    throw e;
+  }
 }
 
 async function readPdf(file) {
@@ -963,6 +976,10 @@ async function handleFile(type, input) {
   fn.textContent = '⏳ Leyendo...';
   try {
     var text = '';
+    // Reject .doc files early with clear message
+    if (file.name.toLowerCase().endsWith('.doc') && !file.name.toLowerCase().endsWith('.docx')) {
+      throw new Error('Formato .doc no compatible. Por favor convierte el archivo a .docx en Word: Archivo → Guardar como → Word (.docx)');
+    }
     if (type === 'contrato') {
       if (file.name.toLowerCase().endsWith('.pdf')) {
         text = await readPdf(file);
@@ -988,9 +1005,18 @@ async function handleFile(type, input) {
 }
 
 async function readDocx(file) {
-  var ab = await file.arrayBuffer();
-  var r  = await mammoth.extractRawText({ arrayBuffer: ab });
-  return r.value.trim() || '[Sin texto]';
+  try {
+    var ab = await file.arrayBuffer();
+    var r  = await mammoth.extractRawText({ arrayBuffer: ab });
+    var text = r.value ? r.value.trim() : '';
+    if (!text || text.length < 20) throw new Error('El archivo DOCX no contiene texto legible o está dañado.');
+    return text;
+  } catch(e) {
+    if (e.message && e.message.includes('children')) {
+      throw new Error('El archivo DOCX no pudo leerse correctamente. Verifica que sea un archivo Word válido (.docx) y no esté protegido o dañado.');
+    }
+    throw e;
+  }
 }
 
 async function readPdf(file) {
