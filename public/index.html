@@ -374,8 +374,14 @@ async function handleFile(type, input) {
   try {
     var text = '';
     if (type === 'contrato') {
-      if (file.name.endsWith('.pdf')) text = await readPdf(file);
-      else text = await readDocx(file);
+      if (file.name.toLowerCase().endsWith('.pdf')) {
+        text = await readPdf(file);
+        if (!text || text === '[Sin texto extraíble]' || text.trim().length < 100) {
+          throw new Error('El PDF no contiene texto identificable. Por favor usa un PDF generado desde Word u otro procesador de texto, no un PDF escaneado.');
+        }
+      } else {
+        text = await readDocx(file);
+      }
     } else if (type === 'pagare') {
       text = await readDocx(file);
     } else if (type === 'excel') {
@@ -474,27 +480,33 @@ async function startAnalysis() {
 
   var C     = docs.contrato.text.substring(0, 75000);
   var P     = docs.pagare.text.substring(0, 30000);
+  // Add format hints for PDF documents (PDF text may be run-on without line breaks)
+  var contratoEsPDF = docs.contrato.name.toLowerCase().endsWith('.pdf');
+  var pagareEsPDF   = docs.pagare.name && docs.pagare.name.toLowerCase().endsWith('.pdf');
+  var fmtHint = '';
+  if (contratoEsPDF) fmtHint += 'NOTA: El CONTRATO fue extraído de un PDF; el texto puede tener palabras pegadas o saltos de línea irregulares, interpreta el contenido con tolerancia de formato.\n';
+  if (pagareEsPDF)   fmtHint += 'NOTA: El PAGARÉ fue extraído de un PDF; el texto puede tener palabras pegadas o saltos de línea irregulares, interpreta el contenido con tolerancia de formato.\n';
   var E     = docs.excel ? docs.excel.text.substring(0, 75000) : 'No se proporcionó carátula Excel.';
   var today = new Date().toLocaleDateString('es-MX', { day:'2-digit', month:'long', year:'numeric' });
 
   try {
     setProgress(15, 'Analizando datos del pagaré (puntos 1, 2, 4, 5, 6 y 8)...');
-    var rDatos = await callAI(buildPromptDatos(C, P, today));
+    var rDatos = await callAI(buildPromptDatos(C, P, today, fmtHint));
     renderFindings('body-datos', rDatos.findings);
     await sleep(3000);
 
     setProgress(45, 'Revisando partes, firmas y avales (puntos 3 y 10)...');
-    var rPartes = await callAI(buildPromptPartes(C, P));
+    var rPartes = await callAI(buildPromptPartes(C, P, fmtHint));
     renderFindings('body-partes', rPartes.findings);
     await sleep(3000);
 
     setProgress(70, 'Cotejando tabla de amortizaciones (puntos 7 y 9)...');
-    var rAmort = await callAI(buildPromptAmort(C, P, E));
+    var rAmort = await callAI(buildPromptAmort(C, P, E, fmtHint));
     renderFindings('body-amort', rAmort.findings);
     await sleep(3000);
 
     setProgress(90, 'Generando dictamen final...');
-    var rRes = await callAI(buildPromptResumen(C, P, E, today));
+    var rRes = await callAI(buildPromptResumen(C, P, E, today, fmtHint));
     renderResumen(rRes);
 
     var all = (rDatos.findings||[]).concat(rPartes.findings||[]).concat(rAmort.findings||[]);
@@ -516,8 +528,9 @@ async function startAnalysis() {
 }
 
 // ── PROMPTS ────────────────────────────────────────────────────────────────
-function buildPromptDatos(C, P, today) {
-  return 'Eres un especialista en revisión de pagarés para PROAKTIVA, empresa financiera mexicana.\n'
+function buildPromptDatos(C, P, today, fmtHint) {
+  fmtHint = fmtHint || '';
+  return fmtHint + 'Eres un especialista en revisión de pagarés para PROAKTIVA, empresa financiera mexicana.\n'
     + 'Hoy es: ' + today + '\n\n'
     + 'Analiza el PAGARÉ comparándolo con el CONTRATO en los siguientes puntos. Sé muy minucioso:\n\n'
     + 'PUNTO 1 — No. de Contrato:\n'
@@ -561,8 +574,9 @@ function buildPromptDatos(C, P, today) {
     + '=== CONTRATO ===\n' + C + '\n\n=== PAGARÉ ===\n' + P;
 }
 
-function buildPromptPartes(C, P) {
-  return 'Eres un especialista en revisión de pagarés para PROAKTIVA, empresa financiera mexicana.\n\n'
+function buildPromptPartes(C, P, fmtHint) {
+  fmtHint = fmtHint || '';
+  return fmtHint + 'Eres un especialista en revisión de pagarés para PROAKTIVA, empresa financiera mexicana.\n\n'
     + 'Analiza PUNTO 3 y PUNTO 10 con máximo detalle:\n\n'
     + 'PUNTO 3 — Suscriptor (persona moral o física):\n'
     + '- Determina si el suscriptor es persona MORAL o FÍSICA.\n'
@@ -580,8 +594,9 @@ function buildPromptPartes(C, P) {
     + '=== CONTRATO ===\n' + C + '\n\n=== PAGARÉ ===\n' + P;
 }
 
-function buildPromptAmort(C, P, E) {
-  return 'Eres un especialista en revisión de pagarés para PROAKTIVA, empresa financiera mexicana.\n\n'
+function buildPromptAmort(C, P, E, fmtHint) {
+  fmtHint = fmtHint || '';
+  return fmtHint + 'Eres un especialista en revisión de pagarés para PROAKTIVA, empresa financiera mexicana.\n\n'
     + 'Analiza PUNTO 7 y PUNTO 9:\n\n'
     + 'PUNTO 7 — Amortizaciones:\n'
     + '- El pagaré declara un rango de amortizaciones (ej: "del 1 al 1", "del 1 al 12").\n'
@@ -604,7 +619,7 @@ function buildPromptAmort(C, P, E) {
     + '=== CONTRATO ===\n' + C + '\n\n=== PAGARÉ ===\n' + P + '\n\n=== CARÁTULA EXCEL ===\n' + E;
 }
 
-function buildPromptResumen(C, P, E, today) {
+function buildPromptResumen(C, P, E, today, fmtHint) {
   return 'Eres un abogado senior especialista en crédito empresarial mexicano de PROAKTIVA.\n'
     + 'Hoy es: ' + today + '\n\n'
     + 'Revisa el PAGARÉ completo contra el CONTRATO y la CARÁTULA EXCEL. Genera un dictamen ejecutivo final.\n\n'
@@ -933,6 +948,7 @@ body { background: var(--bg); color: var(--ink); font-family: "IBM Plex Sans", s
 
 <!-- Pagare JS -->
 <script>
+try {
 
 // ── STATE ──────────────────────────────────────────────────────────────────
 var docs = { contrato: null, pagare: null, excel: null };
@@ -948,8 +964,14 @@ async function handleFile(type, input) {
   try {
     var text = '';
     if (type === 'contrato') {
-      if (file.name.endsWith('.pdf')) text = await readPdf(file);
-      else text = await readDocx(file);
+      if (file.name.toLowerCase().endsWith('.pdf')) {
+        text = await readPdf(file);
+        if (!text || text === '[Sin texto extraíble]' || text.trim().length < 100) {
+          throw new Error('El PDF no contiene texto identificable. Por favor usa un PDF generado desde Word u otro procesador de texto, no un PDF escaneado.');
+        }
+      } else {
+        text = await readDocx(file);
+      }
     } else if (type === 'pagare') {
       text = await readDocx(file);
     } else if (type === 'excel') {
@@ -1048,27 +1070,33 @@ async function startAnalysis() {
 
   var C     = docs.contrato.text.substring(0, 75000);
   var P     = docs.pagare.text.substring(0, 30000);
+  // Add format hints for PDF documents (PDF text may be run-on without line breaks)
+  var contratoEsPDF = docs.contrato.name.toLowerCase().endsWith('.pdf');
+  var pagareEsPDF   = docs.pagare.name && docs.pagare.name.toLowerCase().endsWith('.pdf');
+  var fmtHint = '';
+  if (contratoEsPDF) fmtHint += 'NOTA: El CONTRATO fue extraído de un PDF; el texto puede tener palabras pegadas o saltos de línea irregulares, interpreta el contenido con tolerancia de formato.\n';
+  if (pagareEsPDF)   fmtHint += 'NOTA: El PAGARÉ fue extraído de un PDF; el texto puede tener palabras pegadas o saltos de línea irregulares, interpreta el contenido con tolerancia de formato.\n';
   var E     = docs.excel ? docs.excel.text.substring(0, 75000) : 'No se proporcionó carátula Excel.';
   var today = new Date().toLocaleDateString('es-MX', { day:'2-digit', month:'long', year:'numeric' });
 
   try {
     setProgress(15, 'Analizando datos del pagaré (puntos 1, 2, 4, 5, 6 y 8)...');
-    var rDatos = await callAI(buildPromptDatos(C, P, today));
+    var rDatos = await callAI(buildPromptDatos(C, P, today, fmtHint));
     renderFindings('body-datos', rDatos.findings);
     await sleep(3000);
 
     setProgress(45, 'Revisando partes, firmas y avales (puntos 3 y 10)...');
-    var rPartes = await callAI(buildPromptPartes(C, P));
+    var rPartes = await callAI(buildPromptPartes(C, P, fmtHint));
     renderFindings('body-partes', rPartes.findings);
     await sleep(3000);
 
     setProgress(70, 'Cotejando tabla de amortizaciones (puntos 7 y 9)...');
-    var rAmort = await callAI(buildPromptAmort(C, P, E));
+    var rAmort = await callAI(buildPromptAmort(C, P, E, fmtHint));
     renderFindings('body-amort', rAmort.findings);
     await sleep(3000);
 
     setProgress(90, 'Generando dictamen final...');
-    var rRes = await callAI(buildPromptResumen(C, P, E, today));
+    var rRes = await callAI(buildPromptResumen(C, P, E, today, fmtHint));
     renderResumen(rRes);
 
     var all = (rDatos.findings||[]).concat(rPartes.findings||[]).concat(rAmort.findings||[]);
@@ -1090,8 +1118,9 @@ async function startAnalysis() {
 }
 
 // ── PROMPTS ────────────────────────────────────────────────────────────────
-function buildPromptDatos(C, P, today) {
-  return 'Eres un especialista en revisión de pagarés para PROAKTIVA, empresa financiera mexicana.\n'
+function buildPromptDatos(C, P, today, fmtHint) {
+  fmtHint = fmtHint || '';
+  return fmtHint + 'Eres un especialista en revisión de pagarés para PROAKTIVA, empresa financiera mexicana.\n'
     + 'Hoy es: ' + today + '\n\n'
     + 'Analiza el PAGARÉ comparándolo con el CONTRATO en los siguientes puntos. Sé muy minucioso:\n\n'
     + 'PUNTO 1 — No. de Contrato:\n'
@@ -1135,8 +1164,9 @@ function buildPromptDatos(C, P, today) {
     + '=== CONTRATO ===\n' + C + '\n\n=== PAGARÉ ===\n' + P;
 }
 
-function buildPromptPartes(C, P) {
-  return 'Eres un especialista en revisión de pagarés para PROAKTIVA, empresa financiera mexicana.\n\n'
+function buildPromptPartes(C, P, fmtHint) {
+  fmtHint = fmtHint || '';
+  return fmtHint + 'Eres un especialista en revisión de pagarés para PROAKTIVA, empresa financiera mexicana.\n\n'
     + 'Analiza PUNTO 3 y PUNTO 10 con máximo detalle:\n\n'
     + 'PUNTO 3 — Suscriptor (persona moral o física):\n'
     + '- Determina si el suscriptor es persona MORAL o FÍSICA.\n'
@@ -1154,8 +1184,9 @@ function buildPromptPartes(C, P) {
     + '=== CONTRATO ===\n' + C + '\n\n=== PAGARÉ ===\n' + P;
 }
 
-function buildPromptAmort(C, P, E) {
-  return 'Eres un especialista en revisión de pagarés para PROAKTIVA, empresa financiera mexicana.\n\n'
+function buildPromptAmort(C, P, E, fmtHint) {
+  fmtHint = fmtHint || '';
+  return fmtHint + 'Eres un especialista en revisión de pagarés para PROAKTIVA, empresa financiera mexicana.\n\n'
     + 'Analiza PUNTO 7 y PUNTO 9:\n\n'
     + 'PUNTO 7 — Amortizaciones:\n'
     + '- El pagaré declara un rango de amortizaciones (ej: "del 1 al 1", "del 1 al 12").\n'
@@ -1178,7 +1209,7 @@ function buildPromptAmort(C, P, E) {
     + '=== CONTRATO ===\n' + C + '\n\n=== PAGARÉ ===\n' + P + '\n\n=== CARÁTULA EXCEL ===\n' + E;
 }
 
-function buildPromptResumen(C, P, E, today) {
+function buildPromptResumen(C, P, E, today, fmtHint) {
   return 'Eres un abogado senior especialista en crédito empresarial mexicano de PROAKTIVA.\n'
     + 'Hoy es: ' + today + '\n\n'
     + 'Revisa el PAGARÉ completo contra el CONTRATO y la CARÁTULA EXCEL. Genera un dictamen ejecutivo final.\n\n'
@@ -1307,7 +1338,8 @@ function resetAll() {
   document.querySelectorAll('.report-card').forEach(function(c,i){ c.classList.toggle('visible', i===0); });
 }
 
-</script>
+
+} catch(e) { console.error('Pagare script error:', e); }</script>
 
 <!-- Portal navigation -->
 <script>
@@ -1523,26 +1555,32 @@ function AforoApp() {
       const ctx = cvs.getContext("2d");
       ctx.drawImage(imgEl, 0, 0, 300, 100);
       const pngData = cvs.toDataURL("image/png");
-      doc.addImage(pngData, "PNG", margin, 20, 65, 22);
+      // Draw logo preserving aspect ratio, left-aligned, no deformation
+      const logoW = 72, logoH = 24;
+      doc.addImage(pngData, "PNG", margin - 3, 19, logoW, logoH);
     } catch(e) { console.log("logo err", e); }
 
-    // Title box
+    // Title box + fecha inside same blue rect
+    const titleX = margin + 70;
+    const titleBoxW = W - titleX - 0; // stretch to full right edge
     doc.setFillColor(13, 71, 161);
-    doc.rect(margin + 65, 20, col - 65, 10, "F");
+    doc.rect(titleX, 19, titleBoxW, 24, "F");
+
+    // CALCULO DE AFORO title
     doc.setFontSize(12);
     doc.setTextColor(255,255,255);
     doc.setFont("helvetica", "bold");
-    doc.text("CÁLCULO DE AFORO", margin + 65 + (col - 65) / 2, 26.5, { align: "center" });
+    doc.text("CÁLCULO DE AFORO", titleX + (titleBoxW * 0.5), 28, { align: "center" });
 
-    // Date
-    doc.setFontSize(9);
-    doc.setTextColor(80,80,80);
+    // FECHA label + value — white, inside blue box top-right
+    doc.setFontSize(8);
     doc.setFont("helvetica", "normal");
-    doc.text("FECHA", W - margin, 22, { align: "right" });
+    doc.text("FECHA", W - margin - 2, 23, { align: "right" });
     doc.setFont("helvetica", "bold");
-    doc.text(today, W - margin, 27, { align: "right" });
+    doc.setFontSize(9);
+    doc.text(today, W - margin - 2, 29, { align: "right" });
 
-    y = 44;
+    y = 48;
 
     // Acreditado + resultado top row
     doc.setDrawColor(180,180,180);
@@ -1643,10 +1681,10 @@ function AforoApp() {
     doc.setFont("helvetica", "bold");
     doc.setFontSize(10);
     doc.setTextColor(180, 0, 0);
-    doc.text("Valor de garantía recomendada", W - margin - 70, y);
+    doc.text("Valor de garantía recomendada", margin, y);
     doc.text(montoNum > 0 ? formatMXN(granTotal) : "—", W - margin, y, { align: "right" });
     doc.setTextColor(30, 30, 30);
-    y += 6;
+    y += 7;
 
     // Monto prestable si hay valor garantia
     if (valorGarantiaNum > 0) {
@@ -1905,9 +1943,16 @@ function AforoApp() {
   );
 }
 
-const afoContainer = document.getElementById('aforo-root');
-if (afoContainer) {
-  ReactDOM.createRoot(afoContainer).render(React.createElement(AforoApp));
+function mountAforo() {
+  const afoContainer = document.getElementById('aforo-root');
+  if (afoContainer && window.ReactDOM) {
+    ReactDOM.createRoot(afoContainer).render(React.createElement(AforoApp));
+  }
+}
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', mountAforo);
+} else {
+  mountAforo();
 }
 </script>
 
