@@ -622,8 +622,10 @@ function buildPromptAmort(C, P, E, fmtHint) {
     + '- El Excel puede tener varias pestañas y múltiples créditos activos.\n'
     + '- Identifica la tabla correcta en el Excel usando: monto del pagaré, No. de contrato y fechas.\n'
     + '- Una vez identificada, coteja CADA fila: número de pago, fecha de vencimiento, importe.\n'
-    + '- Si el pagaré tiene su propia tabla, compárala también contra el Excel.\n'
-    + '- Reporta cualquier diferencia de montos o fechas como error.\n'
+    + '- IMPORTANTE: Los montos en la carátula Excel ESTÁN EN MILES. Esto significa que si el Excel muestra $1.00, equivale a $1,000 en el pagaré. Si el Excel muestra $500.00, equivale a $500,000 en el pagaré. SIEMPRE multiplica por 1,000 los valores del Excel antes de compararlos con el pagaré.\n'
+    + '- Ejemplo: Pagaré dice $50,000 → en Excel debe aparecer $50.00. Si coincide al multiplicar por 1,000: es correcto, no es error.\n'
+    + '- Si el pagaré tiene su propia tabla, compárala también contra el Excel aplicando la misma conversión.\n'
+    + '- Reporta cualquier diferencia de montos o fechas como error, ya considerando la conversión de miles.\n'
     + '- Si el monto del pagaré es MENOR al monto total del contrato: NO lo marques como error. Márcalo como OBSERVACIÓN IMPORTANTE indicando que es una disposición parcial, que pueden existir otros pagarés que juntos sumen el total del contrato, y muestra el porcentaje utilizado y el saldo restante disponible.\n'
     + '- Si el tipo de crédito es "Cuenta Corriente", "Habilitación", "Avío" o similar: estos créditos NO llevan tabla de amortización en Excel, no la exijas ni la busques. En cambio, extrae y muestra como COMENTARIO la tabla de amortización que trae el propio pagaré (número de pago, fecha de vencimiento, importe), a modo de recordatorio visual para quien revisa.\n'
     + '- Si no se proporcionó Excel, indicarlo como comentario.\n\n'
@@ -1225,8 +1227,10 @@ function buildPromptAmort(C, P, E, fmtHint) {
     + '- El Excel puede tener varias pestañas y múltiples créditos activos.\n'
     + '- Identifica la tabla correcta en el Excel usando: monto del pagaré, No. de contrato y fechas.\n'
     + '- Una vez identificada, coteja CADA fila: número de pago, fecha de vencimiento, importe.\n'
-    + '- Si el pagaré tiene su propia tabla, compárala también contra el Excel.\n'
-    + '- Reporta cualquier diferencia de montos o fechas como error.\n'
+    + '- IMPORTANTE: Los montos en la carátula Excel ESTÁN EN MILES. Esto significa que si el Excel muestra $1.00, equivale a $1,000 en el pagaré. Si el Excel muestra $500.00, equivale a $500,000 en el pagaré. SIEMPRE multiplica por 1,000 los valores del Excel antes de compararlos con el pagaré.\n'
+    + '- Ejemplo: Pagaré dice $50,000 → en Excel debe aparecer $50.00. Si coincide al multiplicar por 1,000: es correcto, no es error.\n'
+    + '- Si el pagaré tiene su propia tabla, compárala también contra el Excel aplicando la misma conversión.\n'
+    + '- Reporta cualquier diferencia de montos o fechas como error, ya considerando la conversión de miles.\n'
     + '- Si el monto del pagaré es MENOR al monto total del contrato: NO lo marques como error. Márcalo como OBSERVACIÓN IMPORTANTE indicando que es una disposición parcial, que pueden existir otros pagarés que juntos sumen el total del contrato, y muestra el porcentaje utilizado y el saldo restante disponible.\n'
     + '- Si el tipo de crédito es "Cuenta Corriente", "Habilitación", "Avío" o similar: estos créditos NO llevan tabla de amortización en Excel, no la exijas ni la busques. En cambio, extrae y muestra como COMENTARIO la tabla de amortización que trae el propio pagaré (número de pago, fecha de vencimiento, importe), a modo de recordatorio visual para quien revisa.\n'
     + '- Si no se proporcionó Excel, indicarlo como comentario.\n\n'
@@ -1374,6 +1378,10 @@ function showPanel(name) {
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
   document.getElementById('panel-' + name).classList.add('active');
   document.getElementById('nav-' + name).classList.add('active');
+  // Reset aforo when leaving it
+  if (name !== 'aforo' && window.__resetAforo) {
+    window.__resetAforo();
+  }
 }
 </script>
 
@@ -1508,6 +1516,20 @@ function AforoApp() {
   const [convenioMediacion, setConvenioMediacion] = useState(false);
 
   const montoNum = parseFloat(monto.replace(/,/g, "")) || 0;
+
+  const resetForm = () => {
+    setNombre(""); setMonto(""); setValorGarantia("");
+    setCalidadKey(null); setGiroKey(null); setPlazoKey(null);
+    setUbicacionKey(null); setTipoBienGrupo(null); setTipoBienKey(null);
+    setContratacionKey(null); setIsrKey("pm");
+    setSeguroVida(false); setExpCrediticia(false);
+    setEdificacion(null); setDerechosAgua(null); setConvenioMediacion(false);
+  };
+
+  React.useEffect(() => {
+    window.__resetAforo = resetForm;
+    return () => { window.__resetAforo = null; };
+  }, []);
   const valorGarantiaNum = parseFloat(valorGarantia.replace(/,/g, "")) || 0;
 
   const getSelected = (arr, key) => arr.find(o => (o.key || o.label) === key) || null;
