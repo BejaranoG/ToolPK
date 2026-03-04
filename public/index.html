@@ -193,7 +193,7 @@ html, body { height: 100%; font-family: "IBM Plex Sans", sans-serif; color: var(
       <span class="nav-badge">IA</span>
     </div>
     <div class="nav-item" id="nav-aforo" onclick="showPanel('aforo')">
-      <div class="nav-icon">🏠</div>
+      <div class="nav-icon">🏦</div>
       <span>Aforo de Garantía</span>
     </div>
 
@@ -567,7 +567,7 @@ function buildPromptDatos(C, P, today, fmtHint) {
     + '- Verifica que el monto en LETRA esté escrito correctamente y coincida con el número.\n\n'
     + 'PUNTO 6 — Tasa de interés ordinaria:\n'
     + '- Verifica ÚNICAMENTE que la tasa de interés ORDINARIA esté escrita correctamente en letra y que coincida con el número.\n'
-    + '- NO revises ni menciones la tasa moratoria — esta ya está predefinida y no requiere revisión.\n'
+    + '- PROHIBIDO ABSOLUTO: NO generes ningún finding, error, warning, urgente ni comentario relacionado con la tasa moratoria, intereses moratorios, texto truncado en sección moratoria, ni documento incompleto en esa sección. La tasa moratoria está predefinida institucionalmente y NO se revisa bajo ninguna circunstancia.\n'
     + '- NO revises ni menciones la periodicidad de los intereses (mensual, trimestral, etc.).\n\n'
     + 'PUNTO 8 — Fecha y número de páginas:\n'
     + '- Extrae la fecha de suscripción del pagaré y determina qué día de la semana es.\n'
@@ -1170,7 +1170,7 @@ function buildPromptDatos(C, P, today, fmtHint) {
     + '- Verifica que el monto en LETRA esté escrito correctamente y coincida con el número.\n\n'
     + 'PUNTO 6 — Tasa de interés ordinaria:\n'
     + '- Verifica ÚNICAMENTE que la tasa de interés ORDINARIA esté escrita correctamente en letra y que coincida con el número.\n'
-    + '- NO revises ni menciones la tasa moratoria — esta ya está predefinida y no requiere revisión.\n'
+    + '- PROHIBIDO ABSOLUTO: NO generes ningún finding, error, warning, urgente ni comentario relacionado con la tasa moratoria, intereses moratorios, texto truncado en sección moratoria, ni documento incompleto en esa sección. La tasa moratoria está predefinida institucionalmente y NO se revisa bajo ninguna circunstancia.\n'
     + '- NO revises ni menciones la periodicidad de los intereses (mensual, trimestral, etc.).\n\n'
     + 'PUNTO 8 — Fecha y número de páginas:\n'
     + '- Extrae la fecha de suscripción del pagaré y determina qué día de la semana es.\n'
