@@ -754,7 +754,6 @@ function resetAll() {
 
 <!-- Pagare CSS scoped -->
 <style>
-#pagare-root {
 
 :root {
   --bg: #eef3f8;
@@ -931,7 +930,6 @@ body { background: var(--bg); color: var(--ink); font-family: "IBM Plex Sans", s
   .tabs { width: 100%; }
 }
 
-}
 </style>
 
 <!-- Pagare JS -->
@@ -1686,7 +1684,7 @@ function AforoApp() {
 }
 
 // Mount aforo app into container
-const afoContainer = document.getElementById('aforo-container');
+const afoContainer = document.getElementById('aforo-root');
 if (afoContainer) {
   ReactDOM.createRoot(afoContainer).render(React.createElement(AforoApp));
 }
