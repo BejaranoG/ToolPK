@@ -1,1 +1,1697 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ToolsPK — Proaktiva</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 
+<!-- Pagare dependencies -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+<!-- React for Aforo -->
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+<style>
+/* ═══════════════════════════════════════════════════
+   PORTAL TOOLSPK — ESTILOS GLOBALES
+═══════════════════════════════════════════════════ */
+:root {
+  --dark: #0a1520;
+  --dark2: #0f1e2e;
+  --blue: #0e5fa8;
+  --blue2: #1a7dd4;
+  --blue3: #3a9de8;
+  --gold: #c9922a;
+  --surface: #ffffff;
+  --surface2: #f4f7fb;
+  --border: #dce5f0;
+  --ink: #1a2b3c;
+  --muted: #6a85a0;
+  --radius: 16px;
+  --shadow: 0 4px 20px rgba(14,95,168,0.1);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; font-family: "IBM Plex Sans", sans-serif; color: var(--ink); overflow: hidden; }
+
+/* ── LAYOUT ── */
+#app { display: flex; height: 100vh; }
+
+/* ── SIDEBAR ── */
+.sidebar {
+  width: 240px; min-width: 240px;
+  background: var(--dark);
+  display: flex; flex-direction: column;
+  height: 100vh; overflow-y: auto;
+}
+.sidebar-logo {
+  padding: 24px 20px 16px;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+.sidebar-logo-name {
+  font-family: "Playfair Display", serif;
+  font-size: 20px; color: white;
+  display: flex; align-items: center; gap: 10px;
+}
+.sidebar-logo-mark {
+  width: 32px; height: 32px;
+  background: linear-gradient(135deg, var(--blue), var(--blue3));
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 15px; color: white; font-weight: 700;
+  font-family: "Playfair Display", serif;
+  flex-shrink: 0;
+}
+.sidebar-logo-sub {
+  font-size: 10px; color: rgba(255,255,255,0.3);
+  letter-spacing: 1.5px; text-transform: uppercase; margin-top: 3px;
+}
+.sidebar-section {
+  padding: 18px 16px 6px;
+  font-size: 10px; letter-spacing: 2px; text-transform: uppercase;
+  color: rgba(255,255,255,0.25); font-weight: 500;
+}
+.nav-item {
+  display: flex; align-items: center; gap: 11px;
+  padding: 10px 14px; margin: 2px 8px;
+  border-radius: 10px; cursor: pointer;
+  transition: all 0.15s; color: rgba(255,255,255,0.5);
+  font-size: 13px; border: 1px solid transparent;
+}
+.nav-item:hover { background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.85); }
+.nav-item.active { background: rgba(14,95,168,0.25); border-color: rgba(14,95,168,0.4); color: white; }
+.nav-icon {
+  width: 30px; height: 30px; border-radius: 7px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 15px; background: rgba(255,255,255,0.07); flex-shrink: 0;
+}
+.nav-item.active .nav-icon { background: rgba(14,95,168,0.4); }
+.nav-badge {
+  font-size: 10px; padding: 2px 6px; border-radius: 10px;
+  background: rgba(14,95,168,0.3); color: var(--blue3); font-weight: 600;
+  margin-left: auto;
+}
+.sidebar-spacer { flex: 1; }
+.sidebar-footer {
+  padding: 14px 16px;
+  border-top: 1px solid rgba(255,255,255,0.08);
+  font-size: 10px; color: rgba(255,255,255,0.2);
+  letter-spacing: 0.5px;
+}
+
+/* ── MAIN CONTENT ── */
+.main-content { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+.panel { display: none; flex: 1; flex-direction: column; overflow: hidden; }
+.panel.active { display: flex; }
+.panel-scroll { flex: 1; overflow-y: auto; }
+
+/* ── HOME ── */
+.home-header {
+  background: linear-gradient(105deg, var(--dark) 0%, #0e3a6a 60%, #1a5fa8 100%);
+  padding: 44px 44px 52px; position: relative; overflow: hidden;
+}
+.home-header::after {
+  content: ''; position: absolute; right: -60px; top: -60px;
+  width: 280px; height: 280px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(14,95,168,0.3) 0%, transparent 70%);
+}
+.home-header-content { position: relative; z-index: 1; }
+.home-greeting { font-size: 11px; color: rgba(255,255,255,0.45); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 10px; }
+.home-title { font-family: "Playfair Display", serif; font-size: 32px; color: white; font-weight: 400; line-height: 1.2; margin-bottom: 8px; }
+.home-sub { font-size: 13px; color: rgba(255,255,255,0.45); }
+.tools-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 22px; padding: 36px 44px; }
+.tool-card {
+  background: white; border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 28px;
+  cursor: pointer; transition: all 0.2s; box-shadow: var(--shadow);
+  position: relative; overflow: hidden;
+}
+.tool-card::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+  background: linear-gradient(90deg, var(--blue), var(--blue3)); opacity: 0; transition: opacity 0.2s;
+}
+.tool-card:hover { transform: translateY(-3px); box-shadow: 0 12px 40px rgba(14,95,168,0.15); border-color: var(--blue3); }
+.tool-card:hover::before { opacity: 1; }
+.tool-card-icon { width: 52px; height: 52px; border-radius: 13px; display: flex; align-items: center; justify-content: center; font-size: 24px; margin-bottom: 18px; }
+.tool-card-icon.blue { background: linear-gradient(135deg, #e8f2fc, #d0e8f8); }
+.tool-card-icon.gold { background: linear-gradient(135deg, #fef5e7, #fde9c0); }
+.tool-card-name { font-family: "Playfair Display", serif; font-size: 18px; color: var(--ink); margin-bottom: 8px; }
+.tool-card-desc { font-size: 13px; color: var(--muted); line-height: 1.7; margin-bottom: 18px; }
+.tool-card-tag { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 600; padding: 4px 10px; border-radius: 20px; }
+.tool-card-tag.ai { background: #e8f2fc; color: var(--blue); }
+.tool-card-tag.calc { background: #fef5e7; color: var(--gold); }
+.tool-card-arrow { position: absolute; bottom: 22px; right: 22px; width: 30px; height: 30px; border-radius: 50%; background: var(--surface2); display: flex; align-items: center; justify-content: center; font-size: 13px; color: var(--muted); transition: all 0.2s; }
+.tool-card:hover .tool-card-arrow { background: var(--blue); color: white; }
+
+/* ── TOOL HEADER BAR ── */
+.tool-header {
+  background: white; border-bottom: 1px solid var(--border);
+  padding: 14px 28px; display: flex; align-items: center; gap: 14px;
+  flex-shrink: 0;
+}
+.back-btn {
+  display: flex; align-items: center; gap: 5px;
+  padding: 6px 13px; border: 1px solid var(--border);
+  border-radius: 8px; background: none; cursor: pointer;
+  font-size: 12px; color: var(--muted);
+  font-family: "IBM Plex Sans", sans-serif; transition: all 0.15s;
+}
+.back-btn:hover { background: var(--surface2); color: var(--ink); }
+.tool-header-title { font-family: "Playfair Display", serif; font-size: 17px; color: var(--ink); }
+
+/* ── PAGARE TOOL WRAPPER ── */
+#panel-pagare .panel-scroll { background: #eef3f8; }
+
+/* ── AFORO TOOL WRAPPER ── */
+#panel-aforo .panel-scroll { background: #f5f2ed; }
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- ═══════════ SIDEBAR ═══════════ -->
+  <nav class="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-name">
+        <div class="sidebar-logo-mark">T</div>
+        ToolsPK
+      </div>
+      <div class="sidebar-logo-sub">Proaktiva</div>
+    </div>
+
+    <div class="sidebar-section">Herramientas</div>
+
+    <div class="nav-item active" id="nav-home" onclick="showPanel('home')">
+      <div class="nav-icon">🏠</div>
+      <span>Inicio</span>
+    </div>
+    <div class="nav-item" id="nav-pagare" onclick="showPanel('pagare')">
+      <div class="nav-icon">📋</div>
+      <span>Revisión de Pagarés</span>
+      <span class="nav-badge">IA</span>
+    </div>
+    <div class="nav-item" id="nav-aforo" onclick="showPanel('aforo')">
+      <div class="nav-icon">🏠</div>
+      <span>Aforo de Garantía</span>
+    </div>
+
+    <div class="sidebar-spacer"></div>
+    <div class="sidebar-footer">ToolsPK v1.0 · Proaktiva</div>
+  </nav>
+
+  <!-- ═══════════ MAIN ═══════════ -->
+  <div class="main-content">
+
+    <!-- HOME -->
+    <div class="panel active" id="panel-home">
+      <div class="panel-scroll">
+        <div class="home-header">
+          <div class="home-header-content">
+            <div class="home-greeting">Proaktiva SAPI de CV, SOFOM, ENR</div>
+            <div class="home-title">Portal de Herramientas<br>Internas</div>
+            <div class="home-sub">Selecciona una herramienta para comenzar.</div>
+          </div>
+        </div>
+        <div class="tools-grid">
+          <div class="tool-card" onclick="showPanel('pagare')">
+            <div class="tool-card-icon blue">📋</div>
+            <div class="tool-card-name">Revisión de Pagarés</div>
+            <div class="tool-card-desc">Analiza pagarés contra contratos y carátulas Excel con IA. Detecta errores en 10 puntos clave de validación.</div>
+            <div class="tool-card-tag ai">✦ Powered by IA</div>
+            <div class="tool-card-arrow">→</div>
+          </div>
+          <div class="tool-card" onclick="showPanel('aforo')">
+            <div class="tool-card-icon gold">🏠</div>
+            <div class="tool-card-name">Aforo de Garantía</div>
+            <div class="tool-card-desc">Calcula el aforo requerido para una garantía hipotecaria según las políticas de Proaktiva. Resultado en tiempo real.</div>
+            <div class="tool-card-tag calc">⚡ Cálculo instantáneo</div>
+            <div class="tool-card-arrow">→</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PAGARE -->
+    <div class="panel" id="panel-pagare">
+      <div class="tool-header">
+        <button class="back-btn" onclick="showPanel('home')">← Volver</button>
+        <span class="tool-header-title">Revisión de Pagarés</span>
+      </div>
+      <div class="panel-scroll">
+        <div id="pagare-root">
+<div class="header">
+  <img class="header-logo" src="data:image/webp;base64,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" alt="Proaktiva">
+  <div class="header-center">
+    <h1>Revisión de Pagarés</h1>
+    <p>Gerardo Bejarano · Powered by Claude</p>
+  </div>
+  <div class="header-badge">v3.0 · IA</div>
+</div>
+
+<div class="main">
+
+  <h2 class="upload-title">Carga los documentos</h2>
+  <p class="upload-subtitle">Sube los tres documentos. La IA realizará una revisión minuciosa en base a los 10 puntos clave del pagaré.</p>
+
+  <div class="upload-grid">
+    <!-- Contrato -->
+    <div class="upload-card" id="card-contrato">
+      <input type="file" id="inp-contrato" accept=".pdf,.docx,.doc" onchange="handleFile('contrato',this)">
+      <span class="icon">📑</span>
+      <h3>Contrato</h3>
+      <p>Documento base con todos los términos del crédito</p>
+      <span class="fmt" id="fmt-contrato">PDF o DOCX</span>
+      <div class="file-name" id="fn-contrato"></div>
+      <div class="remove-btn" id="rm-contrato" onclick="removeFile('contrato',event)">✕ Quitar</div>
+    </div>
+    <!-- Pagaré -->
+    <div class="upload-card" id="card-pagare">
+      <input type="file" id="inp-pagare" accept=".docx,.doc" onchange="handleFile('pagare',this)">
+      <span class="icon">📄</span>
+      <h3>Pagaré</h3>
+      <p>Documento Word a revisar y cotejar contra contrato</p>
+      <span class="fmt" id="fmt-pagare">DOCX</span>
+      <div class="file-name" id="fn-pagare"></div>
+      <div class="remove-btn" id="rm-pagare" onclick="removeFile('pagare',event)">✕ Quitar</div>
+    </div>
+    <!-- Carátula Excel -->
+    <div class="upload-card" id="card-excel">
+      <input type="file" id="inp-excel" accept=".xlsx,.xls" onchange="handleFile('excel',this)">
+      <span class="icon">📊</span>
+      <h3>Carátula Excel</h3>
+      <p>Tabla de amortización del crédito (varias pestañas)</p>
+      <span class="fmt" id="fmt-excel">XLSX / XLS</span>
+      <div class="file-name" id="fn-excel"></div>
+      <div class="remove-btn" id="rm-excel" onclick="removeFile('excel',event)">✕ Quitar</div>
+    </div>
+  </div>
+
+  <div class="analyze-wrap">
+    <button class="btn-analyze" id="btn-analyze" onclick="startAnalysis()" disabled>
+      <div class="pulse"></div>
+      Analizar con IA
+    </button>
+  </div>
+
+  <!-- PROGRESS -->
+  <div class="progress-wrap" id="progress-wrap">
+    <div class="progress-label" id="progress-label">Iniciando análisis...</div>
+    <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+  </div>
+
+  <!-- RESULTS -->
+  <div class="results-wrap" id="results-wrap">
+
+    <div class="score-row">
+      <div class="score-card c-err"><div class="num" id="cnt-err">0</div><div class="lbl">Errores</div></div>
+      <div class="score-card c-warn"><div class="num" id="cnt-warn">0</div><div class="lbl">Advertencias</div></div>
+      <div class="score-card c-info"><div class="num" id="cnt-info">0</div><div class="lbl">Comentarios</div></div>
+      <div class="score-card c-ok"><div class="num" id="cnt-ok">—</div><div class="lbl">Calificación</div></div>
+    </div>
+
+    <div class="tabs">
+      <div class="tab active" onclick="setTab('datos',this)">📋 Datos del pagaré</div>
+      <div class="tab" onclick="setTab('partes',this)">👤 Partes y firmas</div>
+      <div class="tab" onclick="setTab('amort',this)">📊 Amortizaciones</div>
+      <div class="tab" onclick="setTab('resumen',this)">🏁 Dictamen final</div>
+    </div>
+
+    <!-- TAB: Datos del pagaré (puntos 1-6, 8) -->
+    <div class="report-card visible" id="sec-datos">
+      <div class="rcard-header">
+        <div class="rcard-icon" style="background:#fdf0ee">📋</div>
+        <div><h3>Datos del pagaré</h3><p>No. contrato, tipo de crédito, montos, domicilio, tasa, fecha y páginas</p></div>
+      </div>
+      <div class="rcard-body" id="body-datos"><div style="color:var(--muted);text-align:center;padding:20px;font-size:13px">Esperando análisis...</div></div>
+    </div>
+
+    <!-- TAB: Partes y firmas (punto 3, 10) -->
+    <div class="report-card" id="sec-partes">
+      <div class="rcard-header">
+        <div class="rcard-icon" style="background:#eaf3fc">👤</div>
+        <div><h3>Partes y firmas</h3><p>Suscriptor, representante legal, avales y obligados solidarios vs contrato</p></div>
+      </div>
+      <div class="rcard-body" id="body-partes"><div style="color:var(--muted);text-align:center;padding:20px;font-size:13px">Esperando análisis...</div></div>
+    </div>
+
+    <!-- TAB: Amortizaciones (puntos 7, 9) -->
+    <div class="report-card" id="sec-amort">
+      <div class="rcard-header">
+        <div class="rcard-icon" style="background:#eaf7f0">📊</div>
+        <div><h3>Tabla de amortizaciones</h3><p>Cotejo del pagaré vs carátula Excel — montos, fechas y número de pagos</p></div>
+      </div>
+      <div class="rcard-body" id="body-amort"><div style="color:var(--muted);text-align:center;padding:20px;font-size:13px">Esperando análisis...</div></div>
+    </div>
+
+    <!-- TAB: Dictamen -->
+    <div class="report-card" id="sec-resumen">
+      <div class="rcard-header">
+        <div class="rcard-icon" style="background:#fdf6e3">🏁</div>
+        <div><h3>Dictamen final</h3><p>Veredicto general, puntos críticos y recomendaciones</p></div>
+      </div>
+      <div class="rcard-body" id="body-resumen"><div style="color:var(--muted);text-align:center;padding:20px;font-size:13px">Esperando análisis...</div></div>
+    </div>
+
+    <div class="reset-row"><button class="btn-reset" onclick="resetAll()">← Nuevo análisis</button></div>
+  </div>
+
+</div><!-- /main -->
+
+<script>
+// ── STATE ──────────────────────────────────────────────────────────────────
+var docs = { contrato: null, pagare: null, excel: null };
+
+// ── FILE LOADING ───────────────────────────────────────────────────────────
+async function handleFile(type, input) {
+  var file = input.files[0];
+  if (!file) return;
+  var card = document.getElementById('card-' + type);
+  var fn   = document.getElementById('fn-' + type);
+  card.classList.remove('loaded');
+  fn.textContent = '⏳ Leyendo...';
+  try {
+    var text = '';
+    if (type === 'contrato') {
+      if (file.name.endsWith('.pdf')) text = await readPdf(file);
+      else text = await readDocx(file);
+    } else if (type === 'pagare') {
+      text = await readDocx(file);
+    } else if (type === 'excel') {
+      text = await readExcel(file);
+    }
+    docs[type] = { name: file.name, text: text };
+    card.classList.add('loaded');
+    fn.textContent = file.name;
+    document.getElementById('fmt-' + type).textContent = '✓ Cargado';
+  } catch(e) {
+    fn.textContent = '⚠️ Error: ' + e.message;
+  }
+  checkReady();
+}
+
+async function readDocx(file) {
+  var ab = await file.arrayBuffer();
+  var r  = await mammoth.extractRawText({ arrayBuffer: ab });
+  return r.value.trim() || '[Sin texto]';
+}
+
+async function readPdf(file) {
+  if (!window.pdfjsLib) {
+    await loadScript('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js');
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  }
+  var ab  = await file.arrayBuffer();
+  var pdf = await pdfjsLib.getDocument({ data: ab }).promise;
+  var out = '';
+  for (var i = 1; i <= Math.min(pdf.numPages, 50); i++) {
+    var pg = await pdf.getPage(i);
+    var tc = await pg.getTextContent();
+    out += tc.items.map(function(s){ return s.str; }).join(' ') + '\n';
+  }
+  return out.trim() || '[Sin texto extraíble]';
+}
+
+async function readExcel(file) {
+  var ab = await file.arrayBuffer();
+  var wb = XLSX.read(ab, { type: 'array' });
+  var out = '';
+  wb.SheetNames.forEach(function(name) {
+    var ws  = wb.Sheets[name];
+    var csv = XLSX.utils.sheet_to_csv(ws, { blankrows: false });
+    if (csv.trim().length > 10) {
+      out += '=== PESTAÑA: ' + name + ' ===\n' + csv + '\n\n';
+    }
+  });
+  return out.trim() || '[Excel vacío]';
+}
+
+function loadScript(src) {
+  return new Promise(function(res, rej) {
+    var s = document.createElement('script');
+    s.src = src; s.onload = res; s.onerror = rej;
+    document.head.appendChild(s);
+  });
+}
+
+function removeFile(type, e) {
+  if (e) e.stopPropagation();
+  docs[type] = null;
+  document.getElementById('card-' + type).classList.remove('loaded');
+  document.getElementById('fn-' + type).textContent = '';
+  document.getElementById('inp-' + type).value = '';
+  var fmtMap = { contrato:'PDF o DOCX', pagare:'DOCX', excel:'XLSX / XLS' };
+  document.getElementById('fmt-' + type).textContent = fmtMap[type];
+  checkReady();
+}
+
+function checkReady() {
+  document.getElementById('btn-analyze').disabled = !(docs.contrato && docs.pagare);
+}
+
+// ── TABS ───────────────────────────────────────────────────────────────────
+function setTab(name, el) {
+  document.querySelectorAll('.tab').forEach(function(t){ t.classList.remove('active'); });
+  el.classList.add('active');
+  document.querySelectorAll('.report-card').forEach(function(c){ c.classList.remove('visible'); });
+  document.getElementById('sec-' + name).classList.add('visible');
+}
+
+// ── PROGRESS ───────────────────────────────────────────────────────────────
+function setProgress(pct, label) {
+  document.getElementById('progress-fill').style.width = pct + '%';
+  document.getElementById('progress-label').textContent = label;
+}
+
+function sleep(ms) { return new Promise(function(r){ setTimeout(r, ms); }); }
+
+// ── ANALYSIS ───────────────────────────────────────────────────────────────
+async function startAnalysis() {
+  document.getElementById('btn-analyze').disabled = true;
+  document.getElementById('progress-wrap').classList.add('visible');
+  document.getElementById('results-wrap').classList.remove('visible');
+
+  var C     = docs.contrato.text.substring(0, 75000);
+  var P     = docs.pagare.text.substring(0, 30000);
+  var E     = docs.excel ? docs.excel.text.substring(0, 75000) : 'No se proporcionó carátula Excel.';
+  var today = new Date().toLocaleDateString('es-MX', { day:'2-digit', month:'long', year:'numeric' });
+
+  try {
+    setProgress(15, 'Analizando datos del pagaré (puntos 1, 2, 4, 5, 6 y 8)...');
+    var rDatos = await callAI(buildPromptDatos(C, P, today));
+    renderFindings('body-datos', rDatos.findings);
+    await sleep(3000);
+
+    setProgress(45, 'Revisando partes, firmas y avales (puntos 3 y 10)...');
+    var rPartes = await callAI(buildPromptPartes(C, P));
+    renderFindings('body-partes', rPartes.findings);
+    await sleep(3000);
+
+    setProgress(70, 'Cotejando tabla de amortizaciones (puntos 7 y 9)...');
+    var rAmort = await callAI(buildPromptAmort(C, P, E));
+    renderFindings('body-amort', rAmort.findings);
+    await sleep(3000);
+
+    setProgress(90, 'Generando dictamen final...');
+    var rRes = await callAI(buildPromptResumen(C, P, E, today));
+    renderResumen(rRes);
+
+    var all = (rDatos.findings||[]).concat(rPartes.findings||[]).concat(rAmort.findings||[]);
+    document.getElementById('cnt-err').textContent  = all.filter(function(f){ return f.type==='error'; }).length;
+    document.getElementById('cnt-warn').textContent = all.filter(function(f){ return f.type==='warning'; }).length;
+    document.getElementById('cnt-info').textContent = all.filter(function(f){ return f.type==='info'||f.type==='comment'; }).length;
+    document.getElementById('cnt-ok').textContent   = rRes.grade || '—';
+
+    setProgress(100, '✓ Análisis completado');
+    await sleep(400);
+    document.getElementById('progress-wrap').classList.remove('visible');
+    document.getElementById('results-wrap').classList.add('visible');
+
+  } catch(err) {
+    setProgress(100, '⚠️ Error: ' + err.message);
+    document.getElementById('btn-analyze').disabled = false;
+    console.error(err);
+  }
+}
+
+// ── PROMPTS ────────────────────────────────────────────────────────────────
+function buildPromptDatos(C, P, today) {
+  return 'Eres un especialista en revisión de pagarés para PROAKTIVA, empresa financiera mexicana.\n'
+    + 'Hoy es: ' + today + '\n\n'
+    + 'Analiza el PAGARÉ comparándolo con el CONTRATO en los siguientes puntos. Sé muy minucioso:\n\n'
+    + 'PUNTO 1 — No. de Contrato:\n'
+    + '- Identifica el número de contrato en el encabezado o pie de página del CONTRATO.\n'
+    + '- Verifica que coincida exactamente con el que aparece en el PAGARÉ.\n\n'
+    + 'PUNTO 2 — Tipo de crédito y monto total:\n'
+    + '- Verifica que el tipo de crédito en el pagaré coincida con el contrato.\n'
+    + '- Verifica que el monto en número coincida con el contrato.\n'
+    + '- Verifica que el monto escrito en LETRA sea correcto gramaticalmente y coincida con el número.\n\n'
+    + 'PUNTO 4 — Domicilio del suscriptor:\n'
+    + '- El domicilio del acreditado aparece en el CONTRATO dentro de alguna cláusula que puede llamarse VIGÉSIMA, DOMICILIOS, NOTIFICACIONES o similar (puede ser cualquier cláusula numerada al final del contrato).\n'
+    + '- Busca EXHAUSTIVAMENTE en TODO el texto del contrato cualquier mención de domicilio, dirección o cláusula de notificaciones.\n'
+    + '- Compara el domicilio del pagaré con el domicilio del acreditado encontrado en el contrato de forma ESTRICTA y exacta, incluyendo acentos, puntuación y abreviaciones.\n'
+    + '- Si los domicilios SON IDÉNTICOS o equivalentes: marca como type "ok" — NO uses type "error" ni "warning".\n'
+    + '- Solo marca como type "error" si hay diferencias reales en calle, número, colonia, C.P. o ciudad.\n'
+    + '- Si el texto del contrato está incompleto y no alcanza esa cláusula: type "warning".\n'
+    + '- NO marques como error si simplemente el fragmento del contrato no llega hasta esa cláusula.\n\n'
+    + 'PUNTO 5 — Monto de disposición (monto del pagaré):\n'
+    + '- Este monto puede ser DIFERENTE al monto total del crédito (disposición parcial).\n'
+    + '- Si son diferentes: NO lo marques como error, genera un COMMENT indicando que la disposición es parcial.\n'
+    + '- Verifica que el monto en LETRA esté escrito correctamente y coincida con el número.\n\n'
+    + 'PUNTO 6 — Tasa de interés ordinaria:\n'
+    + '- Verifica ÚNICAMENTE que la tasa de interés ORDINARIA esté escrita correctamente en letra y que coincida con el número.\n'
+    + '- NO revises ni menciones la tasa moratoria — esta ya está predefinida y no requiere revisión.\n'
+    + '- NO revises ni menciones la periodicidad de los intereses (mensual, trimestral, etc.).\n\n'
+    + 'PUNTO 8 — Fecha y número de páginas:\n'
+    + '- Extrae la fecha de suscripción del pagaré y determina qué día de la semana es.\n'
+    + '- Muéstrala como COMENTARIO visible con el formato exacto: "La fecha del pagaré es la del [día de semana] [dd] de [mes] del [año], asegúrate de que sea correcta". NO la marques como error.\n'
+    + '- Verifica que el número de páginas declarado sea coherente.\n\n'
+    + 'PUNTO 8B — Vencimiento del contrato vs fecha de amortización:\n'
+    + '- En el CONTRATO busca EN TODO EL DOCUMENTO:\n'
+    + '  a) La fecha de vencimiento del crédito (cláusulas PLAZO, VIGENCIA, VENCIMIENTO, DÉCIMA CUARTA, DÉCIMA QUINTA, DÉCIMA SEXTA o frases como "el crédito vencerá", "fecha de vencimiento", "plazo del crédito").\n'
+    + '  b) Si existe un plazo máximo por disposición (frases como "plazo máximo de X días", "vencimiento máximo de X días", "cada disposición tendrá un plazo máximo de").\n'
+    + '- Del PAGARÉ extrae la(s) fecha(s) de suscripción y vencimiento de las amortizaciones.\n'
+    + '- VERIFICACIÓN 1 — Plazo máximo por disposición: Si el contrato establece un plazo máximo por disposición (ej: 180 días), calcula los días entre la fecha de suscripción del pagaré y cada fecha de amortización. Si alguna amortización SUPERA ese plazo máximo: marca como DISCREPANCIA URGENTE con el número de días calculado.\n'
+    + '- VERIFICACIÓN 2 — Vencimiento del contrato: Si el contrato tiene fecha de vencimiento general, verifica que NINGUNA amortización sea POSTERIOR a esa fecha. Si alguna amortización vence EN LA MISMA FECHA que el contrato, esto es VÁLIDO y no es error. Solo marca como DISCREPANCIA URGENTE si una amortización vence DESPUÉS (es decir, fecha estrictamente mayor) a la fecha de vencimiento del contrato.\n'
+    + '- Si ambas verificaciones son correctas: marca como OK.\n'
+    + '- Si no se puede localizar la cláusula de vencimiento: indicar como ADVERTENCIA.\n\n'
+    + 'Responde SOLO JSON válido sin markdown:\n'
+    + '{"findings":[{"type":"error|warning|comment|ok","point":"Punto N — Nombre","title":"Descripción corta","detail":"Explicación detallada","quote":"Texto exacto (opcional)"}]}\n\n'
+    + '=== CONTRATO ===\n' + C + '\n\n=== PAGARÉ ===\n' + P;
+}
+
+function buildPromptPartes(C, P) {
+  return 'Eres un especialista en revisión de pagarés para PROAKTIVA, empresa financiera mexicana.\n\n'
+    + 'Analiza PUNTO 3 y PUNTO 10 con máximo detalle:\n\n'
+    + 'PUNTO 3 — Suscriptor (persona moral o física):\n'
+    + '- Determina si el suscriptor es persona MORAL o FÍSICA.\n'
+    + '- Si es persona MORAL: compara el nombre completo de la empresa Y el nombre del representante legal vs contrato de forma ESTRICTA letra por letra. Transcribe exactamente ambas versiones y señala cualquier diferencia, incluyendo letras cambiadas, palabras mal escritas (ej: "Respondabilidad" en lugar de "Responsabilidad"), letras faltantes, letras de más, o palabras en diferente orden. NO asumas que son iguales si no las has comparado carácter por carácter.\n'
+    + '- Si es persona FÍSICA: coteja el nombre completo vs contrato IGNORANDO diferencias de acentos/tildes. Solo reporta error si hay diferencia real en letras, palabras o apellidos.\n\n'
+    + 'PUNTO 10 — Avales, obligados solidarios y coacreditados:\n'
+    + '- Extrae TODOS los nombres de avales/obligados solidarios del PAGARÉ.\n'
+    + '- Para cada uno: busca si está descrito en el CONTRATO.\n'
+    + '- Si NO aparece en contrato: error crítico.\n'
+    + '- Si SÍ aparece: compara el nombre caracter por caracter IGNORANDO únicamente acentos/tildes (ej: "Raúl"="Raul"). SÍ reporta como ERROR si hay diferencias en letras, espacios innecesarios entre caracteres (ej: "FALO M I R" ≠ "FALOMIR"), orden de apellidos o cualquier letra incorrecta.\n'
+    + '- Lista cada persona individualmente con su resultado.\n'
+    + '- IMPORTANTE: Espacios innecesarios dentro de una palabra o apellido son un error tipográfico que debe reportarse.\n\n'
+    + 'Responde SOLO JSON válido sin markdown:\n'
+    + '{"findings":[{"type":"error|warning|comment|ok","point":"Punto 3|Punto 10","title":"Nombre o hallazgo","detail":"Detalle comparando pagaré vs contrato","quote":"Pagaré: X → Contrato: Y"}]}\n\n'
+    + '=== CONTRATO ===\n' + C + '\n\n=== PAGARÉ ===\n' + P;
+}
+
+function buildPromptAmort(C, P, E) {
+  return 'Eres un especialista en revisión de pagarés para PROAKTIVA, empresa financiera mexicana.\n\n'
+    + 'Analiza PUNTO 7 y PUNTO 9:\n\n'
+    + 'PUNTO 7 — Amortizaciones:\n'
+    + '- El pagaré declara un rango de amortizaciones (ej: "del 1 al 1", "del 1 al 12").\n'
+    + '- La TABLA DE AMORTIZACIÓN puede estar en el pagaré Y/O en alguna pestaña del Excel.\n'
+    + '- Extrae el rango declarado en el pagaré.\n'
+    + '- Busca la tabla de amortizaciones en el Excel (puede estar en cualquier pestaña).\n'
+    + '- Verifica que el número de amortizaciones en la tabla coincida con el rango declarado.\n'
+    + '- Si la tabla está en el Excel pero no en el pagaré, esto es NORMAL — indícalo como comentario informativo.\n\n'
+    + 'PUNTO 9 — Cotejo pagaré vs carátula Excel:\n'
+    + '- El Excel puede tener varias pestañas y múltiples créditos activos.\n'
+    + '- Identifica la tabla correcta en el Excel usando: monto del pagaré, No. de contrato y fechas.\n'
+    + '- Una vez identificada, coteja CADA fila: número de pago, fecha de vencimiento, importe.\n'
+    + '- Si el pagaré tiene su propia tabla, compárala también contra el Excel.\n'
+    + '- Reporta cualquier diferencia de montos o fechas como error.\n'
+    + '- Si el monto del pagaré es MENOR al monto total del contrato: NO lo marques como error. Márcalo como OBSERVACIÓN IMPORTANTE indicando que es una disposición parcial, que pueden existir otros pagarés que juntos sumen el total del contrato, y muestra el porcentaje utilizado y el saldo restante disponible.\n'
+    + '- Si el tipo de crédito es "Cuenta Corriente", "Habilitación", "Avío" o similar: estos créditos NO llevan tabla de amortización en Excel, no la exijas ni la busques. En cambio, extrae y muestra como COMENTARIO la tabla de amortización que trae el propio pagaré (número de pago, fecha de vencimiento, importe), a modo de recordatorio visual para quien revisa.\n'
+    + '- Si no se proporcionó Excel, indicarlo como comentario.\n\n'
+    + 'Responde SOLO JSON válido sin markdown:\n'
+    + '{"findings":[{"type":"error|warning|comment|ok","point":"Punto 7|Punto 9","title":"Descripción","detail":"Detalle con números, fechas e importes","quote":"Pagaré: X / Excel: Y"}]}\n\n'
+    + '=== CONTRATO ===\n' + C + '\n\n=== PAGARÉ ===\n' + P + '\n\n=== CARÁTULA EXCEL ===\n' + E;
+}
+
+function buildPromptResumen(C, P, E, today) {
+  return 'Eres un abogado senior especialista en crédito empresarial mexicano de PROAKTIVA.\n'
+    + 'Hoy es: ' + today + '\n\n'
+    + 'Revisa el PAGARÉ completo contra el CONTRATO y la CARÁTULA EXCEL. Genera un dictamen ejecutivo final.\n\n'
+    + 'Responde SOLO JSON válido sin markdown:\n'
+    + '{"grade":"A|B|C|D","verdict":"VÁLIDO|CON OBSERVACIONES|REQUIERE CORRECCIÓN|INVÁLIDO","verdict_color":"green|yellow|orange|red","summary":"Párrafo de 3-5 oraciones","critical":["Acción urgente 1"],"comments":["Comentario 1"],"ok_points":["Punto correcto 1"],"recommendation":"Qué hacer antes de firmar"}\n\n'
+    + '=== CONTRATO ===\n' + C.substring(0,2000) + '\n\n=== PAGARÉ ===\n' + P.substring(0,2000) + '\n\n=== EXCEL ===\n' + E.substring(0,1500);
+}
+
+// ── API CALL ───────────────────────────────────────────────────────────────
+async function callAI(prompt) {
+  var endpoint = '/api/analyze';
+  var headers = { 'Content-Type': 'application/json' };
+
+  var resp = await fetch(endpoint, {
+    method: 'POST',
+    headers: headers,
+    body: JSON.stringify({
+      model: 'claude-haiku-4-5-20251001',
+      max_tokens: 4000,
+      messages: [{ role: 'user', content: prompt }]
+    })
+  });
+
+  var data = await resp.json();
+  if (!resp.ok) throw new Error(data.error ? data.error.message : 'Error API');
+
+  var raw = data.content ? data.content.map(function(c){ return c.text || ''; }).join('') : '{}';
+  return parseJSON(raw);
+}
+
+function parseJSON(raw) {
+  var s = raw.replace(/```json\n?/g,'').replace(/```\n?/g,'').trim();
+  var fb = s.indexOf('{'), lb = s.lastIndexOf('}');
+  if (fb > -1) s = s.substring(fb, lb+1);
+  try { return JSON.parse(s); }
+  catch(e) {
+    var d=0, b=0, inStr=false, esc=false;
+    for (var i=0; i<s.length; i++) {
+      var c = s[i];
+      if (esc) { esc=false; continue; }
+      if (c==='\\' && inStr) { esc=true; continue; }
+      if (c==='"') { inStr=!inStr; continue; }
+      if (!inStr) {
+        if(c==='{') d++; else if(c==='}') d--;
+        else if(c==='[') b++; else if(c===']') b--;
+      }
+    }
+    if (inStr) s+='"';
+    while(b-->0) s+=']';
+    while(d-->0) s+='}';
+    try { return JSON.parse(s); }
+    catch(e2) {
+      return { findings: [{ type:'warning', point:'Sistema', title:'Respuesta incompleta', detail:'La IA generó una respuesta muy extensa. Intenta nuevamente.', quote:'' }] };
+    }
+  }
+}
+
+// ── RENDER ─────────────────────────────────────────────────────────────────
+function renderFindings(bodyId, findings) {
+  if (!findings || findings.length === 0) {
+    document.getElementById(bodyId).innerHTML = '<div class="finding f-ok"><span class="fbadge">OK</span><div class="fcontent"><div class="ftitle">Sin hallazgos</div><div class="fdetail">No se encontraron problemas en esta sección.</div></div></div>';
+    return;
+  }
+  document.getElementById(bodyId).innerHTML = findings.map(function(f) {
+    var pointHtml = f.point ? '<div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.07em;margin-bottom:3px">' + esc(f.point) + '</div>' : '';
+    var quoteHtml = f.quote ? '<div class="fquote">' + esc(f.quote) + '</div>' : '';
+    return '<div class="finding f-' + typeClass(f.type) + '">'
+      + '<span class="fbadge">' + badgeText(f.type) + '</span>'
+      + '<div class="fcontent">'
+      + pointHtml
+      + '<div class="ftitle">' + esc(f.title||'') + '</div>'
+      + '<div class="fdetail">' + esc(f.detail||'') + '</div>'
+      + quoteHtml
+      + '</div></div>';
+  }).join('');
+}
+
+function renderResumen(d) {
+  var colors = { green:'var(--green)', yellow:'var(--yellow)', orange:'var(--orange)', red:'var(--red)' };
+  var col = colors[d.verdict_color] || 'var(--muted)';
+  var html = '<div class="verdict-row">'
+    + '<div class="verdict-grade" style="color:' + col + '">' + esc(d.grade||'—') + '</div>'
+    + '<div class="verdict-text"><h4 style="color:' + col + '">' + esc(d.verdict||'') + '</h4><p>Dictamen del pagaré revisado</p></div>'
+    + '</div>'
+    + '<div class="summary-p">' + esc(d.summary||'') + '</div>';
+
+  if (d.critical && d.critical.length) {
+    d.critical.forEach(function(c) {
+      html += '<div class="finding f-error" style="margin-bottom:8px"><span class="fbadge">URGENTE</span><div class="fcontent"><div class="fdetail">' + esc(c) + '</div></div></div>';
+    });
+  }
+  if (d.comments && d.comments.length) {
+    d.comments.forEach(function(c) {
+      html += '<div class="finding f-comment" style="margin-bottom:8px"><span class="fbadge">NOTA</span><div class="fcontent"><div class="fdetail">' + esc(c) + '</div></div></div>';
+    });
+  }
+  if (d.ok_points && d.ok_points.length) {
+    d.ok_points.forEach(function(c) {
+      html += '<div class="finding f-ok" style="margin-bottom:8px"><span class="fbadge">OK</span><div class="fcontent"><div class="fdetail">' + esc(c) + '</div></div></div>';
+    });
+  }
+  if (d.recommendation) {
+    html += '<div class="finding f-info" style="margin-top:12px"><span class="fbadge">SIGUIENTE PASO</span><div class="fcontent"><div class="fdetail">' + esc(d.recommendation) + '</div></div></div>';
+  }
+  document.getElementById('body-resumen').innerHTML = html;
+}
+
+function typeClass(t) {
+  var m = { error:'error', warning:'warning', comment:'comment', info:'info', ok:'ok' };
+  return m[t] || 'comment';
+}
+function badgeText(t) {
+  var m = { error:'ERROR', warning:'ADVERTENCIA', comment:'COMENTARIO', info:'INFO', ok:'OK' };
+  return m[t] || (t||'NOTA').toUpperCase();
+}
+function esc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function resetAll() {
+  ['contrato','pagare','excel'].forEach(function(t){ removeFile(t, null); });
+  document.getElementById('results-wrap').classList.remove('visible');
+  document.getElementById('progress-wrap').classList.remove('visible');
+  document.getElementById('btn-analyze').disabled = true;
+  document.querySelectorAll('.tab').forEach(function(t,i){ t.classList.toggle('active', i===0); });
+  document.querySelectorAll('.report-card').forEach(function(c,i){ c.classList.toggle('visible', i===0); });
+}
+</script>
+        </div>
+      </div>
+    </div>
+
+    <!-- AFORO -->
+    <div class="panel" id="panel-aforo">
+      <div class="tool-header">
+        <button class="back-btn" onclick="showPanel('home')">← Volver</button>
+        <span class="tool-header-title">Aforo de Garantía</span>
+      </div>
+      <div class="panel-scroll">
+        <div id="aforo-root"></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Pagare CSS scoped -->
+<style>
+#pagare-root {
+
+:root {
+  --bg: #eef3f8;
+  --bg2: #dde8f2;
+  --surface: #ffffff;
+  --border: #bdd0e4;
+  --border2: #a8c0d8;
+  --ink: #1a2b3c;
+  --ink2: #2d4560;
+  --muted: #6a85a0;
+  --blue: #0e5fa8;
+  --blue2: #1e7dd4;
+  --blue-bg: #e8f2fc;
+  --red: #c0392b;
+  --red-bg: #fdf0ee;
+  --green: #1a7a4a;
+  --green-bg: #eaf7f0;
+  --yellow: #b8860b;
+  --yellow-bg: #fefae8;
+  --orange: #d4680a;
+  --orange-bg: #fef3e8;
+  --shadow: 0 2px 12px rgba(14,95,168,0.10);
+  --shadow-lg: 0 8px 32px rgba(14,95,168,0.18);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--bg); color: var(--ink); font-family: "IBM Plex Sans", sans-serif; font-weight: 300; min-height: 100vh; }
+
+/* HEADER */
+.header {
+  background: linear-gradient(105deg, #0a1f35 0%, #0e5fa8 55%, #2882d0 100%);
+  box-shadow: 0 2px 20px rgba(14,95,168,0.3);
+  padding: 0 48px;
+  height: 72px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+.header-logo { height: 44px; filter: brightness(0) invert(1); }
+.header-center { position: absolute; left: 50%; transform: translateX(-50%); text-align: center; }
+.header-center h1 { color: #fff !important; font-size: 15px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; }
+.header-center p { color: #fff !important; font-size: 11px; font-weight: 300; opacity: 0.85; margin-top: 3px; }
+.header-badge { font-size: 11px; color: rgba(255,255,255,0.45); font-family: "IBM Plex Mono", monospace; }
+
+/* MAIN */
+.main { max-width: 1100px; margin: 0 auto; padding: 36px 40px; }
+
+/* UPLOAD SECTION */
+.upload-title { font-family: "Playfair Display", serif; font-size: 26px; font-weight: 400; text-align: center; margin-bottom: 8px; }
+.upload-subtitle { text-align: center; color: var(--muted); font-size: 14px; margin-bottom: 36px; }
+
+.upload-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 28px; }
+
+.upload-card {
+  background: var(--surface);
+  border: 2px dashed var(--border2);
+  border-radius: 14px;
+  padding: 28px 20px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.22s;
+  position: relative;
+  overflow: hidden;
+}
+.upload-card input[type=file] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+.upload-card:hover { border-color: var(--blue2); background: var(--blue-bg); }
+.upload-card.loaded { border-style: solid; border-color: var(--green); background: var(--green-bg); cursor: default; }
+.upload-card.loaded input { pointer-events: none; }
+.upload-card .icon { font-size: 36px; margin-bottom: 12px; display: block; }
+.upload-card h3 { font-size: 15px; font-weight: 500; margin-bottom: 6px; }
+.upload-card p { font-size: 12px; color: var(--muted); line-height: 1.5; }
+.upload-card .fmt { display: inline-block; margin-top: 10px; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-family: "IBM Plex Mono", monospace; background: var(--bg2); border: 1px solid var(--border); color: var(--ink2); }
+.upload-card.loaded .fmt { background: rgba(26,122,74,0.12); border-color: rgba(26,122,74,0.2); color: var(--green); }
+.file-name { font-size: 11px; font-family: "IBM Plex Mono", monospace; color: var(--green); margin-top: 8px; word-break: break-all; }
+.remove-btn { font-size: 11px; color: var(--red); cursor: pointer; text-decoration: underline; margin-top: 6px; display: none; position: relative; z-index: 2; }
+.upload-card.loaded .remove-btn { display: block; }
+
+/* ANALYZE BTN */
+.analyze-wrap { display: flex; justify-content: center; margin-bottom: 40px; }
+.btn-analyze {
+  background: linear-gradient(135deg, #0e5fa8, #1e7dd4);
+  color: #fff; border: none; border-radius: 12px;
+  padding: 15px 52px; font-family: "IBM Plex Sans", sans-serif;
+  font-size: 15px; font-weight: 500; cursor: pointer;
+  transition: all 0.2s; display: flex; align-items: center; gap: 10px;
+  box-shadow: var(--shadow);
+}
+.btn-analyze:hover { background: linear-gradient(135deg, #0a4d8a, #1668b8); transform: translateY(-1px); box-shadow: var(--shadow-lg); }
+.btn-analyze:disabled { background: var(--muted); cursor: not-allowed; transform: none; box-shadow: none; }
+.pulse { width: 8px; height: 8px; border-radius: 50%; background: #7dd4fc; animation: pulse 2s infinite; }
+@keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.4;transform:scale(0.7)} }
+
+/* PROGRESS */
+.progress-wrap { display: none; background: var(--surface); border-radius: 14px; padding: 32px; text-align: center; margin-bottom: 28px; box-shadow: var(--shadow); }
+.progress-wrap.visible { display: block; }
+.progress-label { font-size: 14px; color: var(--ink2); margin-bottom: 14px; }
+.progress-bar { height: 3px; background: var(--bg2); border-radius: 2px; max-width: 380px; margin: 0 auto; overflow: hidden; }
+.progress-fill { height: 100%; background: linear-gradient(90deg, var(--blue), var(--blue2)); width: 0%; transition: width 0.4s; }
+
+/* RESULTS */
+.results-wrap { display: none; }
+.results-wrap.visible { display: block; }
+
+/* SCORE ROW */
+.score-row { display: grid; grid-template-columns: repeat(4,1fr); gap: 16px; margin-bottom: 28px; }
+.score-card { background: var(--surface); border-radius: 12px; padding: 18px 20px; box-shadow: var(--shadow); border-top: 3px solid var(--border); }
+.score-card.c-err { border-top-color: var(--red); }
+.score-card.c-warn { border-top-color: var(--yellow); }
+.score-card.c-info { border-top-color: var(--blue); }
+.score-card.c-ok { border-top-color: var(--green); }
+.score-card .num { font-family: "Playfair Display", serif; font-size: 34px; font-weight: 600; line-height: 1; margin-bottom: 4px; }
+.score-card.c-err .num { color: var(--red); }
+.score-card.c-warn .num { color: var(--yellow); }
+.score-card.c-info .num { color: var(--blue); }
+.score-card.c-ok .num { color: var(--green); }
+.score-card .lbl { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.07em; }
+
+/* TABS */
+.tabs { display: flex; gap: 0; background: var(--surface); border-radius: 10px; padding: 5px; box-shadow: var(--shadow); width: fit-content; margin-bottom: 22px; flex-wrap: wrap; }
+.tab { padding: 8px 16px; border-radius: 7px; font-size: 12px; font-weight: 500; cursor: pointer; color: var(--muted); transition: all 0.18s; white-space: nowrap; }
+.tab:hover { color: var(--ink); }
+.tab.active { background: linear-gradient(135deg, #0e5fa8, #1e7dd4); color: #fff; }
+
+/* REPORT CARDS */
+.report-card { background: var(--surface); border-radius: 14px; margin-bottom: 18px; box-shadow: var(--shadow); overflow: hidden; display: none; }
+.report-card.visible { display: block; }
+.report-card .rcard-header { padding: 18px 22px; border-bottom: 1px solid var(--bg2); display: flex; align-items: center; gap: 12px; }
+.rcard-icon { width: 34px; height: 34px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
+.rcard-header h3 { font-family: "Playfair Display", serif; font-size: 16px; font-weight: 400; }
+.rcard-header p { font-size: 12px; color: var(--muted); margin-top: 2px; }
+.rcard-body { padding: 18px 22px; }
+
+/* FINDINGS */
+.finding { display: flex; gap: 12px; padding: 12px 14px; border-radius: 9px; margin-bottom: 9px; border: 1px solid transparent; }
+.finding:last-child { margin-bottom: 0; }
+.finding.f-error { background: var(--red-bg); border-color: rgba(192,57,43,0.15); }
+.finding.f-warning { background: var(--yellow-bg); border-color: rgba(184,134,11,0.15); }
+.finding.f-info { background: var(--orange-bg); border-color: rgba(212,104,10,0.15); }
+.finding.f-comment { background: var(--blue-bg); border-color: rgba(14,95,168,0.15); }
+.finding.f-ok { background: var(--green-bg); border-color: rgba(26,122,74,0.15); }
+.fbadge { flex-shrink:0; padding: 2px 7px; border-radius: 4px; font-size: 10px; font-weight: 600; letter-spacing: 0.07em; text-transform: uppercase; height: fit-content; margin-top: 2px; font-family: "IBM Plex Mono", monospace; }
+.finding.f-error .fbadge { background: rgba(192,57,43,0.13); color: var(--red); }
+.finding.f-warning .fbadge { background: rgba(184,134,11,0.13); color: var(--yellow); }
+.finding.f-info .fbadge { background: rgba(212,104,10,0.13); color: var(--orange); }
+.finding.f-comment .fbadge { background: rgba(14,95,168,0.13); color: var(--blue); }
+.finding.f-ok .fbadge { background: rgba(26,122,74,0.13); color: var(--green); }
+.fcontent { flex: 1; }
+.ftitle { font-size: 13px; font-weight: 500; margin-bottom: 3px; }
+.fdetail { font-size: 13px; color: var(--ink2); line-height: 1.6; }
+.fquote { font-family: "IBM Plex Mono", monospace; font-size: 11px; background: rgba(0,0,0,0.04); padding: 6px 10px; border-radius: 5px; margin-top: 7px; border-left: 3px solid var(--border2); white-space: pre-wrap; word-break: break-word; }
+
+/* RESUMEN */
+.verdict-row { display: flex; align-items: center; gap: 18px; padding: 18px; background: var(--bg2); border-radius: 10px; margin-bottom: 18px; }
+.verdict-grade { font-family: "Playfair Display", serif; font-size: 52px; font-weight: 600; line-height: 1; }
+.verdict-text h4 { font-size: 17px; font-weight: 600; margin-bottom: 3px; }
+.verdict-text p { font-size: 13px; color: var(--ink2); }
+.summary-p { font-size: 14px; line-height: 1.8; color: var(--ink2); padding: 16px; background: var(--bg2); border-radius: 9px; margin-bottom: 14px; }
+
+/* RESET BTN */
+.reset-row { display: flex; justify-content: center; margin-top: 28px; padding-bottom: 28px; }
+.btn-reset { background: transparent; border: 2px solid var(--border2); color: var(--ink2); border-radius: 9px; padding: 11px 26px; font-family: "IBM Plex Sans", sans-serif; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.18s; }
+.btn-reset:hover { border-color: var(--ink); color: var(--ink); }
+
+::-webkit-scrollbar { width: 5px; } 
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+
+@media(max-width:768px){
+  .main { padding: 20px; }
+  .header { padding: 0 20px; }
+  .upload-grid { grid-template-columns: 1fr; }
+  .score-row { grid-template-columns: repeat(2,1fr); }
+  .tabs { width: 100%; }
+}
+
+}
+</style>
+
+<!-- Pagare JS -->
+<script>
+
+// ── STATE ──────────────────────────────────────────────────────────────────
+var docs = { contrato: null, pagare: null, excel: null };
+
+// ── FILE LOADING ───────────────────────────────────────────────────────────
+async function handleFile(type, input) {
+  var file = input.files[0];
+  if (!file) return;
+  var card = document.getElementById('card-' + type);
+  var fn   = document.getElementById('fn-' + type);
+  card.classList.remove('loaded');
+  fn.textContent = '⏳ Leyendo...';
+  try {
+    var text = '';
+    if (type === 'contrato') {
+      if (file.name.endsWith('.pdf')) text = await readPdf(file);
+      else text = await readDocx(file);
+    } else if (type === 'pagare') {
+      text = await readDocx(file);
+    } else if (type === 'excel') {
+      text = await readExcel(file);
+    }
+    docs[type] = { name: file.name, text: text };
+    card.classList.add('loaded');
+    fn.textContent = file.name;
+    document.getElementById('fmt-' + type).textContent = '✓ Cargado';
+  } catch(e) {
+    fn.textContent = '⚠️ Error: ' + e.message;
+  }
+  checkReady();
+}
+
+async function readDocx(file) {
+  var ab = await file.arrayBuffer();
+  var r  = await mammoth.extractRawText({ arrayBuffer: ab });
+  return r.value.trim() || '[Sin texto]';
+}
+
+async function readPdf(file) {
+  if (!window.pdfjsLib) {
+    await loadScript('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js');
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  }
+  var ab  = await file.arrayBuffer();
+  var pdf = await pdfjsLib.getDocument({ data: ab }).promise;
+  var out = '';
+  for (var i = 1; i <= Math.min(pdf.numPages, 50); i++) {
+    var pg = await pdf.getPage(i);
+    var tc = await pg.getTextContent();
+    out += tc.items.map(function(s){ return s.str; }).join(' ') + '\n';
+  }
+  return out.trim() || '[Sin texto extraíble]';
+}
+
+async function readExcel(file) {
+  var ab = await file.arrayBuffer();
+  var wb = XLSX.read(ab, { type: 'array' });
+  var out = '';
+  wb.SheetNames.forEach(function(name) {
+    var ws  = wb.Sheets[name];
+    var csv = XLSX.utils.sheet_to_csv(ws, { blankrows: false });
+    if (csv.trim().length > 10) {
+      out += '=== PESTAÑA: ' + name + ' ===\n' + csv + '\n\n';
+    }
+  });
+  return out.trim() || '[Excel vacío]';
+}
+
+function loadScript(src) {
+  return new Promise(function(res, rej) {
+    var s = document.createElement('script');
+    s.src = src; s.onload = res; s.onerror = rej;
+    document.head.appendChild(s);
+  });
+}
+
+function removeFile(type, e) {
+  if (e) e.stopPropagation();
+  docs[type] = null;
+  document.getElementById('card-' + type).classList.remove('loaded');
+  document.getElementById('fn-' + type).textContent = '';
+  document.getElementById('inp-' + type).value = '';
+  var fmtMap = { contrato:'PDF o DOCX', pagare:'DOCX', excel:'XLSX / XLS' };
+  document.getElementById('fmt-' + type).textContent = fmtMap[type];
+  checkReady();
+}
+
+function checkReady() {
+  document.getElementById('btn-analyze').disabled = !(docs.contrato && docs.pagare);
+}
+
+// ── TABS ───────────────────────────────────────────────────────────────────
+function setTab(name, el) {
+  document.querySelectorAll('.tab').forEach(function(t){ t.classList.remove('active'); });
+  el.classList.add('active');
+  document.querySelectorAll('.report-card').forEach(function(c){ c.classList.remove('visible'); });
+  document.getElementById('sec-' + name).classList.add('visible');
+}
+
+// ── PROGRESS ───────────────────────────────────────────────────────────────
+function setProgress(pct, label) {
+  document.getElementById('progress-fill').style.width = pct + '%';
+  document.getElementById('progress-label').textContent = label;
+}
+
+function sleep(ms) { return new Promise(function(r){ setTimeout(r, ms); }); }
+
+// ── ANALYSIS ───────────────────────────────────────────────────────────────
+async function startAnalysis() {
+  document.getElementById('btn-analyze').disabled = true;
+  document.getElementById('progress-wrap').classList.add('visible');
+  document.getElementById('results-wrap').classList.remove('visible');
+
+  var C     = docs.contrato.text.substring(0, 75000);
+  var P     = docs.pagare.text.substring(0, 30000);
+  var E     = docs.excel ? docs.excel.text.substring(0, 75000) : 'No se proporcionó carátula Excel.';
+  var today = new Date().toLocaleDateString('es-MX', { day:'2-digit', month:'long', year:'numeric' });
+
+  try {
+    setProgress(15, 'Analizando datos del pagaré (puntos 1, 2, 4, 5, 6 y 8)...');
+    var rDatos = await callAI(buildPromptDatos(C, P, today));
+    renderFindings('body-datos', rDatos.findings);
+    await sleep(3000);
+
+    setProgress(45, 'Revisando partes, firmas y avales (puntos 3 y 10)...');
+    var rPartes = await callAI(buildPromptPartes(C, P));
+    renderFindings('body-partes', rPartes.findings);
+    await sleep(3000);
+
+    setProgress(70, 'Cotejando tabla de amortizaciones (puntos 7 y 9)...');
+    var rAmort = await callAI(buildPromptAmort(C, P, E));
+    renderFindings('body-amort', rAmort.findings);
+    await sleep(3000);
+
+    setProgress(90, 'Generando dictamen final...');
+    var rRes = await callAI(buildPromptResumen(C, P, E, today));
+    renderResumen(rRes);
+
+    var all = (rDatos.findings||[]).concat(rPartes.findings||[]).concat(rAmort.findings||[]);
+    document.getElementById('cnt-err').textContent  = all.filter(function(f){ return f.type==='error'; }).length;
+    document.getElementById('cnt-warn').textContent = all.filter(function(f){ return f.type==='warning'; }).length;
+    document.getElementById('cnt-info').textContent = all.filter(function(f){ return f.type==='info'||f.type==='comment'; }).length;
+    document.getElementById('cnt-ok').textContent   = rRes.grade || '—';
+
+    setProgress(100, '✓ Análisis completado');
+    await sleep(400);
+    document.getElementById('progress-wrap').classList.remove('visible');
+    document.getElementById('results-wrap').classList.add('visible');
+
+  } catch(err) {
+    setProgress(100, '⚠️ Error: ' + err.message);
+    document.getElementById('btn-analyze').disabled = false;
+    console.error(err);
+  }
+}
+
+// ── PROMPTS ────────────────────────────────────────────────────────────────
+function buildPromptDatos(C, P, today) {
+  return 'Eres un especialista en revisión de pagarés para PROAKTIVA, empresa financiera mexicana.\n'
+    + 'Hoy es: ' + today + '\n\n'
+    + 'Analiza el PAGARÉ comparándolo con el CONTRATO en los siguientes puntos. Sé muy minucioso:\n\n'
+    + 'PUNTO 1 — No. de Contrato:\n'
+    + '- Identifica el número de contrato en el encabezado o pie de página del CONTRATO.\n'
+    + '- Verifica que coincida exactamente con el que aparece en el PAGARÉ.\n\n'
+    + 'PUNTO 2 — Tipo de crédito y monto total:\n'
+    + '- Verifica que el tipo de crédito en el pagaré coincida con el contrato.\n'
+    + '- Verifica que el monto en número coincida con el contrato.\n'
+    + '- Verifica que el monto escrito en LETRA sea correcto gramaticalmente y coincida con el número.\n\n'
+    + 'PUNTO 4 — Domicilio del suscriptor:\n'
+    + '- El domicilio del acreditado aparece en el CONTRATO dentro de alguna cláusula que puede llamarse VIGÉSIMA, DOMICILIOS, NOTIFICACIONES o similar (puede ser cualquier cláusula numerada al final del contrato).\n'
+    + '- Busca EXHAUSTIVAMENTE en TODO el texto del contrato cualquier mención de domicilio, dirección o cláusula de notificaciones.\n'
+    + '- Compara el domicilio del pagaré con el domicilio del acreditado encontrado en el contrato de forma ESTRICTA y exacta, incluyendo acentos, puntuación y abreviaciones.\n'
+    + '- Si los domicilios SON IDÉNTICOS o equivalentes: marca como type "ok" — NO uses type "error" ni "warning".\n'
+    + '- Solo marca como type "error" si hay diferencias reales en calle, número, colonia, C.P. o ciudad.\n'
+    + '- Si el texto del contrato está incompleto y no alcanza esa cláusula: type "warning".\n'
+    + '- NO marques como error si simplemente el fragmento del contrato no llega hasta esa cláusula.\n\n'
+    + 'PUNTO 5 — Monto de disposición (monto del pagaré):\n'
+    + '- Este monto puede ser DIFERENTE al monto total del crédito (disposición parcial).\n'
+    + '- Si son diferentes: NO lo marques como error, genera un COMMENT indicando que la disposición es parcial.\n'
+    + '- Verifica que el monto en LETRA esté escrito correctamente y coincida con el número.\n\n'
+    + 'PUNTO 6 — Tasa de interés ordinaria:\n'
+    + '- Verifica ÚNICAMENTE que la tasa de interés ORDINARIA esté escrita correctamente en letra y que coincida con el número.\n'
+    + '- NO revises ni menciones la tasa moratoria — esta ya está predefinida y no requiere revisión.\n'
+    + '- NO revises ni menciones la periodicidad de los intereses (mensual, trimestral, etc.).\n\n'
+    + 'PUNTO 8 — Fecha y número de páginas:\n'
+    + '- Extrae la fecha de suscripción del pagaré y determina qué día de la semana es.\n'
+    + '- Muéstrala como COMENTARIO visible con el formato exacto: "La fecha del pagaré es la del [día de semana] [dd] de [mes] del [año], asegúrate de que sea correcta". NO la marques como error.\n'
+    + '- Verifica que el número de páginas declarado sea coherente.\n\n'
+    + 'PUNTO 8B — Vencimiento del contrato vs fecha de amortización:\n'
+    + '- En el CONTRATO busca EN TODO EL DOCUMENTO:\n'
+    + '  a) La fecha de vencimiento del crédito (cláusulas PLAZO, VIGENCIA, VENCIMIENTO, DÉCIMA CUARTA, DÉCIMA QUINTA, DÉCIMA SEXTA o frases como "el crédito vencerá", "fecha de vencimiento", "plazo del crédito").\n'
+    + '  b) Si existe un plazo máximo por disposición (frases como "plazo máximo de X días", "vencimiento máximo de X días", "cada disposición tendrá un plazo máximo de").\n'
+    + '- Del PAGARÉ extrae la(s) fecha(s) de suscripción y vencimiento de las amortizaciones.\n'
+    + '- VERIFICACIÓN 1 — Plazo máximo por disposición: Si el contrato establece un plazo máximo por disposición (ej: 180 días), calcula los días entre la fecha de suscripción del pagaré y cada fecha de amortización. Si alguna amortización SUPERA ese plazo máximo: marca como DISCREPANCIA URGENTE con el número de días calculado.\n'
+    + '- VERIFICACIÓN 2 — Vencimiento del contrato: Si el contrato tiene fecha de vencimiento general, verifica que NINGUNA amortización sea POSTERIOR a esa fecha. Si alguna amortización vence EN LA MISMA FECHA que el contrato, esto es VÁLIDO y no es error. Solo marca como DISCREPANCIA URGENTE si una amortización vence DESPUÉS (es decir, fecha estrictamente mayor) a la fecha de vencimiento del contrato.\n'
+    + '- Si ambas verificaciones son correctas: marca como OK.\n'
+    + '- Si no se puede localizar la cláusula de vencimiento: indicar como ADVERTENCIA.\n\n'
+    + 'Responde SOLO JSON válido sin markdown:\n'
+    + '{"findings":[{"type":"error|warning|comment|ok","point":"Punto N — Nombre","title":"Descripción corta","detail":"Explicación detallada","quote":"Texto exacto (opcional)"}]}\n\n'
+    + '=== CONTRATO ===\n' + C + '\n\n=== PAGARÉ ===\n' + P;
+}
+
+function buildPromptPartes(C, P) {
+  return 'Eres un especialista en revisión de pagarés para PROAKTIVA, empresa financiera mexicana.\n\n'
+    + 'Analiza PUNTO 3 y PUNTO 10 con máximo detalle:\n\n'
+    + 'PUNTO 3 — Suscriptor (persona moral o física):\n'
+    + '- Determina si el suscriptor es persona MORAL o FÍSICA.\n'
+    + '- Si es persona MORAL: compara el nombre completo de la empresa Y el nombre del representante legal vs contrato de forma ESTRICTA letra por letra. Transcribe exactamente ambas versiones y señala cualquier diferencia, incluyendo letras cambiadas, palabras mal escritas (ej: "Respondabilidad" en lugar de "Responsabilidad"), letras faltantes, letras de más, o palabras en diferente orden. NO asumas que son iguales si no las has comparado carácter por carácter.\n'
+    + '- Si es persona FÍSICA: coteja el nombre completo vs contrato IGNORANDO diferencias de acentos/tildes. Solo reporta error si hay diferencia real en letras, palabras o apellidos.\n\n'
+    + 'PUNTO 10 — Avales, obligados solidarios y coacreditados:\n'
+    + '- Extrae TODOS los nombres de avales/obligados solidarios del PAGARÉ.\n'
+    + '- Para cada uno: busca si está descrito en el CONTRATO.\n'
+    + '- Si NO aparece en contrato: error crítico.\n'
+    + '- Si SÍ aparece: compara el nombre caracter por caracter IGNORANDO únicamente acentos/tildes (ej: "Raúl"="Raul"). SÍ reporta como ERROR si hay diferencias en letras, espacios innecesarios entre caracteres (ej: "FALO M I R" ≠ "FALOMIR"), orden de apellidos o cualquier letra incorrecta.\n'
+    + '- Lista cada persona individualmente con su resultado.\n'
+    + '- IMPORTANTE: Espacios innecesarios dentro de una palabra o apellido son un error tipográfico que debe reportarse.\n\n'
+    + 'Responde SOLO JSON válido sin markdown:\n'
+    + '{"findings":[{"type":"error|warning|comment|ok","point":"Punto 3|Punto 10","title":"Nombre o hallazgo","detail":"Detalle comparando pagaré vs contrato","quote":"Pagaré: X → Contrato: Y"}]}\n\n'
+    + '=== CONTRATO ===\n' + C + '\n\n=== PAGARÉ ===\n' + P;
+}
+
+function buildPromptAmort(C, P, E) {
+  return 'Eres un especialista en revisión de pagarés para PROAKTIVA, empresa financiera mexicana.\n\n'
+    + 'Analiza PUNTO 7 y PUNTO 9:\n\n'
+    + 'PUNTO 7 — Amortizaciones:\n'
+    + '- El pagaré declara un rango de amortizaciones (ej: "del 1 al 1", "del 1 al 12").\n'
+    + '- La TABLA DE AMORTIZACIÓN puede estar en el pagaré Y/O en alguna pestaña del Excel.\n'
+    + '- Extrae el rango declarado en el pagaré.\n'
+    + '- Busca la tabla de amortizaciones en el Excel (puede estar en cualquier pestaña).\n'
+    + '- Verifica que el número de amortizaciones en la tabla coincida con el rango declarado.\n'
+    + '- Si la tabla está en el Excel pero no en el pagaré, esto es NORMAL — indícalo como comentario informativo.\n\n'
+    + 'PUNTO 9 — Cotejo pagaré vs carátula Excel:\n'
+    + '- El Excel puede tener varias pestañas y múltiples créditos activos.\n'
+    + '- Identifica la tabla correcta en el Excel usando: monto del pagaré, No. de contrato y fechas.\n'
+    + '- Una vez identificada, coteja CADA fila: número de pago, fecha de vencimiento, importe.\n'
+    + '- Si el pagaré tiene su propia tabla, compárala también contra el Excel.\n'
+    + '- Reporta cualquier diferencia de montos o fechas como error.\n'
+    + '- Si el monto del pagaré es MENOR al monto total del contrato: NO lo marques como error. Márcalo como OBSERVACIÓN IMPORTANTE indicando que es una disposición parcial, que pueden existir otros pagarés que juntos sumen el total del contrato, y muestra el porcentaje utilizado y el saldo restante disponible.\n'
+    + '- Si el tipo de crédito es "Cuenta Corriente", "Habilitación", "Avío" o similar: estos créditos NO llevan tabla de amortización en Excel, no la exijas ni la busques. En cambio, extrae y muestra como COMENTARIO la tabla de amortización que trae el propio pagaré (número de pago, fecha de vencimiento, importe), a modo de recordatorio visual para quien revisa.\n'
+    + '- Si no se proporcionó Excel, indicarlo como comentario.\n\n'
+    + 'Responde SOLO JSON válido sin markdown:\n'
+    + '{"findings":[{"type":"error|warning|comment|ok","point":"Punto 7|Punto 9","title":"Descripción","detail":"Detalle con números, fechas e importes","quote":"Pagaré: X / Excel: Y"}]}\n\n'
+    + '=== CONTRATO ===\n' + C + '\n\n=== PAGARÉ ===\n' + P + '\n\n=== CARÁTULA EXCEL ===\n' + E;
+}
+
+function buildPromptResumen(C, P, E, today) {
+  return 'Eres un abogado senior especialista en crédito empresarial mexicano de PROAKTIVA.\n'
+    + 'Hoy es: ' + today + '\n\n'
+    + 'Revisa el PAGARÉ completo contra el CONTRATO y la CARÁTULA EXCEL. Genera un dictamen ejecutivo final.\n\n'
+    + 'Responde SOLO JSON válido sin markdown:\n'
+    + '{"grade":"A|B|C|D","verdict":"VÁLIDO|CON OBSERVACIONES|REQUIERE CORRECCIÓN|INVÁLIDO","verdict_color":"green|yellow|orange|red","summary":"Párrafo de 3-5 oraciones","critical":["Acción urgente 1"],"comments":["Comentario 1"],"ok_points":["Punto correcto 1"],"recommendation":"Qué hacer antes de firmar"}\n\n'
+    + '=== CONTRATO ===\n' + C.substring(0,2000) + '\n\n=== PAGARÉ ===\n' + P.substring(0,2000) + '\n\n=== EXCEL ===\n' + E.substring(0,1500);
+}
+
+// ── API CALL ───────────────────────────────────────────────────────────────
+async function callAI(prompt) {
+  var endpoint = '/api/analyze';
+  var headers = { 'Content-Type': 'application/json' };
+
+  var resp = await fetch(endpoint, {
+    method: 'POST',
+    headers: headers,
+    body: JSON.stringify({
+      model: 'claude-haiku-4-5-20251001',
+      max_tokens: 4000,
+      messages: [{ role: 'user', content: prompt }]
+    })
+  });
+
+  var data = await resp.json();
+  if (!resp.ok) throw new Error(data.error ? data.error.message : 'Error API');
+
+  var raw = data.content ? data.content.map(function(c){ return c.text || ''; }).join('') : '{}';
+  return parseJSON(raw);
+}
+
+function parseJSON(raw) {
+  var s = raw.replace(/```json\n?/g,'').replace(/```\n?/g,'').trim();
+  var fb = s.indexOf('{'), lb = s.lastIndexOf('}');
+  if (fb > -1) s = s.substring(fb, lb+1);
+  try { return JSON.parse(s); }
+  catch(e) {
+    var d=0, b=0, inStr=false, esc=false;
+    for (var i=0; i<s.length; i++) {
+      var c = s[i];
+      if (esc) { esc=false; continue; }
+      if (c==='\\' && inStr) { esc=true; continue; }
+      if (c==='"') { inStr=!inStr; continue; }
+      if (!inStr) {
+        if(c==='{') d++; else if(c==='}') d--;
+        else if(c==='[') b++; else if(c===']') b--;
+      }
+    }
+    if (inStr) s+='"';
+    while(b-->0) s+=']';
+    while(d-->0) s+='}';
+    try { return JSON.parse(s); }
+    catch(e2) {
+      return { findings: [{ type:'warning', point:'Sistema', title:'Respuesta incompleta', detail:'La IA generó una respuesta muy extensa. Intenta nuevamente.', quote:'' }] };
+    }
+  }
+}
+
+// ── RENDER ─────────────────────────────────────────────────────────────────
+function renderFindings(bodyId, findings) {
+  if (!findings || findings.length === 0) {
+    document.getElementById(bodyId).innerHTML = '<div class="finding f-ok"><span class="fbadge">OK</span><div class="fcontent"><div class="ftitle">Sin hallazgos</div><div class="fdetail">No se encontraron problemas en esta sección.</div></div></div>';
+    return;
+  }
+  document.getElementById(bodyId).innerHTML = findings.map(function(f) {
+    var pointHtml = f.point ? '<div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.07em;margin-bottom:3px">' + esc(f.point) + '</div>' : '';
+    var quoteHtml = f.quote ? '<div class="fquote">' + esc(f.quote) + '</div>' : '';
+    return '<div class="finding f-' + typeClass(f.type) + '">'
+      + '<span class="fbadge">' + badgeText(f.type) + '</span>'
+      + '<div class="fcontent">'
+      + pointHtml
+      + '<div class="ftitle">' + esc(f.title||'') + '</div>'
+      + '<div class="fdetail">' + esc(f.detail||'') + '</div>'
+      + quoteHtml
+      + '</div></div>';
+  }).join('');
+}
+
+function renderResumen(d) {
+  var colors = { green:'var(--green)', yellow:'var(--yellow)', orange:'var(--orange)', red:'var(--red)' };
+  var col = colors[d.verdict_color] || 'var(--muted)';
+  var html = '<div class="verdict-row">'
+    + '<div class="verdict-grade" style="color:' + col + '">' + esc(d.grade||'—') + '</div>'
+    + '<div class="verdict-text"><h4 style="color:' + col + '">' + esc(d.verdict||'') + '</h4><p>Dictamen del pagaré revisado</p></div>'
+    + '</div>'
+    + '<div class="summary-p">' + esc(d.summary||'') + '</div>';
+
+  if (d.critical && d.critical.length) {
+    d.critical.forEach(function(c) {
+      html += '<div class="finding f-error" style="margin-bottom:8px"><span class="fbadge">URGENTE</span><div class="fcontent"><div class="fdetail">' + esc(c) + '</div></div></div>';
+    });
+  }
+  if (d.comments && d.comments.length) {
+    d.comments.forEach(function(c) {
+      html += '<div class="finding f-comment" style="margin-bottom:8px"><span class="fbadge">NOTA</span><div class="fcontent"><div class="fdetail">' + esc(c) + '</div></div></div>';
+    });
+  }
+  if (d.ok_points && d.ok_points.length) {
+    d.ok_points.forEach(function(c) {
+      html += '<div class="finding f-ok" style="margin-bottom:8px"><span class="fbadge">OK</span><div class="fcontent"><div class="fdetail">' + esc(c) + '</div></div></div>';
+    });
+  }
+  if (d.recommendation) {
+    html += '<div class="finding f-info" style="margin-top:12px"><span class="fbadge">SIGUIENTE PASO</span><div class="fcontent"><div class="fdetail">' + esc(d.recommendation) + '</div></div></div>';
+  }
+  document.getElementById('body-resumen').innerHTML = html;
+}
+
+function typeClass(t) {
+  var m = { error:'error', warning:'warning', comment:'comment', info:'info', ok:'ok' };
+  return m[t] || 'comment';
+}
+function badgeText(t) {
+  var m = { error:'ERROR', warning:'ADVERTENCIA', comment:'COMENTARIO', info:'INFO', ok:'OK' };
+  return m[t] || (t||'NOTA').toUpperCase();
+}
+function esc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function resetAll() {
+  ['contrato','pagare','excel'].forEach(function(t){ removeFile(t, null); });
+  document.getElementById('results-wrap').classList.remove('visible');
+  document.getElementById('progress-wrap').classList.remove('visible');
+  document.getElementById('btn-analyze').disabled = true;
+  document.querySelectorAll('.tab').forEach(function(t,i){ t.classList.toggle('active', i===0); });
+  document.querySelectorAll('.report-card').forEach(function(c,i){ c.classList.toggle('visible', i===0); });
+}
+
+</script>
+
+<!-- Portal navigation -->
+<script>
+function showPanel(name) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('panel-' + name).classList.add('active');
+  document.getElementById('nav-' + name).classList.add('active');
+}
+</script>
+
+<!-- Aforo Tool (React) -->
+<script type="text/babel">
+
+const { useState, useMemo } = React;
+
+const formatMXN = (v) =>
+  new Intl.NumberFormat("es-MX", { style: "currency", currency: "MXN", maximumFractionDigits: 0 }).format(v);
+const formatPct = (v) => (v * 100).toFixed(1) + "%";
+
+const CALIDAD_ACREDITADO = [
+  { label: "Acreditado mismo que garante", value: 0 },
+  { label: "Acreditado diferente que garante", value: 0.15 },
+];
+const TIPO_CREDITO = [
+  { label: "Plazo igual o menor a un año", value: 0 },
+  { label: "Plazo mayor a 1 año menor a 3 años", value: 0.05 },
+  { label: "Plazo mayor a 3 y menor 5 años", value: 0.15 },
+  { label: "Plazo mayor a 5 años", value: 0.25 },
+];
+const GIRO_CREDITO = [
+  { label: "Refaccionario", value: 0 },
+  { label: "Simple capital de trabajo (mayor riesgo)", value: 0.25 },
+  { label: "Avío", value: 0.2 },
+  { label: "Crédito en cuenta corriente", value: 0.2 },
+  { label: "Cualquier tipo de crédito para pago de pasivos", value: 1 },
+];
+const UBICACION = [
+  { label: "Categoría A – Zona Metropolitana (Mexicali, Tijuana, Ensenada, Hermosillo, La Paz, Los Cabos)", value: 0 },
+  { label: "Categoría B – Resto de municipios de BC, BCS y Sonora no cat. A", value: 0.1 },
+  { label: "Categoría C – Estados/municipios sin representantes de Proaktiva", value: 0.25 },
+  { label: "Categoría D – Zona de inseguridad (Zacatecas, Guerrero, Michoacán, Tamaulipas, Durango, Guanajuato)", value: 2, tentativo: true },
+];
+const TIPO_BIEN_CASAS = [
+  { label: "Casa Hab. Urbana A+: fraccionamiento privado, <500 m de av. principal", value: 0 },
+  { label: "Casa Hab. Urbana A: fraccionamiento privado, 500-1000 m de av. principal", value: 0.03 },
+  { label: "Casa Hab. Urbana A−: fraccionamiento privado, >1000 m de av. principal", value: 0.08 },
+  { label: "Casa Hab. Urbana B+: todos servicios/pavimento, <500 m de av. principal", value: 0.1 },
+  { label: "Casa Hab. Urbana B: todos servicios/pavimento, 500-1000 m de av. principal", value: 0.15 },
+  { label: "Casa Hab. Urbana B−: algún servicio faltante o sin pavimento, >1000 m", value: 0.2 },
+];
+const TIPO_BIEN_TERRENO_RES = [
+  { label: "Terreno Residencial A+: fraccionamiento privado, <500 m de av. principal", value: 0.05 },
+  { label: "Terreno Residencial A: fraccionamiento privado, 500-1000 m", value: 0.1 },
+  { label: "Terreno Residencial A−: fraccionamiento privado, >1000 m", value: 0.15 },
+  { label: "Terreno Residencial B+: sin construcción, <500 m de av. principal", value: 0.2 },
+  { label: "Terreno Residencial B: sin construcción, 500-1000 m", value: 0.25 },
+  { label: "Terreno Residencial B−: sin construcción, >1000 m", value: 0.3 },
+];
+const TIPO_BIEN_RURAL = [
+  { label: "Terreno Rural/Agroindustrial A+: con producción, <500 m de carretera", value: 1 },
+  { label: "Terreno Rural/Agroindustrial A: con producción, 500-1000 m de carretera", value: 1.25 },
+];
+const TIPO_BIEN_GRUPOS = [
+  { label: "Casa Habitación Urbana", options: TIPO_BIEN_CASAS },
+  { label: "Terreno Residencial", options: TIPO_BIEN_TERRENO_RES },
+  { label: "Terreno Rural/Agroindustrial", options: TIPO_BIEN_RURAL },
+];
+const CONTRATACION = [
+  { label: "Garantía Hipotecaria", value: 0.25 },
+  { label: "Fideicomiso", value: -0.1 },
+];
+const ISR_OPCIONES = [
+  { label: "Persona Moral (0%)", value: 0 },
+  { label: "Persona Física – bien comprado antes del 2014 (15%)", value: 0.15 },
+  { label: "Persona Física – bien comprado después del 2014, sin CFDI (30%)", value: 0.3 },
+  { label: "Persona Física – bien comprado después del 2014, con CFDI (0%)", value: 0 },
+];
+
+function Section({ number, title, children }) {
+  return (
+    <div className="asection">
+      <div className="asection-header">
+        <span className="asection-num">{number}</span>
+        <h2 className="asection-title">{title}</h2>
+      </div>
+      <div className="asection-body">{children}</div>
+    </div>
+  );
+}
+function Field({ label, children, hint }) {
+  return (
+    <div className="afield">
+      <label className="afield-label">{label}</label>
+      {hint && <p className="afield-hint">{hint}</p>}
+      {children}
+    </div>
+  );
+}
+function RadioGroup({ options, value, onChange }) {
+  return (
+    <div className="aradio-group">
+      {options.map((opt) => (
+        <label key={opt.value + opt.label} className={`aradio-option${value === opt.value && value !== undefined ? " selected" : ""}${opt.tentativo ? " tentativo" : ""}`}>
+          <input type="radio" name={Math.random()} checked={value === opt.value} onChange={() => onChange(opt)} />
+          <span>{opt.label}</span>
+          {opt.tentativo && <span className="abadge-tentativo">⚠ Sujeto a Comité</span>}
+        </label>
+      ))}
+    </div>
+  );
+}
+function Toggle({ label, checked, onChange }) {
+  return (
+    <label className="atoggle">
+      <div className={`atoggle-track${checked ? " on" : ""}`} onClick={() => onChange(!checked)}>
+        <div className="atoggle-thumb" />
+      </div>
+      <span>{label}</span>
+    </label>
+  );
+}
+
+function AforoApp() {
+  const [nombre, setNombre] = useState("");
+  const [monto, setMonto] = useState("");
+  const [calidadIdx, setCalidadIdx] = useState(null);
+  const [seguroVida, setSeguroVida] = useState(false);
+  const [expCrediticia, setExpCrediticia] = useState(false);
+  const [relacionSolvencia, setRelacionSolvencia] = useState(false);
+  const [sarasAsg, setSarasAsg] = useState(false);
+  const [giroIdx, setGiroIdx] = useState(null);
+  const [plazoIdx, setPlazoIdx] = useState(null);
+  const [ubicacionIdx, setUbicacionIdx] = useState(null);
+  const [tipoBienGrupo, setTipoBienGrupo] = useState(null);
+  const [tipoBienIdx, setTipoBienIdx] = useState(null);
+  const [edificacion, setEdificacion] = useState(null);
+  const [derechosAgua, setDerechosAgua] = useState(null);
+  const [contratacionIdx, setContratacionIdx] = useState(null);
+  const [convenioMediacion, setConvenioMediacion] = useState(false);
+  const [isrIdx, setIsrIdx] = useState(0);
+
+  const montoNum = parseFloat(monto.replace(/,/g, "")) || 0;
+
+  const factors = useMemo(() => {
+    const list = [];
+    if (calidadIdx !== null) { const c = CALIDAD_ACREDITADO[calidadIdx]; list.push({ concepto: "Calidad del acreditado", detalle: c.label, pct: c.value }); }
+    if (seguroVida) list.push({ concepto: "Seguro de vida deudor", detalle: "Sí", pct: -0.1 });
+    if (expCrediticia) list.push({ concepto: "Experiencia crediticia positiva en PK", detalle: "Sí", pct: -0.2 });
+    if (relacionSolvencia) list.push({ concepto: "Relación de solvencia", detalle: "Sí", pct: -0.15 });
+    if (sarasAsg) list.push({ concepto: "SARAS – ASG", detalle: "Aplica", pct: -0.1 });
+    if (giroIdx !== null) { const g = GIRO_CREDITO[giroIdx]; list.push({ concepto: "Giro del crédito", detalle: g.label, pct: g.value }); }
+    if (plazoIdx !== null) { const p = TIPO_CREDITO[plazoIdx]; list.push({ concepto: "Plazo del crédito", detalle: p.label, pct: p.value }); }
+    if (ubicacionIdx !== null) { const u = UBICACION[ubicacionIdx]; list.push({ concepto: "Ubicación geográfica", detalle: u.label, pct: u.value, tentativo: u.tentativo }); }
+    if (tipoBienGrupo !== null && tipoBienIdx !== null) {
+      const bien = TIPO_BIEN_GRUPOS[tipoBienGrupo].options[tipoBienIdx];
+      list.push({ concepto: "Tipo de bien", detalle: bien.label, pct: bien.value });
+      if (tipoBienGrupo === 2) {
+        if (edificacion === true) list.push({ concepto: "Edificación/empaque/corrales", detalle: "Cuenta con edificación", pct: -0.2 });
+        if (derechosAgua === true) list.push({ concepto: "Derechos de agua cedibles", detalle: "Sí cuenta", pct: -0.2 });
+        if (derechosAgua === false) list.push({ concepto: "Derechos de agua cedibles", detalle: "No cuenta", pct: 0.5 });
+      }
+    }
+    if (contratacionIdx !== null) { const c = CONTRATACION[contratacionIdx]; list.push({ concepto: "Tipo de contrato", detalle: c.label, pct: c.value }); }
+    if (convenioMediacion) list.push({ concepto: "Convenio de mediación", detalle: "Sí", pct: -0.1 });
+    const isr = ISR_OPCIONES[isrIdx];
+    if (isr.value > 0) list.push({ concepto: "ISR", detalle: isr.label, pct: isr.value });
+    return list;
+  }, [calidadIdx, seguroVida, expCrediticia, relacionSolvencia, sarasAsg, giroIdx, plazoIdx, ubicacionIdx, tipoBienGrupo, tipoBienIdx, edificacion, derechosAgua, contratacionIdx, convenioMediacion, isrIdx]);
+
+  const totalPct = factors.reduce((s, f) => s + f.pct, 0);
+  const totalMonto = montoNum > 0 ? totalPct * montoNum : 0;
+  const granTotal = montoNum + totalMonto;
+  const aforo = montoNum > 0 ? granTotal / montoNum : 0;
+
+  return (
+    <div className="aforo-app">
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap');
+        .aforo-app { font-family: 'DM Sans', sans-serif; background: #f5f2ed; min-height: 100%; }
+        .aforo-main { display: grid; grid-template-columns: 1fr 340px; gap: 0; max-width: 1200px; margin: 0 auto; padding: 32px 24px; }
+        @media (max-width: 860px) { .aforo-main { grid-template-columns: 1fr; } }
+        .aforo-form { padding-right: 28px; display: flex; flex-direction: column; gap: 20px; }
+        .asection { background: white; border: 1px solid #e0dbd2; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
+        .asection-header { background: #faf8f5; border-bottom: 1px solid #e0dbd2; padding: 12px 18px; display: flex; align-items: center; gap: 10px; }
+        .asection-num { width: 26px; height: 26px; background: #1a3a2a; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; flex-shrink: 0; }
+        .asection-title { font-family: 'DM Serif Display', serif; font-size: 16px; color: #1a3a2a; }
+        .asection-body { padding: 18px; display: flex; flex-direction: column; gap: 16px; }
+        .afield { display: flex; flex-direction: column; gap: 5px; }
+        .afield-label { font-size: 11px; font-weight: 600; letter-spacing: 0.8px; text-transform: uppercase; color: #5a5752; }
+        .afield-hint { font-size: 12px; color: #9a968f; font-style: italic; }
+        .aforo-app input[type="text"], .aforo-app input[type="number"] { width: 100%; padding: 10px 13px; border: 1.5px solid #e0dbd2; border-radius: 8px; font-family: 'DM Sans', sans-serif; font-size: 14px; color: #1a1a18; background: white; outline: none; transition: border-color 0.2s; }
+        .aforo-app input:focus { border-color: #2d6a4f; }
+        .arow-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+        .aradio-group { display: flex; flex-direction: column; gap: 7px; }
+        .aradio-option { display: flex; align-items: flex-start; gap: 9px; padding: 9px 13px; border: 1.5px solid #e0dbd2; border-radius: 8px; cursor: pointer; transition: all 0.15s; font-size: 13px; line-height: 1.4; }
+        .aradio-option:hover { border-color: #2d6a4f; background: #f0f7f3; }
+        .aradio-option.selected { border-color: #2d6a4f; background: #e8f4ee; color: #1a3a2a; font-weight: 500; }
+        .aradio-option.tentativo { border-color: #e0a020; background: #fffbf0; }
+        .aradio-option input[type="radio"] { margin-top: 2px; accent-color: #2d6a4f; flex-shrink: 0; }
+        .abadge-tentativo { margin-left: auto; font-size: 10px; font-weight: 600; color: #b5860d; white-space: nowrap; }
+        .atoggle { display: flex; align-items: center; gap: 10px; cursor: pointer; font-size: 13px; padding: 6px 0; user-select: none; }
+        .atoggle-track { width: 40px; height: 22px; background: #e0dbd2; border-radius: 11px; position: relative; transition: background 0.2s; flex-shrink: 0; }
+        .atoggle-track.on { background: #2d6a4f; }
+        .atoggle-thumb { width: 16px; height: 16px; background: white; border-radius: 50%; position: absolute; top: 3px; left: 3px; transition: transform 0.2s; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
+        .atoggle-track.on .atoggle-thumb { transform: translateX(18px); }
+        .atoggles-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+        .agrupo-tabs { display: flex; gap: 7px; flex-wrap: wrap; margin-bottom: 10px; }
+        .agrupo-tab { padding: 7px 14px; border: 1.5px solid #e0dbd2; border-radius: 20px; cursor: pointer; font-size: 12px; transition: all 0.15s; background: white; font-family: 'DM Sans', sans-serif; }
+        .agrupo-tab.active { border-color: #2d6a4f; background: #e8f4ee; color: #1a3a2a; font-weight: 600; }
+        /* Sidebar result */
+        .aforo-sidebar { position: sticky; top: 24px; }
+        .aforo-result-panel { background: #1a3a2a; border-radius: 12px; overflow: hidden; box-shadow: 0 8px 32px rgba(0,0,0,0.1); color: white; }
+        .aforo-result-header { padding: 18px 22px 12px; border-bottom: 1px solid rgba(255,255,255,0.12); }
+        .aforo-result-header h3 { font-family: 'DM Serif Display', serif; font-size: 19px; color: #a8c5b5; }
+        .aforo-kpis { padding: 18px 22px; display: grid; grid-template-columns: 1fr 1fr; gap: 14px; border-bottom: 1px solid rgba(255,255,255,0.12); }
+        .akpi { display: flex; flex-direction: column; gap: 2px; }
+        .akpi-label { font-size: 10px; letter-spacing: 1px; text-transform: uppercase; color: #7aaa90; }
+        .akpi-value { font-size: 18px; font-weight: 600; color: white; }
+        .akpi-value.big { font-size: 28px; color: #7dffb3; }
+        .akpi-value.warn { color: #ffcc44; }
+        .aforo-indicator { padding: 14px 22px; background: rgba(255,255,255,0.05); display: flex; flex-direction: column; gap: 4px; border-bottom: 1px solid rgba(255,255,255,0.12); }
+        .aforo-bar-bg { height: 7px; background: rgba(255,255,255,0.15); border-radius: 4px; overflow: hidden; }
+        .aforo-bar-fill { height: 100%; border-radius: 4px; transition: width 0.4s; background: linear-gradient(90deg, #3a9a6a, #7dffb3); }
+        .aforo-range { font-size: 10px; color: rgba(255,255,255,0.4); display: flex; justify-content: space-between; }
+        .aforo-desglose { padding: 14px 22px; display: flex; flex-direction: column; gap: 7px; max-height: 360px; overflow-y: auto; }
+        .adesglose-title { font-size: 10px; letter-spacing: 1px; text-transform: uppercase; color: #7aaa90; margin-bottom: 3px; }
+        .adesglose-row { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; font-size: 11px; color: rgba(255,255,255,0.75); padding: 3px 0; border-bottom: 1px solid rgba(255,255,255,0.06); }
+        .adesglose-pct { font-weight: 600; white-space: nowrap; color: #a8c5b5; }
+        .adesglose-pct.neg { color: #7dffb3; }
+        .adesglose-pct.pos { color: #ffaa7a; }
+        .aforo-footer-note { padding: 14px 22px; background: rgba(0,0,0,0.2); font-size: 10px; color: rgba(255,255,255,0.4); line-height: 1.5; }
+        .aforo-empty { padding: 28px 22px; text-align: center; color: rgba(255,255,255,0.35); font-size: 13px; line-height: 1.6; }
+      `}</style>
+
+      <div className="aforo-main">
+        <div className="aforo-form">
+          <Section number="1" title="Datos Generales">
+            <div className="arow-2">
+              <Field label="Nombre del Acreditado">
+                <input type="text" value={nombre} onChange={e => setNombre(e.target.value)} placeholder="Nombre completo" />
+              </Field>
+              <Field label="Monto Solicitado (MXN)">
+                <input type="text" value={monto} onChange={e => setMonto(e.target.value)} placeholder="5,000,000" />
+              </Field>
+            </div>
+          </Section>
+
+          <Section number="2" title="Calidad del Acreditado">
+            <Field label="Relación acreditado / garante">
+              <RadioGroup options={CALIDAD_ACREDITADO} value={calidadIdx !== null ? CALIDAD_ACREDITADO[calidadIdx].value : undefined} onChange={opt => setCalidadIdx(CALIDAD_ACREDITADO.indexOf(opt))} />
+            </Field>
+            <Field label="Factores opcionales (reducen el aforo)">
+              <div className="atoggles-grid">
+                <Toggle label="Seguro de vida deudor (−10%)" checked={seguroVida} onChange={setSeguroVida} />
+                <Toggle label="Experiencia crediticia positiva en PK (−20%)" checked={expCrediticia} onChange={setExpCrediticia} />
+                <Toggle label="Relación de solvencia (−15%)" checked={relacionSolvencia} onChange={setRelacionSolvencia} />
+                <Toggle label="SARAS – ASG (−10%)" checked={sarasAsg} onChange={setSarasAsg} />
+              </div>
+            </Field>
+          </Section>
+
+          <Section number="3" title="Tipo de Crédito y Uso / Giro">
+            <Field label="Giro del crédito">
+              <RadioGroup options={GIRO_CREDITO} value={giroIdx !== null ? GIRO_CREDITO[giroIdx].value : undefined} onChange={opt => setGiroIdx(GIRO_CREDITO.indexOf(opt))} />
+            </Field>
+            <Field label="Plazo del crédito">
+              <RadioGroup options={TIPO_CREDITO} value={plazoIdx !== null ? TIPO_CREDITO[plazoIdx].value : undefined} onChange={opt => setPlazoIdx(TIPO_CREDITO.indexOf(opt))} />
+            </Field>
+          </Section>
+
+          <Section number="4" title="Ubicación Geográfica">
+            <RadioGroup options={UBICACION} value={ubicacionIdx !== null ? UBICACION[ubicacionIdx].value : undefined} onChange={opt => setUbicacionIdx(UBICACION.indexOf(opt))} />
+          </Section>
+
+          <Section number="5" title="Tipo de Bien en Garantía">
+            <div className="agrupo-tabs">
+              {TIPO_BIEN_GRUPOS.map((g, i) => (
+                <button key={i} className={`agrupo-tab${tipoBienGrupo === i ? " active" : ""}`}
+                  onClick={() => { setTipoBienGrupo(i); setTipoBienIdx(null); setEdificacion(null); setDerechosAgua(null); }}>
+                  {g.label}
+                </button>
+              ))}
+            </div>
+            {tipoBienGrupo !== null && (
+              <RadioGroup options={TIPO_BIEN_GRUPOS[tipoBienGrupo].options} value={tipoBienIdx !== null ? TIPO_BIEN_GRUPOS[tipoBienGrupo].options[tipoBienIdx].value : undefined} onChange={opt => setTipoBienIdx(TIPO_BIEN_GRUPOS[tipoBienGrupo].options.indexOf(opt))} />
+            )}
+            {tipoBienGrupo === 2 && (
+              <div style={{marginTop:14, paddingTop:14, borderTop:"1px solid #e0dbd2"}}>
+                <Field label="¿Cuenta con edificación terminada, empaque o corrales?">
+                  <div style={{display:"flex",gap:8}}>
+                    {["Sí (−20%)", "No (0%)"].map((lbl, i) => (
+                      <label key={i} className={`aradio-option${edificacion === (i === 0) ? " selected" : ""}`} style={{flex:1}}>
+                        <input type="radio" checked={edificacion === (i === 0)} onChange={() => setEdificacion(i === 0)} />
+                        <span>{lbl}</span>
+                      </label>
+                    ))}
+                  </div>
+                </Field>
+                <Field label="¿Cuenta con derechos de agua cedibles?">
+                  <div style={{display:"flex",gap:8}}>
+                    {["Sí (−20%)", "No (+50%)"].map((lbl, i) => (
+                      <label key={i} className={`aradio-option${derechosAgua === (i === 0) ? " selected" : ""}`} style={{flex:1}}>
+                        <input type="radio" checked={derechosAgua === (i === 0)} onChange={() => setDerechosAgua(i === 0)} />
+                        <span>{lbl}</span>
+                      </label>
+                    ))}
+                  </div>
+                </Field>
+              </div>
+            )}
+          </Section>
+
+          <Section number="6" title="Tipo de Contratación">
+            <RadioGroup options={CONTRATACION} value={contratacionIdx !== null ? CONTRATACION[contratacionIdx].value : undefined} onChange={opt => setContratacionIdx(CONTRATACION.indexOf(opt))} />
+            <Toggle label="Convenio de Mediación (−10%)" checked={convenioMediacion} onChange={setConvenioMediacion} />
+          </Section>
+
+          <Section number="7" title="ISR – Persona del Vendedor">
+            <RadioGroup options={ISR_OPCIONES} value={ISR_OPCIONES[isrIdx].value} onChange={opt => setIsrIdx(ISR_OPCIONES.indexOf(opt))} />
+          </Section>
+        </div>
+
+        {/* SIDEBAR */}
+        <div className="aforo-sidebar">
+          <div className="aforo-result-panel">
+            <div className="aforo-result-header">
+              <h3>Resultado del Aforo</h3>
+              {nombre && <div style={{fontSize:12,color:"rgba(255,255,255,0.6)",marginTop:3}}>{nombre}</div>}
+            </div>
+            {montoNum > 0 ? (
+              <>
+                <div className="aforo-kpis">
+                  <div className="akpi"><span className="akpi-label">Monto Solicitado</span><span className="akpi-value" style={{fontSize:14}}>{formatMXN(montoNum)}</span></div>
+                  <div className="akpi"><span className="akpi-label">Total Condiciones</span><span className="akpi-value" style={{fontSize:14}}>{formatMXN(totalMonto)}</span></div>
+                  <div className="akpi"><span className="akpi-label">Valor Gtía Recomendada</span><span className="akpi-value" style={{fontSize:14}}>{formatMXN(granTotal)}</span></div>
+                  <div className="akpi"><span className="akpi-label">Aforo</span><span className={`akpi-value big${aforo < 1 ? " warn" : ""}`}>{aforo.toFixed(2)}x</span></div>
+                </div>
+                <div className="aforo-indicator">
+                  <span className="akpi-label">Nivel de Aforo</span>
+                  <div className="aforo-bar-bg"><div className="aforo-bar-fill" style={{width: Math.min(100,(aforo/3)*100)+"%"}} /></div>
+                  <div className="aforo-range"><span>0x</span><span>Mín. 1.0–1.5x</span><span>3x+</span></div>
+                </div>
+                {factors.length > 0 && (
+                  <div className="aforo-desglose">
+                    <div className="adesglose-title">Desglose de Condiciones</div>
+                    {factors.map((f, i) => (
+                      <div key={i} className="adesglose-row">
+                        <span style={{flex:1}}>{f.concepto}</span>
+                        <span className={`adesglose-pct${f.pct < 0 ? " neg" : f.pct > 0 ? " pos" : ""}`}>
+                          {f.pct === 0 ? "0%" : (f.pct > 0 ? "+" : "") + formatPct(f.pct)}
+                        </span>
+                      </div>
+                    ))}
+                    <div className="adesglose-row" style={{marginTop:4,borderTop:"1px solid rgba(255,255,255,0.2)",paddingTop:6}}>
+                      <span style={{fontWeight:700,color:"white",flex:1}}>Total Afectación</span>
+                      <span className={`adesglose-pct${totalPct < 0 ? " neg" : " pos"}`} style={{fontWeight:700,fontSize:12}}>
+                        {(totalPct > 0 ? "+" : "") + formatPct(totalPct)}
+                      </span>
+                    </div>
+                  </div>
+                )}
+              </>
+            ) : (
+              <div className="aforo-empty">Ingresa el monto y completa el formulario para ver el cálculo en tiempo real.</div>
+            )}
+            <div className="aforo-footer-note">La ponderación mínima debe mantener una relación de 1.0 a 1.5 respecto al monto solicitado, conforme a las políticas de Proaktiva.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Mount aforo app into container
+const afoContainer = document.getElementById('aforo-container');
+if (afoContainer) {
+  ReactDOM.createRoot(afoContainer).render(React.createElement(AforoApp));
+}
+
+</script>
+
+</body>
+</html>
