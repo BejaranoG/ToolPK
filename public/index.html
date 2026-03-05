@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <title>ToolsPK — Proaktiva</title>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600&family=IBM+Plex+Mono:wght@400&family=IBM+Plex+Sans:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 
 <!-- Pagare dependencies -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
@@ -745,7 +745,14 @@ function badgeText(t) {
   return m[t] || (t||'NOTA').toUpperCase();
 }
 function esc(s) {
-  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  return String(s)
+    .replace(/→/g, '->')
+    .replace(/←/g, '<-')
+    .replace(/[\u2018\u2019]/g, "'")
+    .replace(/[\u201C\u201D]/g, '"')
+    .replace(/\u2014/g, '--')
+    .replace(/\u2013/g, '-')
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
 // ── EXPORTAR PDF (solo hallazgos, sin dictamen) ───────────────────────────
@@ -1112,7 +1119,7 @@ body { background: var(--bg); color: var(--ink); font-family: "IBM Plex Sans", s
 .fcontent { flex: 1; }
 .ftitle { font-size: 13px; font-weight: 500; margin-bottom: 3px; }
 .fdetail { font-size: 13px; color: var(--ink2); line-height: 1.6; }
-.fquote { font-family: "IBM Plex Mono", monospace; font-size: 11px; background: rgba(0,0,0,0.04); padding: 6px 10px; border-radius: 5px; margin-top: 7px; border-left: 3px solid var(--border2); white-space: pre-wrap; word-break: break-word; }
+.fquote { font-family: "IBM Plex Mono", "IBM Plex Sans", monospace; font-size: 11px; background: rgba(0,0,0,0.04); padding: 6px 10px; border-radius: 5px; margin-top: 7px; border-left: 3px solid var(--border2); white-space: pre-wrap; word-break: break-word; }
 
 /* RESUMEN */
 .verdict-row { display: flex; align-items: center; gap: 18px; padding: 18px; background: var(--bg2); border-radius: 10px; margin-bottom: 18px; }
