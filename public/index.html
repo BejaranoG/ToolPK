@@ -507,17 +507,17 @@ async function startAnalysis() {
   var today = new Date().toLocaleDateString('es-MX', { day:'2-digit', month:'long', year:'numeric' });
 
   try {
-    setProgress(15, 'Analizando datos del pagaré (puntos 1, 2, 4, 5, 6 y 8)...');
+    setProgress(15, 'Analizando datos del pagaré (Puntos 1 al 5)...');
     var rDatos = await callAI(buildPromptDatos(C, P, today, fmtHint));
     renderFindings('body-datos', rDatos.findings);
     await sleep(3000);
 
-    setProgress(45, 'Revisando suscriptor, representante legal y avales (Puntos 3 y 10)...');
+    setProgress(45, 'Revisando partes: suscriptor y avales (Puntos 6 y 7)...');
     var rPartes = await callAI(buildPromptPartes(C, P, fmtHint));
     renderFindings('body-partes', rPartes.findings);
     await sleep(3000);
 
-    setProgress(70, 'Cotejando amortizaciones, plazos, suma total y carátula (Puntos 7a-7h y 9)...');
+    setProgress(70, 'Cotejando tabla, vencimientos y plazos de disposición (Puntos 8, 9 y 10)...');
     var rAmort = await callAI(buildPromptAmort(C, P, fmtHint));
     renderFindings('body-amort', rAmort.findings);
     await sleep(3000);
@@ -549,50 +549,31 @@ async function startAnalysis() {
 function buildPromptDatos(C, P, today, fmtHint) {
   fmtHint = fmtHint || '';
   return fmtHint
-    + 'Eres un especialista senior en revisión de pagarés para PROAKTIVA, empresa financiera mexicana.\n'
+    + 'Eres un especialista senior en revisión de pagarés para PROAKTIVA, empresa financiera mexicana.\nINSTRUCCIÓN CRÍTICA: Revisa ÚNICAMENTE los puntos listados. No agregues hallazgos sobre características adicionales del contrato, redacción de cláusulas, texto truncado, inconsistencias del nombre de PROAKTIVA entre documentos, ni ningún elemento no solicitado. Cada finding debe corresponder exactamente a uno de los puntos indicados.\n\nPROHIBICIONES ABSOLUTAS — nunca incluyas hallazgos sobre:\n1. Tasa moratoria o intereses moratorios — predefinida institucionalmente, no se revisa.\n2. Ausencia de firmas — el análisis es previo a la firma, es completamente normal.\n3. Excel, carátula o instrumentos de originación — el análisis no usa Excel.\n4. Texto truncado o documento incompleto — es limitación de extracción, no un error.\n5. Nombre o denominación de PROAKTIVA — no se compara entre documentos.\n6. Redacción, ortografía o estilo de cláusulas del contrato — no es objeto de revisión.\n\nREGLAS DE CALIDAD — aplican a todos los findings:\n- UN SOLO FINDING POR PUNTO. Nunca emitas dos findings para el mismo punto que se contradigan.\n- type \'error\': SOLO si hay dato real incorrecto o diferencia real. type \'ok\': cuando coincide o es correcto. NUNCA uses \'error\' para algo que verificaste y está bien.\n- CONSISTENCIA ABSOLUTA: si concluyes que algo coincide → type DEBE ser \'ok\'. Un finding type \'error\' que dice \'coinciden\' es contradicción prohibida.\n\n'
     + 'Hoy es: ' + today + '\n\n'
-    + 'Revisa el PAGARÉ contra el CONTRATO en los siguientes puntos. Sé exhaustivo y literal.\n\n'
-    + 'Revisa el PAGARÉ SOLAMENTE CONSIDERANDO LOS PUNTOS QUE SE MENCIONAN A CONTINUACION, CON LA FINALIDAD DE SER CONCRETO, Y NO SOBREANALIZAR, TAMBIEN REVISA ENCABEZADOS Y PIES DE PAGINA PARA OBTENER INFORMACION FALTANTE EN CASO DE SER NECESARIO, Y TAMBIEN, BUSCA LA TABLA DE AMORTIZACION DEPSUES DE LA PALABRA EN NEGRITAS "TABLA DE AMORTIZACION" PARA QUE LA TENGAS PRESENTE,tambien en caso de ser una disposicion parcial, solo menciona el comentario, no hagas incapie en una falta juridica o algo por el estilo. REVISA 10 VECES SI ES NECESARIO EL DOCUMENTO YA QUE EN TODOS DEBE DE VENIR LA TABLA DE AMORTIZACION, EN CASO DE NO EXISTA MARCAR COMO ERROR, TAMBIEN IGNORA CUALQUIER INCONSISTENCIA RELACIONADO CON LA PALABRA PROAKTIVA\n\n'
+    + 'Revisa el PAGARÉ contra el CONTRATO en los siguientes puntos:\n\n'
     + 'PUNTO 1 — Número de contrato:\n'
     + '- Localiza el número de contrato en el PAGARÉ.\n'
-    + '- Busca ese número en el CONTRATO de forma EXHAUSTIVA: revisa encabezado, pie de página, cuerpo del texto, cláusulas, carátula, número de expediente, referencia de crédito, o cualquier campo que identifique el documento. El número puede aparecer como "Contrato No.", "No. de Crédito", "Crédito No.", "Expediente", "Referencia", o simplemente impreso en cualquier parte del documento.\n'
+    + '- Búscalo EXHAUSTIVAMENTE en el CONTRATO: encabezado, pie de página, cuerpo, cláusulas, carátula, número de expediente, referencia de crédito. Puede aparecer como "Contrato No.", "No. de Crédito", "Crédito No.", "Expediente", "Referencia", o sin etiqueta en cualquier parte del documento. Revisa también estructuralmente el inicio y final de cada página.\n'
     + '- Compara IGNORANDO espacios, guiones y puntos (CCC-3329-26 = CCC 3329 26 = CCC332926). Solo importan los caracteres alfanuméricos en el mismo orden.\n'
-    + '- Si los caracteres base son idénticos: OK.\n'
-    + '- SOLO si después de buscar exhaustivamente en TODO el contrato no encuentras ningún número que coincida: ERROR indicando que no se localizó. Si hay cualquier coincidencia razonable: OK con nota.\n'
-    + '- Muestra ambas versiones en el campo quote.\n\n'
-    + 'PUNTO 2 — Tipo de crédito y monto total del contrato:\n'
-    + '- Verifica que el tipo de crédito en el pagaré (Cuenta Corriente, Habilitación, Refaccionario, etc.) coincida con el del contrato. Si no coincide: ERROR.\n'
-    + '- Compara el monto del pagaré contra el monto total del contrato. El pagaré casi siempre representa una DISPOSICIÓN PARCIAL y su monto será menor al del contrato — esto es completamente normal. NUNCA marques como error que el monto del pagaré sea menor al del contrato. Manejar como COMMENT informativo mostrando: monto del pagaré, monto total del contrato, porcentaje utilizado y saldo disponible.\n'
-    + '- Verifica que el monto esté escrito correctamente EN LETRA en el pagaré. Ignora tildes/mayúsculas. Si la cantidad en letra NO corresponde al número: ERROR.\n'
-    + '- Muestra: monto del pagaré en número, monto en letra del pagaré, y monto total del contrato.\n\n'
-    + 'PUNTO 4 — Domicilio del suscriptor:\n'
-    + '- Busca el domicilio del acreditado/suscriptor en el CONTRATO de forma EXHAUSTIVA: cláusulas VIGÉSIMAS, DOMICILIOS, NOTIFICACIONES, cualquier sección con dirección, calle, número, colonia, C.P., ciudad.\n'
-    + '- Compara con el domicilio del PAGARÉ. Para comparar domicilios: ignora diferencias de puntuación menor, comas y puntos finales. SÍ considera diferencia real si cambia calle, número, colonia, C.P. o ciudad.\n'
-    + '- EMITE UN SOLO FINDING para este punto. No emitas primero un error y luego un ok — decide cuál es el resultado final y emite solo ese.\n'
-    + '- Si coinciden (exactamente o de forma equivalente): type "ok".\n'
-    + '- Si hay diferencia real en algún componente: type "error" con detalle exacto de qué difiere.\n'
-    + '- Si no se encuentra domicilio en el contrato: type "warning".\n\n'
-    + 'PUNTO 5 — Monto de disposición del pagaré:\n'
-    + '- El monto de disposición del pagaré puede ser igual o MENOR al monto total del contrato.\n'
-    + '- Si es menor: COMMENT informativo indicando que es disposición parcial, mostrando monto usado y saldo restante del contrato.\n'
-    + '- Verifica que el monto EN LETRA esté escrito correctamente (ortografía y concordancia con el número). Ignora tildes/mayúsculas.\n'
-    + '- Si hay error ortográfico en la escritura de la cifra: ERROR con la versión correcta.\n\n'
-    + 'PUNTO 6 — Tasa de interés ordinaria:\n'
-    + '- Extrae la tasa de interés ordinaria del pagaré (en número y en letra).\n'
-    + '- Verifica que la tasa EN LETRA esté escrita correctamente y coincida con el número. Ignora tildes/mayúsculas.\n'
-    + '- Si la tasa en letra no coincide con el número: ERROR.\n'
-   + 'PUNTO 6b — Tasa de interés moratoria.\n'
-    + '- Ignora la tasa moratoria no la revises ni corrijas.\n'
-    + '- PROHIBIDO ABSOLUTO: NO generes ningún hallazgo sobre: (1) tasa moratoria o intereses moratorios, (2) ausencia de firmas — el análisis es previo a la firma por lo que es normal que no estén firmados, (3) carátula Excel o documentos Excel faltantes — el análisis no usa Excel.\n\n'
-    + 'PUNTO 8 — Fecha y páginas del pagaré:\n'
-    + '- Extrae la fecha de suscripción del pagaré. Calcula qué día de la semana es. Genera siempre un COMMENT con el texto: "La fecha del pagaré es [día de semana] [dd] de [mes] de [año] — confirma que sea correcta".\n'
-    + '- Verifica que el número de páginas declarado en el pagaré sea coherente con el documento.\n'
-    + '- Verifica que el número de páginas esté escrito CORRECTAMENTE EN LETRA (ej: si dice "cuatro" y hay 4 páginas: OK; si dice "tres" y hay 4 páginas: ERROR).\n'
-    + '- Si el número en letra no corresponde: ERROR indicando el número correcto.\n\n'
-    + 'REGLAS CRÍTICAS DE CALIDAD:\n'
-    + '1. UN SOLO FINDING POR PUNTO: Nunca emitas dos findings para el mismo punto que se contradigan entre sí. Analiza completamente y emite solo el resultado final.\n'
-    + '2. TIPOS CORRECTOS: type "error" SOLO si hay dato real incorrecto. type "ok" cuando coincide o es correcto. NUNCA uses "error" para algo que verificaste y está bien.\n'
-    + '3. CONSISTENCIA: Si tu análisis concluye que algo coincide, el type DEBE ser "ok". Si concluye que hay diferencia, DEBE ser "error". No puede haber contradicción entre el detail y el type.\n\n'
+    + '- Si los caracteres base coinciden: type "ok". Muestra ambas versiones en el campo quote.\n'
+    + '- SOLO si tras búsqueda exhaustiva en TODO el contrato no encuentras ninguna coincidencia razonable: type "error".\n\n'
+    + 'PUNTO 2 — Tipo de crédito y monto:\n'
+    + '- Verifica que el tipo de crédito del pagaré (Cuenta Corriente, Habilitación, Refaccionario, etc.) coincida con el del contrato. Si no coincide: ERROR.\n'
+    + '- Compara el monto del pagaré vs el monto total del contrato. El pagaré casi siempre es una DISPOSICIÓN PARCIAL y su monto será menor — eso es completamente normal, NUNCA es error. Si es menor: COMMENT mostrando monto del pagaré, monto del contrato, porcentaje utilizado y saldo disponible.\n'
+    + '- Verifica que el monto esté escrito correctamente EN LETRA en el pagaré (ortografía y concordancia con el número). Ignora tildes y mayúsculas. Si la cantidad en letra NO corresponde al número: ERROR.\n\n'
+    + 'PUNTO 3 — Domicilio del suscriptor:\n'
+    + '- Busca el domicilio del acreditado/suscriptor en el CONTRATO exhaustivamente: cláusulas de DOMICILIOS, NOTIFICACIONES, VIGÉSIMAS, o cualquier sección con dirección, calle, número, colonia, C.P., ciudad.\n'
+    + '- Compara con el domicilio del PAGARÉ. Ignora diferencias menores de puntuación y comas. ERROR si hay diferencia real en calle, número, colonia, C.P. o ciudad.\n'
+    + '- Emite UN SOLO FINDING. Si coinciden: type "ok". Si hay diferencia real: type "error" con detalle exacto. Si no se encuentra en el contrato: type "warning".\n\n'
+    + 'PUNTO 4 — Tasa de interés ordinaria:\n'
+    + '- Extrae la tasa de interés ORDINARIA del pagaré (en número y en letra).\n'
+    + '- Verifica que la tasa EN LETRA esté escrita correctamente y coincida con el número. Ignora tildes y mayúsculas.\n'
+    + '- Si la tasa en letra no coincide con el número: ERROR. Si coincide: OK.\n'
+    + '- SOLO tasa ordinaria. No menciones tasa moratoria bajo ninguna circunstancia.\n\n'
+    + 'PUNTO 5 — Fecha y número de páginas:\n'
+    + '- Extrae la fecha de suscripción del pagaré. Calcula qué día de la semana es. Genera siempre un COMMENT: "La fecha del pagaré es [día de semana] [dd] de [mes] de [año] — confirma que sea correcta".\n'
+    + '- Verifica que el número de páginas declarado en el pagaré esté escrito correctamente EN LETRA. Si no corresponde: ERROR indicando el número correcto.\n\n'
     + 'Responde SOLO JSON válido sin markdown:\n'
     + '{"findings":[{"type":"error|warning|comment|ok","point":"Punto N — Nombre","title":"Descripción corta","detail":"Explicación detallada","quote":"Pagaré: X → Contrato: Y"}]}\n\n'
     + '=== CONTRATO ===\n' + C + '\n\n=== PAGARÉ ===\n' + P;
@@ -601,72 +582,55 @@ function buildPromptDatos(C, P, today, fmtHint) {
 function buildPromptPartes(C, P, fmtHint) {
   fmtHint = fmtHint || '';
   return fmtHint
-    + 'Eres un especialista senior en revisión de pagarés para PROAKTIVA, empresa financiera mexicana.\n\n'
-    + 'Analiza PUNTO 3 y PUNTO 10 con máxima rigurosidad:\n\n'
-    + '══ REGLAS DE COMPARACIÓN ══\n'
-    + 'TILDES Y MAYÚSCULAS: Para comparar NOMBRES DE PERSONAS (físicas o representantes legales), ignora diferencias de tilde/acento y mayúscula/minúscula. Ejemplo: "García" = "GARCIA" = "garcia". NO reportes error por esto en nombres de personas.\n'
-    + 'RAZÓN SOCIAL: Para comparar RAZONES SOCIALES de empresas, compara LETRA POR LETRA sin ninguna tolerancia. Un error tipográfico en la razón social (ej: "RESPONDABILIDAD" en lugar de "RESPONSABILIDAD") ES un error que DEBES reportar, aunque la diferencia sea solo una letra. La razón social debe ser exacta.\n'
-    + 'ESPACIOS INTERNOS: Espacios ilegítimos dentro de una palabra son error ("FALO M I R" ≠ "FALOMIR").\n\n'
-    + 'PUNTO 3 — Suscriptor:\n'
+    + 'Eres un especialista senior en revisión de pagarés para PROAKTIVA, empresa financiera mexicana.\nINSTRUCCIÓN CRÍTICA: Revisa ÚNICAMENTE los puntos listados. No agregues hallazgos sobre características adicionales del contrato, redacción de cláusulas, texto truncado, inconsistencias del nombre de PROAKTIVA entre documentos, ni ningún elemento no solicitado. Cada finding debe corresponder exactamente a uno de los puntos indicados.\n\nPROHIBICIONES ABSOLUTAS — nunca incluyas hallazgos sobre:\n1. Tasa moratoria o intereses moratorios — predefinida institucionalmente, no se revisa.\n2. Ausencia de firmas — el análisis es previo a la firma, es completamente normal.\n3. Excel, carátula o instrumentos de originación — el análisis no usa Excel.\n4. Texto truncado o documento incompleto — es limitación de extracción, no un error.\n5. Nombre o denominación de PROAKTIVA — no se compara entre documentos.\n6. Redacción, ortografía o estilo de cláusulas del contrato — no es objeto de revisión.\n\nREGLAS DE CALIDAD — aplican a todos los findings:\n- UN SOLO FINDING POR PUNTO. Nunca emitas dos findings para el mismo punto que se contradigan.\n- type \'error\': SOLO si hay dato real incorrecto o diferencia real. type \'ok\': cuando coincide o es correcto. NUNCA uses \'error\' para algo que verificaste y está bien.\n- CONSISTENCIA ABSOLUTA: si concluyes que algo coincide → type DEBE ser \'ok\'. Un finding type \'error\' que dice \'coinciden\' es contradicción prohibida.\n\n'
+    + 'Analiza los siguientes puntos con máxima rigurosidad:\n\n'
+    + 'REGLAS DE COMPARACIÓN DE NOMBRES:\n'
+    + '- PERSONAS FÍSICAS y REPRESENTANTES LEGALES: ignora tildes y mayúsculas. "García" = "GARCIA".\n'
+    + '- RAZONES SOCIALES: compara LETRA POR LETRA sin ninguna tolerancia. Cualquier letra diferente o faltante ES un error.\n'
+    + '- ESPACIOS INTERNOS ilegítimos dentro de una palabra son error ("FALO M I R" ≠ "FALOMIR").\n\n'
+    + 'PUNTO 6 — Suscriptor:\n'
     + '- Determina si el suscriptor es persona FÍSICA o MORAL.\n'
-    + '- Persona FÍSICA: compara nombre completo pagaré vs contrato. Ignora tildes y mayúsculas. Reporta OK si las letras base son iguales.\n'
-    + '- Persona MORAL: (a) Compara razón social COMPLETA del pagaré vs contrato letra por letra, SIN tolerancia. Cualquier letra diferente o faltante en la razón social es ERROR. (b) Compara nombre del representante legal pagaré vs contrato — aquí SÍ ignora tildes y mayúsculas.\n'
-    + '- Muestra en quote: Pagaré: [texto] → Contrato: [texto]. Señala exactamente qué letra/palabra difiere.\n\n'
-    + 'PUNTO 10 — Avales, obligados solidarios y coacreditados:\n'
+    + '- Persona FÍSICA: compara nombre completo pagaré vs contrato. Ignora tildes y mayúsculas. OK si las letras base son iguales.\n'
+    + '- Persona MORAL: (a) Compara razón social COMPLETA letra por letra, SIN tolerancia — cualquier diferencia es ERROR. (b) Compara nombre del representante legal ignorando tildes y mayúsculas.\n'
+    + '- Muestra en quote: Pagaré: [texto] → Contrato: [texto].\n\n'
+    + 'PUNTO 7 — Avales, obligados solidarios y coacreditados:\n'
     + '- Extrae TODOS los avales/obligados solidarios/coacreditados del PAGARÉ.\n'
-    + '- Para cada persona: busca si aparece en el CONTRATO. Si NO aparece: ERROR crítico.\n'
-    + '- Si SÍ aparece: compara nombre (ignora tildes/mayúsculas en nombres de personas). SÍ reporta ERROR si hay letra base diferente, nombre incompleto, apellido cambiado o espacios internos ilegítimos.\n'
-    + '- Lista CADA persona individualmente con resultado OK o ERROR.\n'
+    + '- Para cada persona: verifica que aparezca en el CONTRATO. Si NO aparece: ERROR.\n'
+    + '- Si aparece: compara nombre ignorando tildes/mayúsculas. ERROR si hay letra base diferente, nombre incompleto, apellido cambiado o espacios internos ilegítimos.\n'
+    + '- Lista CADA persona individualmente con su resultado.\n'
     + '- Si no hay avales: COMMENT indicándolo.\n\n'
-    + 'TIPOS DE FINDING — USA EL CORRECTO:\n'
-    + '- type "error": SOLO si hay una diferencia real que invalida el documento (letra distinta en razón social, nombre incorrecto, aval faltante).\n'
-    + '- type "ok": cuando la comparación es correcta y los datos coinciden (incluyendo casos donde solo difieren en tilde/mayúscula y eso es aceptable).\n'
-    + '- type "warning": discrepancia menor que no invalida pero conviene revisar.\n'
-    + '- type "comment": información relevante sin carácter de error.\n'
-    + 'PROHIBIDO: No menciones ausencia de firmas — el análisis es previo a la firma, es completamente normal que no estén firmados.\n'
-    + 'PROHIBIDO: No menciones carátula Excel ni documentos Excel faltantes.\n\n'
-    + 'REGLAS CRÍTICAS:\n'
-    + '1. UN SOLO FINDING POR PERSONA O ENTIDAD: No emitas primero un finding de error y luego uno de ok para la misma persona. Decide el resultado final y emite solo ese.\n'
-    + '2. Si concluyes "coincide" o "Status: OK" → type DEBE ser "ok". Un finding type "error" que dice "coinciden" es contradicción prohibida.\n'
-    + '3. CONSISTENCIA ABSOLUTA entre el type, el title y el detail.\n\n'
     + 'Responde SOLO JSON válido sin markdown:\n'
-    + '{"findings":[{"type":"error|warning|comment|ok","point":"Punto 3|Punto 10","title":"Nombre del hallazgo","detail":"Comparación detallada","quote":"Pagaré: X → Contrato: Y"}]}\n\n'
+    + '{"findings":[{"type":"error|warning|comment|ok","point":"Punto 6|Punto 7","title":"Nombre del hallazgo","detail":"Comparación detallada","quote":"Pagaré: X → Contrato: Y"}]}\n\n'
     + '=== CONTRATO ===\n' + C + '\n\n=== PAGARÉ ===\n' + P;
 }
 
 function buildPromptAmort(C, P, fmtHint) {
   fmtHint = fmtHint || '';
   return fmtHint
-    + 'Eres un especialista senior en revisión de pagarés para PROAKTIVA, empresa financiera mexicana.\n\n'
-    + 'Analiza los siguientes PUNTOS de forma INDEPENDIENTE. Cada punto genera su propio finding separado.\n\n'
-    + 'PUNTO 7 — Tabla de amortizaciones:\n'
-    + '- Extrae el rango de amortizaciones declarado en el pagaré (ej: "del 1 al 12").\n'
-    + '- Busca la tabla DENTRO DEL PAGARÉ después del texto "TABLA DE AMORTIZACIONES", "TABLA DE AMORTIZACIÓN", "CALENDARIO DE PAGOS" o similar. BUSCA EXHAUSTIVAMENTE en todo el texto.\n'
-    + '- Si la encuentras: extráela completa (número de pago, fecha de vencimiento, importe) como COMMENT informativo.\n'
-    + '- Si no aparece en el texto extraído: WARNING (puede ser límite de extracción, no necesariamente ausencia real).\n'
-    + '- Verifica que el número de amortizaciones coincida con el rango declarado.\n\n'
-    + 'PUNTO 9A — Vencimiento de amortizaciones vs fecha final del contrato:\n'
-    + '- Extrae la fecha de vencimiento FINAL del contrato marco (cláusula de plazo, vigencia o vencimiento del contrato).\n'
-    + '- Extrae la fecha de cada amortización del pagaré.\n'
-    + '- Verifica que NINGUNA amortización tenga fecha posterior a la fecha de vencimiento del contrato marco.\n'
-    + '- Si alguna amortización vence después del contrato: type "error", indicando cuál(es) y cuántos días se exceden.\n'
-    + '- Si todas las amortizaciones vencen antes o en la misma fecha que el contrato: type "ok".\n'
-    + '- Este punto se evalúa de forma INDEPENDIENTE al punto 9B.\n\n'
-    + 'PUNTO 9B — Período de disposición del pagaré vs plazo máximo por disposición del contrato:\n'
-    + '- Extrae del CONTRATO el plazo máximo de disposición POR PAGARÉ INDIVIDUAL (ej: "vencimiento máximo de hasta 180 días"). Este plazo aplica a cada pagaré desde su fecha de suscripción hasta la fecha de su ÚLTIMO PAGO — NO es la duración del contrato marco.\n'
-    + '- Extrae: (1) fecha de suscripción del pagaré, (2) fecha del ÚLTIMO PAGO en la tabla de amortizaciones.\n'
-    + '- Calcula los días calendario exactos entre esas dos fechas.\n'
-    + '- REGLA ABSOLUTA: Si días calculados > plazo máximo → type DEBE ser "error". OBLIGATORIO. No importa si el vencimiento coincide con la fecha del contrato marco, no importa ninguna otra condición. Si los días exceden el plazo máximo por pagaré → ERROR sin excepción.\n'
-    + '- Detalla: días reales calculados, plazo máximo permitido, días de exceso (días reales − plazo máximo).\n'
+    + 'Eres un especialista senior en revisión de pagarés para PROAKTIVA, empresa financiera mexicana.\nINSTRUCCIÓN CRÍTICA: Revisa ÚNICAMENTE los puntos listados. No agregues hallazgos sobre características adicionales del contrato, redacción de cláusulas, texto truncado, inconsistencias del nombre de PROAKTIVA entre documentos, ni ningún elemento no solicitado. Cada finding debe corresponder exactamente a uno de los puntos indicados.\n\nPROHIBICIONES ABSOLUTAS — nunca incluyas hallazgos sobre:\n1. Tasa moratoria o intereses moratorios — predefinida institucionalmente, no se revisa.\n2. Ausencia de firmas — el análisis es previo a la firma, es completamente normal.\n3. Excel, carátula o instrumentos de originación — el análisis no usa Excel.\n4. Texto truncado o documento incompleto — es limitación de extracción, no un error.\n5. Nombre o denominación de PROAKTIVA — no se compara entre documentos.\n6. Redacción, ortografía o estilo de cláusulas del contrato — no es objeto de revisión.\n\nREGLAS DE CALIDAD — aplican a todos los findings:\n- UN SOLO FINDING POR PUNTO. Nunca emitas dos findings para el mismo punto que se contradigan.\n- type \'error\': SOLO si hay dato real incorrecto o diferencia real. type \'ok\': cuando coincide o es correcto. NUNCA uses \'error\' para algo que verificaste y está bien.\n- CONSISTENCIA ABSOLUTA: si concluyes que algo coincide → type DEBE ser \'ok\'. Un finding type \'error\' que dice \'coinciden\' es contradicción prohibida.\n\n'
+    + 'Analiza los siguientes puntos de forma INDEPENDIENTE. Cada punto genera su propio finding:\n\n'
+    + 'PUNTO 8 — Tabla de amortizaciones:\n'
+    + '- La tabla de amortizaciones SIEMPRE está presente en el pagaré. Búscala EXHAUSTIVAMENTE en TODO el texto del documento.\n'
+    + '- Puede aparecer como: "TABLA DE AMORTIZACIONES", "TABLA DE AMORTIZACIÓN", "CALENDARIO DE PAGOS", o simplemente como una secuencia de fechas e importes al final del documento. Si ves fechas y montos estructurados en cualquier parte: eso es la tabla.\n'
+    + '- Si la encuentras: extráela COMPLETA (número de pago, fecha de vencimiento, importe de capital, interés y total si aplica) como COMMENT informativo.\n'
+    + '- Genera WARNING ÚNICAMENTE si absolutamente no hay ninguna fecha ni importe estructurado en todo el documento — esto sería excepcional.\n'
+    + '- Verifica que el número de amortizaciones en la tabla coincida con el rango declarado en el pagaré.\n\n'
+    + 'PUNTO 9 — Vencimiento de amortizaciones vs fecha final del contrato:\n'
+    + '- Extrae la fecha de vencimiento FINAL del contrato marco (cláusula de plazo, vigencia o vencimiento).\n'
+    + '- Verifica que NINGUNA amortización del pagaré tenga fecha posterior a esa fecha de vencimiento del contrato.\n'
+    + '- Si alguna amortización vence después del contrato: type "error", indicando cuál(es) y cuántos días exceden.\n'
+    + '- Si todas vencen antes o en la misma fecha: type "ok".\n'
+    + '- Este punto es INDEPENDIENTE del Punto 10.\n\n'
+    + 'PUNTO 10 — Período de disposición del pagaré:\n'
+    + '- Extrae del CONTRATO el plazo máximo de disposición POR PAGARÉ INDIVIDUAL (ej: "vencimiento máximo de hasta 180 días"). Este plazo aplica desde la fecha de suscripción de CADA pagaré hasta su último vencimiento — NO es la duración total del contrato marco.\n'
+    + '- Extrae: (1) fecha de suscripción del pagaré, (2) fecha del ÚLTIMO PAGO de la tabla de amortizaciones.\n'
+    + '- Calcula los días calendario exactos entre ambas fechas.\n'
+    + '- REGLA ABSOLUTA: Si días calculados > plazo máximo → type DEBE ser "error" OBLIGATORIO. No importa ninguna otra condición. Detalla: días reales, plazo máximo, días de exceso.\n'
     + '- Si días calculados ≤ plazo máximo → type "ok" indicando días reales y plazo permitido.\n'
-    + '- Si el contrato no establece plazo máximo de disposición por pagaré → type "comment".\n'
-    + '- Este punto es INDEPENDIENTE del 9A.\n\n'
-    + 'PUNTO 9C — Disposición parcial:\n'
-    + '- Si el monto del pagaré es menor al monto total del contrato: type "comment" indicando monto del pagaré, monto del contrato, porcentaje utilizado y saldo disponible.\n'
-    + '- Si el monto del pagaré es igual al total del contrato: omite este punto.\n\n'
-    + 'PROHIBIDO: No menciones carátula Excel. No menciones ausencia de firmas.\n\n'
-    + 'Responde SOLO JSON válido sin markdown. Genera un finding SEPARADO e INDEPENDIENTE por cada punto:\n'
-    + '{"findings":[{"type":"error|warning|comment|ok","point":"Punto 7|Punto 9A|Punto 9B|Punto 9C","title":"Descripción","detail":"Detalle con fechas, días e importes exactos","quote":"Pagaré: X / Contrato: Y"}]}\n\n'
+    + '- Si el contrato no establece plazo máximo por disposición → type "comment".\n'
+    + '- Este punto es INDEPENDIENTE del Punto 9.\n\n'
+    + 'Responde SOLO JSON válido sin markdown. Un finding SEPARADO por cada punto:\n'
+    + '{"findings":[{"type":"error|warning|comment|ok","point":"Punto 8|Punto 9|Punto 10","title":"Descripción","detail":"Detalle con fechas, días e importes exactos","quote":"Pagaré: X / Contrato: Y"}]}\n\n'
     + '=== CONTRATO ===\n' + C + '\n\n=== PAGARÉ ===\n' + P;
 }
 
@@ -675,17 +639,26 @@ function buildPromptAmort(C, P, fmtHint) {
 
 
 function buildPromptResumen(C, P, E, today, fmtHint) {
-  return 'Eres un abogado senior especialista en crédito empresarial mexicano de PROAKTIVA.\n'
+  return fmtHint
+    + 'Eres un abogado senior especialista en crédito empresarial mexicano de PROAKTIVA.\n'
     + 'Hoy es: ' + today + '\n\n'
-    + 'Revisa el PAGARÉ completo contra el CONTRATO y la CARÁTULA EXCEL. Genera un dictamen ejecutivo final.\n\n'
-    + 'PROHIBICIONES ABSOLUTAS — jamás incluyas nada sobre:\n'
-    + '1. Tasa moratoria, intereses moratorios, cláusula moratoria, texto truncado en moratoria. La tasa moratoria está predefinida institucionalmente y NUNCA se revisa.\n'
-    + '2. Ausencia de firmas de suscriptor u obligados solidarios. Este análisis es PREVIO a la firma — es normal y esperado que no estén firmados. NUNCA lo señales como urgente ni como observación.\n'
-    + '3. Carátula Excel, instrumento de originación financiera, TIIE de referencia, CAT, comisiones desde Excel. El análisis no usa Excel — nunca lo menciones como faltante.\n'
-    + '4. Por ultimo, una vez finalizado el dictamen elimina toda observacion urgente relacionada con la tasa de interes moratoria, o parrafos cortados, tambien insonsistencias en la razon social o escritura de proaktiva. y elimina errores SOLAMENTE ORTOGRAFICOS NO TIPOGRAFICOS, en la razon social del acreditado.\n\n'
+    + 'Con base en los hallazgos ya identificados en el pagaré y el contrato, genera un dictamen ejecutivo final.\n'
+    + 'IMPORTANTE: El dictamen debe reflejar ÚNICAMENTE los hallazgos de los 10 puntos de revisión. No agregues observaciones propias, características del contrato no solicitadas, ni información adicional fuera de esos puntos.\n\n'
+    + 'PROHIBICIONES ABSOLUTAS — nunca incluyas en el dictamen:\n'
+    + '1. Tasa moratoria o intereses moratorios.\n'
+    + '2. Ausencia de firmas — el análisis es previo a la firma.\n'
+    + '3. Excel, carátula o instrumentos de originación.\n'
+    + '4. Texto truncado o documento incompleto.\n'
+    + '5. Nombre o denominación de PROAKTIVA entre documentos.\n'
+    + '6. Redacción o estilo de cláusulas del contrato.\n\n'
+    + 'Criterios de calificación:\n'
+    + '- A / VÁLIDO (green): todos los puntos correctos o solo comentarios informativos.\n'
+    + '- B / CON OBSERVACIONES (yellow): advertencias menores sin errores críticos.\n'
+    + '- C / REQUIERE CORRECCIÓN (orange): uno o más errores subsanables antes de firmar.\n'
+    + '- D / INVÁLIDO (red): errores críticos que impiden la formalización.\n\n'
     + 'Responde SOLO JSON válido sin markdown:\n'
-    + '{"grade":"A|B|C|D","verdict":"VÁLIDO|CON OBSERVACIONES|REQUIERE CORRECCIÓN|INVÁLIDO","verdict_color":"green|yellow|orange|red","summary":"Párrafo de 3-5 oraciones","critical":["Acción urgente 1"],"comments":["Comentario 1"],"ok_points":["Punto correcto 1"],"recommendation":"Qué hacer antes de firmar"}\n\n'
-    + '=== CONTRATO ===\n' + C.substring(0,2000) + '\n\n=== PAGARÉ ===\n' + P.substring(0,2000) + '\n\n=== EXCEL ===\n' + E.substring(0,1500);
+    + '{"grade":"A|B|C|D","verdict":"VÁLIDO|CON OBSERVACIONES|REQUIERE CORRECCIÓN|INVÁLIDO","verdict_color":"green|yellow|orange|red","summary":"Párrafo de 3-5 oraciones resumiendo solo los hallazgos encontrados","critical":["Acción urgente concreta"],"comments":["Comentario informativo"],"ok_points":["Punto verificado correcto"],"recommendation":"Qué hacer antes de firmar"}\n\n'
+    + '=== CONTRATO ===\n' + C.substring(0,3000) + '\n\n=== PAGARÉ ===\n' + P.substring(0,3000);
 }
 
 // ── API CALL ───────────────────────────────────────────────────────────────
@@ -1067,19 +1040,19 @@ async function generateDictamenPDF() {
   if (F.datos && F.datos.length) {
     checkPage(18);
     y += 4;
-    sectionBanner('DATOS DEL PAGARE  -  Puntos 1, 2, 4, 5, 6, 8', 35,75,140);
+    sectionBanner('DATOS Y CONDICIONES  -  Puntos 1 al 5', 35,75,140);
     F.datos.forEach(drawFinding);
   }
   if (F.partes && F.partes.length) {
     checkPage(18);
     y += 4;
-    sectionBanner('PARTES Y FIRMAS  -  Puntos 3 y 10', 65,50,125);
+    sectionBanner('PARTES  -  Puntos 6 y 7', 65,50,125);
     F.partes.forEach(drawFinding);
   }
   if (F.amort && F.amort.length) {
     checkPage(18);
     y += 4;
-    sectionBanner('AMORTIZACIONES Y PLAZOS  -  Puntos 7, 9A, 9B, 9C', 20,95,85);
+    sectionBanner('AMORTIZACIONES Y PLAZOS  -  Puntos 8, 9 y 10', 20,95,85);
     F.amort.forEach(drawFinding);
   }
 
