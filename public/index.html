@@ -173,6 +173,7 @@ html, body { height: 100%; font-family: "IBM Plex Sans", sans-serif; color: var(
 /* ── AFORO TOOL WRAPPER ── */
 #panel-aforo .panel-scroll { background: #f5f2ed; }
 </style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 <body>
 <div id="app">
@@ -304,14 +305,17 @@ html, body { height: 100%; font-family: "IBM Plex Sans", sans-serif; color: var(
       <div class="score-card c-err"><div class="num" id="cnt-err">0</div><div class="lbl">Errores</div></div>
       <div class="score-card c-warn"><div class="num" id="cnt-warn">0</div><div class="lbl">Advertencias</div></div>
       <div class="score-card c-info"><div class="num" id="cnt-info">0</div><div class="lbl">Comentarios</div></div>
-      <div class="score-card c-ok"><div class="num" id="cnt-ok">—</div><div class="lbl">Calificación</div></div>
+      <div class="score-card c-ok"><div class="num" id="cnt-ok">—</div><div class="lbl">Correctos</div></div>
+    </div>
+
+    <div style="text-align:right;margin-bottom:8px">
+      <button onclick="exportarPDF()" style="background:#1a4fa0;color:#fff;border:none;border-radius:8px;padding:9px 20px;font-size:13px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:7px">⬇ Exportar PDF</button>
     </div>
 
     <div class="tabs">
       <div class="tab active" onclick="setTab('datos',this)">📋 Puntos 1,2,4,5,6,8</div>
       <div class="tab" onclick="setTab('partes',this)">👤 Punto 3 y 10</div>
       <div class="tab" onclick="setTab('amort',this)">📊 Puntos 7 y 9</div>
-      <div class="tab" onclick="setTab('resumen',this)">🏁 Dictamen final</div>
     </div>
 
     <!-- TAB: Datos del pagaré (puntos 1-6, 8) -->
@@ -342,16 +346,7 @@ html, body { height: 100%; font-family: "IBM Plex Sans", sans-serif; color: var(
     </div>
 
     <!-- TAB: Dictamen -->
-    <div class="report-card" id="sec-resumen">
-      <div class="rcard-header" style="flex-wrap:wrap;gap:10px;align-items:center">
-        <div class="rcard-icon" style="background:#fdf6e3;flex-shrink:0">🏁</div>
-        <div style="flex:1"><h3>Dictamen final</h3><p>Veredicto general, puntos críticos y recomendaciones</p></div>
-        <button id="btn-pdf-dictamen" onclick="generateDictamenPDF()" style="display:none;align-items:center;gap:7px;padding:9px 16px;background:#0d47a1;color:white;border:none;border-radius:9px;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;font-family:inherit">
-          ⬇ Exportar PDF
-        </button>
-      </div>
-      <div class="rcard-body" id="body-resumen"><div style="color:var(--muted);text-align:center;padding:20px;font-size:13px">Esperando análisis...</div></div>
-    </div>
+    
 
     <div class="reset-row"><button class="btn-reset" onclick="resetAll()">← Nuevo análisis</button></div>
   </div>
@@ -361,7 +356,6 @@ html, body { height: 100%; font-family: "IBM Plex Sans", sans-serif; color: var(
 <script>
 // ── STATE ──────────────────────────────────────────────────────────────────
 var docs = { contrato: null, pagare: null };
-var PROAKTIVA_LOGO_B64 = "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";
 
 // ── FILE LOADING ───────────────────────────────────────────────────────────
 async function handleFile(type, input) {
@@ -503,7 +497,6 @@ async function startAnalysis() {
   var fmtHint = '';
   if (contratoEsPDF) fmtHint += 'NOTA: El CONTRATO fue extraído de un PDF; el texto puede tener palabras pegadas o saltos de línea irregulares, interpreta el contenido con tolerancia de formato.\n';
   if (pagareEsPDF)   fmtHint += 'NOTA: El PAGARÉ fue extraído de un PDF; el texto puede tener palabras pegadas o saltos de línea irregulares, interpreta el contenido con tolerancia de formato.\n';
-  var E     = '[Sin carátula Excel — análisis basado exclusivamente en contrato y pagaré]';
   var today = new Date().toLocaleDateString('es-MX', { day:'2-digit', month:'long', year:'numeric' });
 
   try {
@@ -520,18 +513,13 @@ async function startAnalysis() {
     setProgress(70, 'Cotejando tabla, vencimientos y plazos de disposición (Puntos 8, 9 y 10)...');
     var rAmort = await callAI(buildPromptAmort(C, P, fmtHint));
     renderFindings('body-amort', rAmort.findings);
-    await sleep(5000);
-
-    setProgress(90, 'Generando dictamen final...');
-    var rRes = await callAI(buildPromptResumen(C, P, E, today, fmtHint));
-    renderResumen(rRes);
 
     var all = (rDatos.findings||[]).concat(rPartes.findings||[]).concat(rAmort.findings||[]);
     window.__allFindings = { datos: rDatos.findings||[], partes: rPartes.findings||[], amort: rAmort.findings||[] };
     document.getElementById('cnt-err').textContent  = all.filter(function(f){ return f.type==='error'; }).length;
     document.getElementById('cnt-warn').textContent = all.filter(function(f){ return f.type==='warning'; }).length;
     document.getElementById('cnt-info').textContent = all.filter(function(f){ return f.type==='info'||f.type==='comment'; }).length;
-    document.getElementById('cnt-ok').textContent   = rRes.grade || '—';
+    document.getElementById('cnt-ok').textContent   = all.filter(function(f){ return f.type==='ok'; }).length;
 
     setProgress(100, '✓ Análisis completado');
     await sleep(400);
@@ -597,10 +585,13 @@ function buildPromptPartes(C, P, fmtHint) {
     + '- Muestra en quote el texto literal de cada documento: Pagaré: [texto exacto] → Contrato: [texto exacto].\n\n'
     + 'PUNTO 7 — Avales, obligados solidarios y coacreditados:\n'
     + '- Extrae TODOS los avales/obligados solidarios/coacreditados del PAGARÉ.\n'
-    + '- Para cada persona: verifica que aparezca en el CONTRATO. Si NO aparece: ERROR.\n'
-    + '- Si aparece: compara nombre ignorando tildes/mayúsculas. ERROR si hay letra base diferente, nombre incompleto, apellido cambiado o espacios internos ilegítimos.\n'
-    + '- Lista CADA persona individualmente con su resultado.\n'
-    + '- Si no hay avales: COMMENT indicándolo.\n\n'
+    + '- IMPORTANTE: el representante legal de la empresa suscriptora puede aparecer también como obligado solidario — esto es completamente normal y válido. NO lo marques como duplicado ni como error.\n'
+    + '- Para CADA persona genera un finding INDIVIDUAL e INDEPENDIENTE (un finding por persona, no uno para todos).\n'
+    + '- Para cada persona individualmente:\n'
+    + '  (a) Busca si aparece en el CONTRATO como obligado solidario, aval o coacreditado. Si NO aparece: type "error".\n'
+    + '  (b) Si SÍ aparece: compara nombre ignorando tildes y mayúsculas. Si las letras base son idénticas: type "ok". Si hay letra base diferente, nombre incompleto, apellido cambiado o espacios internos ilegítimos: type "error".\n'
+    + '  (c) Muestra en el campo quote: Pagaré: [nombre exacto] → Contrato: [nombre exacto].\n'
+    + '- Si no hay avales ni obligados solidarios en el pagaré: un solo COMMENT indicándolo.\n\n'
     + 'Responde SOLO JSON válido sin markdown:\n'
     + '{"findings":[{"type":"error|warning|comment|ok","point":"Punto 6|Punto 7","title":"Nombre del hallazgo","detail":"Comparación detallada","quote":"Pagaré: X → Contrato: Y"}]}\n\n'
     + '=== CONTRATO ===\n' + C + '\n\n=== PAGARÉ ===\n' + P;
@@ -643,28 +634,7 @@ function buildPromptAmort(C, P, fmtHint) {
 
 
 
-function buildPromptResumen(C, P, E, today, fmtHint) {
-  return fmtHint
-    + 'Eres un abogado senior especialista en crédito empresarial mexicano de PROAKTIVA.\n'
-    + 'Hoy es: ' + today + '\n\n'
-    + 'Con base en los hallazgos ya identificados en el pagaré y el contrato, genera un dictamen ejecutivo final.\n'
-    + 'IMPORTANTE: El dictamen debe reflejar ÚNICAMENTE los hallazgos de los 10 puntos de revisión. No agregues observaciones propias, características del contrato no solicitadas, ni información adicional fuera de esos puntos.\n\n'
-    + 'PROHIBICIONES ABSOLUTAS — nunca incluyas en el dictamen:\n'
-    + '1. Tasa moratoria o intereses moratorios.\n'
-    + '2. Ausencia de firmas — el análisis es previo a la firma.\n'
-    + '3. Excel, carátula o instrumentos de originación.\n'
-    + '4. Texto truncado o documento incompleto.\n'
-    + '5. Nombre o denominación de PROAKTIVA entre documentos.\n'
-    + '6. Redacción o estilo de cláusulas del contrato.\n\n'
-    + 'Criterios de calificación:\n'
-    + '- A / VÁLIDO (green): todos los puntos correctos o solo comentarios informativos.\n'
-    + '- B / CON OBSERVACIONES (yellow): advertencias menores sin errores críticos.\n'
-    + '- C / REQUIERE CORRECCIÓN (orange): uno o más errores subsanables antes de firmar.\n'
-    + '- D / INVÁLIDO (red): errores críticos que impiden la formalización.\n\n'
-    + 'Responde SOLO JSON válido sin markdown:\n'
-    + '{"grade":"A|B|C|D","verdict":"VÁLIDO|CON OBSERVACIONES|REQUIERE CORRECCIÓN|INVÁLIDO","verdict_color":"green|yellow|orange|red","summary":"Párrafo de 3-5 oraciones resumiendo solo los hallazgos encontrados","critical":["Acción urgente concreta"],"comments":["Comentario informativo"],"ok_points":["Punto verificado correcto"],"recommendation":"Qué hacer antes de firmar"}\n\n'
-    + '=== CONTRATO ===\n' + C.substring(0,3000) + '\n\n=== PAGARÉ ===\n' + P.substring(0,3000);
-}
+
 
 // ── API CALL ───────────────────────────────────────────────────────────────
 async function callAI(prompt) {
@@ -755,39 +725,7 @@ function renderFindings(bodyId, findings) {
   }).join('');
 }
 
-function renderResumen(d) {
-  var colors = { green:'var(--green)', yellow:'var(--yellow)', orange:'var(--orange)', red:'var(--red)' };
-  var col = colors[d.verdict_color] || 'var(--muted)';
-  var html = '<div class="verdict-row">'
-    + '<div class="verdict-grade" style="color:' + col + '">' + esc(d.grade||'—') + '</div>'
-    + '<div class="verdict-text"><h4 style="color:' + col + '">' + esc(d.verdict||'') + '</h4><p>Dictamen del pagaré revisado</p></div>'
-    + '</div>'
-    + '<div class="summary-p">' + esc(d.summary||'') + '</div>';
 
-  if (d.critical && d.critical.length) {
-    d.critical.forEach(function(c) {
-      html += '<div class="finding f-error" style="margin-bottom:8px"><span class="fbadge">URGENTE</span><div class="fcontent"><div class="fdetail">' + esc(c) + '</div></div></div>';
-    });
-  }
-  if (d.comments && d.comments.length) {
-    d.comments.forEach(function(c) {
-      html += '<div class="finding f-comment" style="margin-bottom:8px"><span class="fbadge">NOTA</span><div class="fcontent"><div class="fdetail">' + esc(c) + '</div></div></div>';
-    });
-  }
-  if (d.ok_points && d.ok_points.length) {
-    d.ok_points.forEach(function(c) {
-      html += '<div class="finding f-ok" style="margin-bottom:8px"><span class="fbadge">OK</span><div class="fcontent"><div class="fdetail">' + esc(c) + '</div></div></div>';
-    });
-  }
-  if (d.recommendation) {
-    html += '<div class="finding f-info" style="margin-top:12px"><span class="fbadge">SIGUIENTE PASO</span><div class="fcontent"><div class="fdetail">' + esc(d.recommendation) + '</div></div></div>';
-  }
-  document.getElementById('body-resumen').innerHTML = html;
-  // Show PDF button and store last result for PDF
-  var pdfBtn = document.getElementById('btn-pdf-dictamen');
-  if (pdfBtn) { pdfBtn.style.display = 'flex'; }
-  window.__lastDictamen = d;
-}
 
 function typeClass(t) {
   var m = { error:'error', warning:'warning', comment:'comment', info:'info', ok:'ok' };
@@ -801,48 +739,24 @@ function esc(s) {
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
-function resetAll() {
-  ['contrato','pagare'].forEach(function(t){ removeFile(t, null); });
-  document.getElementById('results-wrap').classList.remove('visible');
-  document.getElementById('progress-wrap').classList.remove('visible');
-  document.getElementById('btn-analyze').disabled = true;
-  document.querySelectorAll('.tab').forEach(function(t,i){ t.classList.toggle('active', i===0); });
-  document.querySelectorAll('.report-card').forEach(function(c,i){ c.classList.toggle('visible', i===0); });
-}
-
-// ── DICTAMEN PDF ──────────────────────────────────────────────────────
-async function generateDictamenPDF() {
-  // ── Guards ──
-  var d = window.__lastDictamen;
-  if (!d) { alert('Genera el análisis primero antes de exportar.'); return; }
-  if (!window.jspdf) { alert('La librería de PDF no está disponible aún. Espera un momento y vuelve a intentar.'); return; }
-
-  var F   = window.__allFindings || { datos:[], partes:[], amort:[] };
-  var allF = (F.datos||[]).concat(F.partes||[]).concat(F.amort||[]);
+// ── EXPORTAR PDF (solo hallazgos, sin dictamen) ───────────────────────────
+async function exportarPDF() {
+  var F = window.__allFindings;
+  if (!F) { alert('Genera el análisis primero antes de exportar.'); return; }
+  if (!window.jspdf) { alert('La librería PDF no está disponible aún. Espera un momento e intenta de nuevo.'); return; }
 
   var { jsPDF } = window.jspdf;
-  var doc = new jsPDF({ orientation:'portrait', unit:'mm', format:'letter' });
+  var doc  = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'letter' });
   var W = 215.9, H = 279.4, mL = 16, mR = 16, cW = W - mL - mR;
-
-  // ── Paleta por veredicto ──
-  var pal = ({
-    green:  { hdr:[22,100,45],   lt:[235,252,240], ink:[15,70,30]   },
-    yellow: { hdr:[140,100,0],   lt:[255,252,220], ink:[90,65,0]    },
-    orange: { hdr:[160,70,0],    lt:[255,240,220], ink:[120,50,0]   },
-    red:    { hdr:[175,25,25],   lt:[255,232,232], ink:[130,20,20]  },
-  })[d.verdict_color] || { hdr:[50,75,110], lt:[240,244,252], ink:[30,50,80] };
-
-  var fechaHoy = new Date().toLocaleDateString('es-MX',{day:'2-digit',month:'long',year:'numeric'});
+  var fechaHoy = new Date().toLocaleDateString('es-MX', { day:'2-digit', month:'long', year:'numeric' });
   var y = 0;
 
-  /* ════════════════════════════════════════════════
-     HELPERS
-  ════════════════════════════════════════════════ */
-  function newPageHeader() {
+  // ── Helpers ─────────────────────────────────────────────────────────────
+  function pageHeader() {
     doc.setFillColor(8,28,80);
     doc.rect(0,0,W,9,'F');
     doc.setFontSize(7); doc.setTextColor(170,195,230); doc.setFont('helvetica','bold');
-    doc.text('PROAKTIVA SAPI DE CV, SOFOM, ENR  -  DICTAMEN DE REVISION DE PAGARE', mL, 6.3);
+    doc.text('PROAKTIVA SAPI DE CV, SOFOM, ENR  -  REVISION DE PAGARE', mL, 6.3);
     doc.text(fechaHoy, W-mR, 6.3, {align:'right'});
     return 14;
   }
@@ -850,7 +764,7 @@ async function generateDictamenPDF() {
   function checkPage(need) {
     if (y + need > H - 14) {
       doc.addPage();
-      y = newPageHeader();
+      y = pageHeader();
     }
   }
 
@@ -864,26 +778,26 @@ async function generateDictamenPDF() {
   }
 
   var badgeCfg = {
-    error:   {lbl:'ERROR',   bg:[205,35,35],   tbg:[255,244,244], ink:[100,15,15]},
-    warning: {lbl:'AVISO',   bg:[185,115,5],   tbg:[255,251,228], ink:[100,65,0] },
-    ok:      {lbl:'OK',      bg:[20,115,50],   tbg:[236,252,240], ink:[10,65,25] },
-    comment: {lbl:'NOTA',    bg:[13,71,161],   tbg:[236,243,255], ink:[10,45,110]},
-    info:    {lbl:'INFO',    bg:[55,85,135],   tbg:[242,246,255], ink:[30,50,100]},
+    error:   { lbl:'ERROR',       bg:[205,35,35],  tbg:[255,244,244], ink:[100,15,15]  },
+    warning: { lbl:'ADVERTENCIA', bg:[185,115,5],  tbg:[255,251,228], ink:[100,65,0]   },
+    ok:      { lbl:'OK',          bg:[20,115,50],  tbg:[236,252,240], ink:[10,65,25]   },
+    comment: { lbl:'NOTA',        bg:[13,71,161],  tbg:[236,243,255], ink:[10,45,110]  },
+    info:    { lbl:'INFO',        bg:[55,85,135],  tbg:[242,246,255], ink:[30,50,100]  },
   };
 
   function drawFinding(f) {
-    var cfg = badgeCfg[f.type] || badgeCfg.info;
-    // Build text content
-    var titleTxt  = f.title  ? f.title  : '';
+    var cfg     = badgeCfg[f.type] || badgeCfg.info;
     var pointTxt  = f.point  ? '['+f.point+']  ' : '';
-    var detailTxt = f.detail ? f.detail : '';
+    var titleTxt  = f.title  || '';
+    var detailTxt = f.detail || '';
     var quoteTxt  = f.quote  ? '> '+f.quote : '';
 
-    var titleLines  = doc.splitTextToSize(pointTxt + titleTxt,  cW-28);
+    var titleLines  = doc.splitTextToSize(pointTxt + titleTxt, cW-28);
     var detailLines = doc.splitTextToSize(detailTxt, cW-28);
     var quoteLines  = quoteTxt ? doc.splitTextToSize(quoteTxt, cW-30) : [];
 
-    var totalH = titleLines.length*5 + detailLines.length*4.5 + (quoteLines.length ? quoteLines.length*4.2+5 : 0) + 8;
+    var totalH = titleLines.length*5 + detailLines.length*4.5
+               + (quoteLines.length ? quoteLines.length*4.2+5 : 0) + 8;
     totalH = Math.max(12, totalH);
     checkPage(totalH + 3);
 
@@ -892,27 +806,24 @@ async function generateDictamenPDF() {
     doc.roundedRect(mL, y, 18, totalH, 1.5,1.5,'F');
     var bl = doc.splitTextToSize(cfg.lbl, 16);
     doc.setFontSize(5.5); doc.setTextColor(255,255,255); doc.setFont('helvetica','bold');
-    var bStartY = y + totalH/2 - (bl.length-1)*1.8;
-    bl.forEach(function(b,i){ doc.text(b, mL+9, bStartY+i*3.8, {align:'center'}); });
+    var bY = y + totalH/2 - (bl.length-1)*1.8;
+    bl.forEach(function(b,i){ doc.text(b, mL+9, bY+i*3.8, {align:'center'}); });
 
     // Content box
     doc.setFillColor(cfg.tbg[0],cfg.tbg[1],cfg.tbg[2]);
     doc.roundedRect(mL+20, y, cW-20, totalH, 1.5,1.5,'F');
 
     var cy = y + 5.5;
-    // Title
     if (titleLines.length) {
       doc.setFontSize(8); doc.setTextColor(cfg.ink[0],cfg.ink[1],cfg.ink[2]); doc.setFont('helvetica','bold');
       doc.text(titleLines, mL+23, cy);
       cy += titleLines.length*5 + 1;
     }
-    // Detail
     if (detailLines.length) {
       doc.setFontSize(7.5); doc.setTextColor(30,35,45); doc.setFont('helvetica','normal');
       doc.text(detailLines, mL+23, cy);
       cy += detailLines.length*4.5 + 1;
     }
-    // Quote bar
     if (quoteLines.length) {
       doc.setFillColor(cfg.bg[0],cfg.bg[1],cfg.bg[2]);
       doc.roundedRect(mL+22, cy+1, cW-24, quoteLines.length*4.2+4, 1,1,'F');
@@ -922,96 +833,29 @@ async function generateDictamenPDF() {
     y += totalH + 3;
   }
 
-  /* ════════════════════════════════════════════════
-     PÁGINA 1 — PORTADA EJECUTIVA
-  ════════════════════════════════════════════════ */
-
-  // Banda azul marino top
+  // ── Portada ──────────────────────────────────────────────────────────────
   doc.setFillColor(8,28,80);
   doc.rect(0,0,W,26,'F');
-
-  // Logo Proaktiva
-  try {
-    var imgEl = new Image();
-    imgEl.src = 'data:image/webp;base64,'+PROAKTIVA_LOGO_B64;
-    var cvs = document.createElement('canvas'); cvs.width=400; cvs.height=130;
-    cvs.getContext('2d').drawImage(imgEl,0,0,400,130);
-    doc.addImage(cvs.toDataURL('image/png'),'PNG', mL, 4, 58, 19);
-  } catch(e) {}
-
-  // Nombre empresa (derecha)
-  doc.setFontSize(9); doc.setTextColor(195,215,245); doc.setFont('helvetica','bold');
+  doc.setFontSize(9);  doc.setTextColor(195,215,245); doc.setFont('helvetica','bold');
   doc.text('PROAKTIVA SAPI de CV, SOFOM, ENR', W-mR, 11, {align:'right'});
-  doc.setFontSize(7); doc.setFont('helvetica','normal'); doc.setTextColor(130,160,205);
+  doc.setFontSize(7);  doc.setFont('helvetica','normal'); doc.setTextColor(130,160,205);
   doc.text('Le damos credito a tu negocio', W-mR, 17, {align:'right'});
 
-  // Franja título
   doc.setFillColor(13,71,161);
   doc.rect(0,26,W,11,'F');
   doc.setFontSize(10.5); doc.setTextColor(255,255,255); doc.setFont('helvetica','bold');
-  doc.text('DICTAMEN DE REVISION DE PAGARE', W/2, 33, {align:'center'});
+  doc.text('REVISION DE PAGARE - HALLAZGOS', W/2, 33, {align:'center'});
 
-  // Metadatos
   doc.setFillColor(228,235,252);
   doc.rect(0,37,W,8,'F');
   doc.setFontSize(7.5); doc.setTextColor(35,55,115); doc.setFont('helvetica','normal');
   doc.text('Fecha de emision: '+fechaHoy, mL, 42.5);
   doc.text('Analisis automatizado - ToolsPK / Proaktiva', W-mR, 42.5, {align:'right'});
 
+  // Documentos analizados
   y = 51;
-
-  // ── Bloque veredicto ──
-  doc.setFillColor(pal.hdr[0],pal.hdr[1],pal.hdr[2]);
-  doc.roundedRect(mL, y, cW, 22, 3,3,'F');
-  doc.setFontSize(28); doc.setTextColor(255,255,255); doc.setFont('helvetica','bold');
-  doc.text(d.grade||'—', mL+10, y+15);
-  doc.setDrawColor(255,255,255); doc.setLineWidth(0.35);
-  doc.line(mL+26, y+4, mL+26, y+18);
-  doc.setFontSize(13); doc.setTextColor(255,255,255); doc.setFont('helvetica','bold');
-  doc.text(d.verdict||'', mL+30, y+10);
-  doc.setFontSize(7.5); doc.setFont('helvetica','normal'); doc.setTextColor(215,228,252);
-  doc.text('Revision automatizada - Proaktiva ToolsPK', mL+30, y+17);
-  y += 27;
-
-  // ── Resumen ejecutivo ──
-  if (d.summary) {
-    doc.setFillColor(pal.lt[0],pal.lt[1],pal.lt[2]);
-    var sl = doc.splitTextToSize(d.summary, cW-12);
-    var sh = sl.length*5+9;
-    doc.roundedRect(mL, y, cW, sh, 2,2,'F');
-    doc.setFillColor(pal.hdr[0],pal.hdr[1],pal.hdr[2]);
-    doc.roundedRect(mL, y, 3, sh, 1,1,'F');
-    doc.setFontSize(8.5); doc.setTextColor(pal.ink[0],pal.ink[1],pal.ink[2]); doc.setFont('helvetica','normal');
-    doc.text(sl, mL+7, y+6.5);
-    y += sh+7;
-  }
-
-  // ── Scorecard ──
-  var nErr  = allF.filter(function(f){return f.type==='error';}).length;
-  var nWarn = allF.filter(function(f){return f.type==='warning';}).length;
-  var nInfo = allF.filter(function(f){return f.type==='comment'||f.type==='info';}).length;
-  var nOk   = allF.filter(function(f){return f.type==='ok';}).length;
-  var cards = [
-    {lbl:'Errores',      n:nErr,  c:[200,35,35]},
-    {lbl:'Advertencias', n:nWarn, c:[180,115,5]},
-    {lbl:'Observaciones',n:nInfo, c:[13,71,161]},
-    {lbl:'Correctos',    n:nOk,   c:[20,115,50]},
-  ];
-  var bW = (cW-9)/4;
-  cards.forEach(function(sc,i){
-    var bx = mL + i*(bW+3);
-    doc.setFillColor(sc.c[0],sc.c[1],sc.c[2]);
-    doc.roundedRect(bx, y, bW, 17, 2,2,'F');
-    doc.setFontSize(18); doc.setTextColor(255,255,255); doc.setFont('helvetica','bold');
-    doc.text(String(sc.n), bx+bW/2, y+11, {align:'center'});
-    doc.setFontSize(6); doc.setFont('helvetica','normal');
-    doc.text(sc.lbl, bx+bW/2, y+16, {align:'center'});
-  });
-  y += 22;
-
-  // ── Documentos analizados ──
-  var cNom = (window.docs&&window.docs.contrato) ? window.docs.contrato.name : '—';
-  var pNom = (window.docs&&window.docs.pagare)   ? window.docs.pagare.name   : '—';
+  var cNom = (window.docs && window.docs.contrato) ? window.docs.contrato.name : '-';
+  var pNom = (window.docs && window.docs.pagare)   ? window.docs.pagare.name   : '-';
   doc.setFillColor(244,246,252);
   doc.roundedRect(mL, y, cW, 14, 2,2,'F');
   doc.setDrawColor(180,195,220); doc.setLineWidth(0.25);
@@ -1023,80 +867,70 @@ async function generateDictamenPDF() {
   doc.text('Pagare: '+pNom, mL+4+cW/2, y+10.5);
   y += 19;
 
-  /* ════════════════════════════════════════════════
-     SECCIÓN DICTAMEN FINAL (urgentes, ok, notas)
-  ════════════════════════════════════════════════ */
-  checkPage(16);
-  doc.setDrawColor(pal.hdr[0],pal.hdr[1],pal.hdr[2]); doc.setLineWidth(0.4);
-  doc.line(mL, y, W-mR, y); y += 5;
-  sectionBanner('DICTAMEN FINAL', pal.hdr[0],pal.hdr[1],pal.hdr[2]);
+  // Scorecard
+  var allF = (F.datos||[]).concat(F.partes||[]).concat(F.amort||[]);
+  var cards = [
+    { lbl:'Errores',       n: allF.filter(function(f){return f.type==='error';}).length,   c:[200,35,35]  },
+    { lbl:'Advertencias',  n: allF.filter(function(f){return f.type==='warning';}).length, c:[180,115,5]  },
+    { lbl:'Comentarios',   n: allF.filter(function(f){return f.type==='comment'||f.type==='info';}).length, c:[13,71,161] },
+    { lbl:'Correctos',     n: allF.filter(function(f){return f.type==='ok';}).length,      c:[20,115,50]  },
+  ];
+  var bW = (cW-9)/4;
+  cards.forEach(function(sc,i){
+    var bx = mL + i*(bW+3);
+    doc.setFillColor(sc.c[0],sc.c[1],sc.c[2]);
+    doc.roundedRect(bx, y, bW, 17, 2,2,'F');
+    doc.setFontSize(18); doc.setTextColor(255,255,255); doc.setFont('helvetica','bold');
+    doc.text(String(sc.n), bx+bW/2, y+11, {align:'center'});
+    doc.setFontSize(6); doc.setFont('helvetica','normal');
+    doc.text(sc.lbl, bx+bW/2, y+16, {align:'center'});
+  });
+  y += 26;
 
-  if (d.critical && d.critical.length) {
-    d.critical.forEach(function(c){ drawFinding({type:'error',  title:'URGENTE', detail:c}); });
-    y += 2;
-  }
-  if (d.ok_points && d.ok_points.length) {
-    d.ok_points.forEach(function(c){ drawFinding({type:'ok',      detail:c}); });
-    y += 2;
-  }
-  if (d.comments && d.comments.length) {
-    d.comments.forEach(function(c){ drawFinding({type:'comment',  detail:c}); });
-    y += 2;
-  }
-  if (d.recommendation) {
-    checkPage(20);
-    doc.setFillColor(13,71,161); doc.roundedRect(mL,y,cW,8,2,2,'F');
-    doc.setFontSize(7.5); doc.setTextColor(255,255,255); doc.setFont('helvetica','bold');
-    doc.text('RECOMENDACION Y SIGUIENTE PASO', mL+4, y+5.5);
-    y += 11;
-    var rl = doc.splitTextToSize(d.recommendation, cW-10);
-    var rh = rl.length*5+8;
-    checkPage(rh);
-    doc.setFillColor(235,242,255); doc.roundedRect(mL,y,cW,rh,2,2,'F');
-    doc.setFillColor(13,71,161);  doc.roundedRect(mL,y,3,rh,1,1,'F');
-    doc.setFontSize(8.5); doc.setTextColor(20,40,105); doc.setFont('helvetica','normal');
-    doc.text(rl, mL+6, y+6);
-    y += rh+6;
-  }
-
-  /* ════════════════════════════════════════════════
-     HALLAZGOS DETALLADOS POR SECCIÓN
-  ════════════════════════════════════════════════ */
+  // ── Hallazgos por sección ────────────────────────────────────────────────
   if (F.datos && F.datos.length) {
-    checkPage(18);
-    y += 4;
     sectionBanner('DATOS Y CONDICIONES  -  Puntos 1 al 5', 35,75,140);
     F.datos.forEach(drawFinding);
+    y += 4;
   }
   if (F.partes && F.partes.length) {
     checkPage(18);
-    y += 4;
     sectionBanner('PARTES  -  Puntos 6 y 7', 65,50,125);
     F.partes.forEach(drawFinding);
+    y += 4;
   }
   if (F.amort && F.amort.length) {
     checkPage(18);
-    y += 4;
     sectionBanner('AMORTIZACIONES Y PLAZOS  -  Puntos 8, 9 y 10', 20,95,85);
     F.amort.forEach(drawFinding);
   }
 
-  /* ════════════════════════════════════════════════
-     FOOTER EN TODAS LAS PÁGINAS
-  ════════════════════════════════════════════════ */
+  // ── Footer en todas las páginas ──────────────────────────────────────────
   var nPages = doc.internal.getNumberOfPages();
-  for (var p=1; p<=nPages; p++) {
+  for (var p = 1; p <= nPages; p++) {
     doc.setPage(p);
     doc.setFillColor(228,233,245); doc.rect(0, H-11, W, 11, 'F');
-    doc.setDrawColor(13,71,161); doc.setLineWidth(0.25);
+    doc.setDrawColor(13,71,161);   doc.setLineWidth(0.25);
     doc.line(0, H-11, W, H-11);
     doc.setFontSize(6.2); doc.setTextColor(75,95,130); doc.setFont('helvetica','normal');
     doc.text('Proaktiva SAPI de CV, SOFOM, ENR  |  Documento confidencial  |  Generado por ToolsPK', mL, H-5.5);
     doc.text('Pagina '+p+' / '+nPages, W-mR, H-5.5, {align:'right'});
   }
 
-  doc.save('Dictamen_Pagare_'+new Date().toLocaleDateString('es-MX').replace(/\//g,'-')+'.pdf');
+  doc.save('Revision_Pagare_'+new Date().toLocaleDateString('es-MX').replace(/\//g,'-')+'.pdf');
 }
+
+function resetAll() {
+  ['contrato','pagare'].forEach(function(t){ removeFile(t, null); });
+  document.getElementById('results-wrap').classList.remove('visible');
+  document.getElementById('progress-wrap').classList.remove('visible');
+  document.getElementById('btn-analyze').disabled = true;
+  document.querySelectorAll('.tab').forEach(function(t,i){ t.classList.toggle('active', i===0); });
+  document.querySelectorAll('.report-card').forEach(function(c,i){ c.classList.toggle('visible', i===0); });
+}
+
+// ── DICTAMEN PDF ──────────────────────────────────────────────────────
+
 </script>
         </div>
       </div>
@@ -1436,7 +1270,6 @@ function showPanel(name) {
 </script>
 
 <!-- Aforo Tool (React) -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script type="text/babel">
 const { useState, useMemo } = React;
 
