@@ -579,7 +579,7 @@ function buildPromptDatos(C, P, today, fmtHint) {
     + '- Extrae la tasa de interés ordinaria del pagaré (en número y en letra).\n'
     + '- Verifica que la tasa EN LETRA esté escrita correctamente y coincida con el número. Ignora tildes/mayúsculas.\n'
     + '- Si la tasa en letra no coincide con el número: ERROR.\n'
-    + '- PROHIBIDO ABSOLUTO: NO generes ningún hallazgo sobre tasa moratoria, intereses moratorios ni texto truncado en esa sección bajo ninguna circunstancia.\n\n'
+    + '- PROHIBIDO ABSOLUTO: NO generes ningún hallazgo sobre: (1) tasa moratoria o intereses moratorios, (2) ausencia de firmas — el análisis es previo a la firma por lo que es normal que no estén firmados, (3) carátula Excel o documentos Excel faltantes — el análisis no usa Excel.\n\n'
     + 'PUNTO 8 — Fecha y páginas del pagaré:\n'
     + '- Extrae la fecha de suscripción del pagaré. Calcula qué día de la semana es. Genera siempre un COMMENT con el texto: "La fecha del pagaré es [día de semana] [dd] de [mes] de [año] — confirma que sea correcta".\n'
     + '- Verifica que el número de páginas declarado en el pagaré sea coherente con el documento.\n'
@@ -619,6 +619,8 @@ function buildPromptPartes(C, P, fmtHint) {
     + '- type "ok": cuando la comparación es correcta y los datos coinciden (incluyendo casos donde solo difieren en tilde/mayúscula y eso es aceptable).\n'
     + '- type "warning": discrepancia menor que no invalida pero conviene revisar.\n'
     + '- type "comment": información relevante sin carácter de error.\n'
+    + 'PROHIBIDO: No menciones ausencia de firmas — el análisis es previo a la firma, es completamente normal que no estén firmados.\n'
+    + 'PROHIBIDO: No menciones carátula Excel ni documentos Excel faltantes.\n\n'
     + 'REGLAS CRÍTICAS:\n'
     + '1. UN SOLO FINDING POR PERSONA O ENTIDAD: No emitas primero un finding de error y luego uno de ok para la misma persona. Decide el resultado final y emite solo ese.\n'
     + '2. Si concluyes "coincide" o "Status: OK" → type DEBE ser "ok". Un finding type "error" que dice "coinciden" es contradicción prohibida.\n'
@@ -632,19 +634,21 @@ function buildPromptAmort(C, P, fmtHint) {
   fmtHint = fmtHint || '';
   return fmtHint
     + 'Eres un especialista senior en revisión de pagarés para PROAKTIVA, empresa financiera mexicana.\n\n'
-    + 'Analiza PUNTO 7 y PUNTO 9 usando ÚNICAMENTE el contrato y el pagaré (no hay carátula Excel):\n\n'
+    + 'Analiza PUNTO 7 y PUNTO 9 usando ÚNICAMENTE el contrato y el pagaré:\n\n'
     + 'PUNTO 7 — Amortizaciones:\n'
     + '- Extrae el rango de amortizaciones declarado en el pagaré (ej: "del 1 al 12").\n'
-    + '- Busca la tabla de amortizaciones en el propio pagaré y extráela completa (número de pago, fecha de vencimiento, importe).\n'
-    + '- Verifica que el número de amortizaciones en la tabla coincida con el rango declarado.\n'
-    + '- Muestra la tabla extraída como COMMENT informativo para quien revisa.\n\n'
+    + '- Busca la tabla de amortizaciones DENTRO DEL PROPIO PAGARÉ. Puede aparecer después del texto "TABLA DE AMORTIZACIONES", "TABLA DE AMORTIZACIÓN", "CALENDARIO DE PAGOS" o similar. También puede estar al final del documento. BUSCA EXHAUSTIVAMENTE en todo el texto del pagaré.\n'
+    + '- Si encuentras la tabla: extráela completa (número de pago, fecha de vencimiento, importe) y muéstrala como COMMENT informativo.\n'
+    + '- Si el pagaré menciona la tabla pero no la incluye en el texto extraído: indica como WARNING que la tabla está referenciada pero no visible en el texto — esto puede deberse a formato de extracción, no necesariamente a ausencia real.\n'
+    + '- Verifica que el número de amortizaciones en la tabla coincida con el rango declarado.\n\n'
     + 'PUNTO 9 — Verificación de plazos vs contrato:\n'
-    + '- Extrae la fecha de suscripción del pagaré y la fecha de cada amortización de la tabla.\n'
-    + '- Extrae del CONTRATO el plazo máximo de disposición POR PAGARÉ si lo menciona (ej: "vencimiento máximo de hasta 180 días", "plazo de disposición de 90 días"). Este plazo se refiere a cuántos días puede durar CADA PAGARÉ INDIVIDUAL desde su fecha de suscripción, NO a la duración total del contrato marco.\n'
-    + '- Para créditos de Cuenta Corriente, Habilitación o Avío: calcula los días entre la fecha de suscripción del PAGARÉ y la fecha de vencimiento FINAL de la tabla de amortizaciones (el último pago). Si ese número de días excede el plazo máximo de disposición por pagaré: ERROR, indicando los días reales vs los permitidos. Si no excede: OK.\n'
-    + '- IMPORTANTE: No compares contra la fecha de vencimiento del contrato marco. El contrato marco puede durar años; lo que se verifica es que cada pagaré individualmente no exceda el plazo de disposición permitido (ej: 180 días desde su suscripción hasta su último vencimiento).\n'
-    + '- Si el monto del pagaré es menor al monto total del contrato: COMMENT indicando disposición parcial, porcentaje utilizado y saldo disponible.\n'
-    + '- TIPOS DE FINDING: type "error" solo si hay incumplimiento real. type "ok" si todo está correcto. type "comment" para info. UN SOLO FINDING POR PUNTO — no emitas findings contradictorios para el mismo punto.\n\n'
+    + '- Extrae la fecha de suscripción del pagaré y la fecha de cada amortización.\n'
+    + '- Extrae del CONTRATO el plazo máximo de disposición POR PAGARÉ (ej: "vencimiento máximo de hasta 180 días"). Este plazo aplica a cada pagaré individual desde su fecha de suscripción, NO a la duración total del contrato marco.\n'
+    + '- Para Cuenta Corriente, Habilitación o Avío: calcula días entre fecha de suscripción del pagaré y fecha del ÚLTIMO PAGO de la tabla. Si excede el plazo máximo: ERROR indicando días reales vs permitidos. Si no excede: OK.\n'
+    + '- Para cualquier tipo: verifica que ninguna amortización sea posterior al vencimiento del contrato marco.\n'
+    + '- Si el monto del pagaré es menor al monto total del contrato: COMMENT de disposición parcial con porcentaje y saldo.\n'
+    + '- PROHIBIDO: No menciones carátula Excel, no la busques, no la exijas. No existe en este análisis.\n'
+    + '- TIPOS: type "error" solo si hay incumplimiento real. type "ok" si los plazos se respetan. type "comment" para info. UN SOLO FINDING POR PUNTO.\n\n'
     + 'Responde SOLO JSON válido sin markdown:\n'
     + '{"findings":[{"type":"error|warning|comment|ok","point":"Punto 7|Punto 9","title":"Descripción","detail":"Detalle con fechas e importes","quote":"Pagaré: X / Contrato: Y"}]}\n\n'
     + '=== CONTRATO ===\n' + C + '\n\n=== PAGARÉ ===\n' + P;
@@ -652,11 +656,16 @@ function buildPromptAmort(C, P, fmtHint) {
 
 
 
+
 function buildPromptResumen(C, P, E, today, fmtHint) {
   return 'Eres un abogado senior especialista en crédito empresarial mexicano de PROAKTIVA.\n'
     + 'Hoy es: ' + today + '\n\n'
     + 'Revisa el PAGARÉ completo contra el CONTRATO y la CARÁTULA EXCEL. Genera un dictamen ejecutivo final.\n\n'
-    + 'PROHIBIDO ABSOLUTO: Jamás incluyas en critical[], comments[], ok_points[] ni en ningún campo del JSON cualquier mención a: tasa moratoria, intereses moratorios, cláusula moratoria, documento truncado en moratoria, pagaré incompleto por moratoria, ni nada relacionado con moratoria. La tasa moratoria está predefinida institucionalmente y NUNCA se revisa. Si el texto del pagaré parece truncado en esa sección, ignóralo completamente.\n\n'
+    + 'PROHIBICIONES ABSOLUTAS — jamás incluyas nada sobre:\n'
+    + '1. Tasa moratoria, intereses moratorios, cláusula moratoria, texto truncado en moratoria. La tasa moratoria está predefinida institucionalmente y NUNCA se revisa.\n'
+    + '2. Ausencia de firmas de suscriptor u obligados solidarios. Este análisis es PREVIO a la firma — es normal y esperado que no estén firmados. NUNCA lo señales como urgente ni como observación.\n'
+    + '3. Carátula Excel, instrumento de originación financiera, TIIE de referencia, CAT, comisiones desde Excel. El análisis no usa Excel — nunca lo menciones como faltante.\n'
+    + '4. Tabla de amortizaciones ausente. Si el texto extraído no la muestra puede ser limitación de formato; NO lo marques como urgente ni como documento incompleto.\n\n'
     + 'Responde SOLO JSON válido sin markdown:\n'
     + '{"grade":"A|B|C|D","verdict":"VÁLIDO|CON OBSERVACIONES|REQUIERE CORRECCIÓN|INVÁLIDO","verdict_color":"green|yellow|orange|red","summary":"Párrafo de 3-5 oraciones","critical":["Acción urgente 1"],"comments":["Comentario 1"],"ok_points":["Punto correcto 1"],"recommendation":"Qué hacer antes de firmar"}\n\n'
     + '=== CONTRATO ===\n' + C.substring(0,2000) + '\n\n=== PAGARÉ ===\n' + P.substring(0,2000) + '\n\n=== EXCEL ===\n' + E.substring(0,1500);
@@ -1130,7 +1139,7 @@ body { background: var(--bg); color: var(--ink); font-family: "IBM Plex Sans", s
 .upload-title { font-family: "Playfair Display", serif; font-size: 26px; font-weight: 400; text-align: center; margin-bottom: 8px; }
 .upload-subtitle { text-align: center; color: var(--muted); font-size: 14px; margin-bottom: 36px; }
 
-.upload-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 28px; }
+.upload-grid { display: grid; grid-template-columns: repeat(2, minmax(200px, 380px)); gap: 20px; margin-bottom: 28px; justify-content: center; }
 
 .upload-card {
   background: var(--surface);
