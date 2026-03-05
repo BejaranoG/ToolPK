@@ -17,24 +17,22 @@
 
 <style>
 /* ═══════════════════════════════════════════════════
-   PORTAL TOOLSPK — MODERN LANDING REDESIGN
+   PORTAL TOOLSPK — ESTILOS GLOBALES
 ═══════════════════════════════════════════════════ */
 :root {
-  --dark:    #07111c;
-  --dark2:   #0c1a28;
-  --dark3:   #122540;
-  --blue:    #0e5fa8;
-  --blue2:   #1a7dd4;
-  --blue3:   #3a9de8;
-  --gold:    #c9922a;
-  --gold2:   #dfa83c;
+  --dark: #0a1520;
+  --dark2: #0f1e2e;
+  --blue: #0e5fa8;
+  --blue2: #1a7dd4;
+  --blue3: #3a9de8;
+  --gold: #c9922a;
   --surface: #ffffff;
-  --surface2:#f2f6fb;
-  --border:  #d8e4f0;
-  --ink:     #0f1e2e;
-  --muted:   #5a7896;
-  --radius:  18px;
-  --shadow:  0 6px 28px rgba(14,95,168,0.1);
+  --surface2: #f4f7fb;
+  --border: #dce5f0;
+  --ink: #1a2b3c;
+  --muted: #6a85a0;
+  --radius: 16px;
+  --shadow: 0 4px 20px rgba(14,95,168,0.1);
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
 html, body { height: 100%; font-family: "IBM Plex Sans", sans-serif; color: var(--ink); overflow: hidden; }
@@ -42,72 +40,68 @@ html, body { height: 100%; font-family: "IBM Plex Sans", sans-serif; color: var(
 /* ── LAYOUT ── */
 #app { display: flex; height: 100vh; }
 
-/* ════════════════════════════════
-   SIDEBAR
-════════════════════════════════ */
+/* ── SIDEBAR ── */
 .sidebar {
-  width: 248px; min-width: 248px;
+  width: 240px; min-width: 240px;
   background: var(--dark);
   display: flex; flex-direction: column;
   height: 100vh; overflow-y: auto;
-  border-right: 1px solid rgba(255,255,255,0.04);
-  position: relative;
 }
-/* subtle dot-grid texture */
-.sidebar::before {
-  content: '';
-  position: absolute; inset: 0; pointer-events: none; z-index: 0;
-  background-image: radial-gradient(circle, rgba(58,157,232,0.05) 1px, transparent 1px);
-  background-size: 22px 22px;
-}
-.sidebar > * { position: relative; z-index: 1; }
-
 .sidebar-logo {
-  padding: 22px 16px 18px;
-  border-bottom: 1px solid rgba(255,255,255,0.06);
-  display: flex; justify-content: center; align-items: center;
+  padding: 20px 12px 16px;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.sidebar-logo-name {
+  font-family: "Playfair Display", serif;
+  font-size: 20px; color: white;
+  display: flex; align-items: center; gap: 10px;
+}
+.sidebar-logo-mark {
+  width: 32px; height: 32px;
+  background: linear-gradient(135deg, var(--blue), var(--blue3));
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 15px; color: white; font-weight: 700;
+  font-family: "Playfair Display", serif;
+  flex-shrink: 0;
+}
+.sidebar-logo-sub {
+  font-size: 10px; color: rgba(255,255,255,0.3);
+  letter-spacing: 1.5px; text-transform: uppercase; margin-top: 3px;
 }
 .sidebar-section {
-  padding: 20px 18px 6px;
-  font-size: 9.5px; letter-spacing: 2.5px; text-transform: uppercase;
-  color: rgba(255,255,255,0.2); font-weight: 600;
+  padding: 18px 16px 6px;
+  font-size: 10px; letter-spacing: 2px; text-transform: uppercase;
+  color: rgba(255,255,255,0.25); font-weight: 500;
 }
 .nav-item {
-  display: flex; align-items: center; gap: 12px;
-  padding: 10px 12px; margin: 2px 10px;
-  border-radius: 11px; cursor: pointer;
-  transition: all 0.18s ease;
-  color: rgba(255,255,255,0.45);
-  font-size: 13px; font-weight: 400;
-  border: 1px solid transparent;
+  display: flex; align-items: center; gap: 11px;
+  padding: 10px 14px; margin: 2px 8px;
+  border-radius: 10px; cursor: pointer;
+  transition: all 0.15s; color: rgba(255,255,255,0.5);
+  font-size: 13px; border: 1px solid transparent;
 }
-.nav-item:hover {
-  background: rgba(255,255,255,0.07);
-  color: rgba(255,255,255,0.9);
-}
-.nav-item.active {
-  background: linear-gradient(135deg, rgba(14,95,168,0.38), rgba(26,125,212,0.2));
-  border-color: rgba(58,157,232,0.28);
-  color: white;
-  box-shadow: 0 2px 14px rgba(14,95,168,0.22);
-}
+.nav-item:hover { background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.85); }
+.nav-item.active { background: rgba(14,95,168,0.25); border-color: rgba(14,95,168,0.4); color: white; }
 .nav-icon {
-  width: 32px; height: 32px; border-radius: 9px;
+  width: 30px; height: 30px; border-radius: 7px;
   display: flex; align-items: center; justify-content: center;
-  font-size: 15px; background: rgba(255,255,255,0.06);
-  flex-shrink: 0; transition: background 0.18s;
+  font-size: 15px; background: rgba(255,255,255,0.07); flex-shrink: 0;
 }
-.nav-item.active .nav-icon { background: rgba(14,95,168,0.5); }
+.nav-item.active .nav-icon { background: rgba(14,95,168,0.4); }
 .nav-badge {
-  font-size: 9px; padding: 2px 7px; border-radius: 20px;
-  background: rgba(58,157,232,0.18); color: var(--blue3);
-  font-weight: 700; margin-left: auto; letter-spacing: 0.5px;
+  font-size: 10px; padding: 2px 6px; border-radius: 10px;
+  background: rgba(14,95,168,0.3); color: var(--blue3); font-weight: 600;
+  margin-left: auto;
 }
 .sidebar-spacer { flex: 1; }
 .sidebar-footer {
-  padding: 14px 18px;
-  border-top: 1px solid rgba(255,255,255,0.06);
-  font-size: 10px; color: rgba(255,255,255,0.18);
+  padding: 14px 16px;
+  border-top: 1px solid rgba(255,255,255,0.08);
+  font-size: 10px; color: rgba(255,255,255,0.2);
   letter-spacing: 0.5px;
 }
 
@@ -117,195 +111,43 @@ html, body { height: 100%; font-family: "IBM Plex Sans", sans-serif; color: var(
 .panel.active { display: flex; }
 .panel-scroll { flex: 1; overflow-y: auto; }
 
-/* ════════════════════════════════
-   HOME — Landing layout
-════════════════════════════════ */
-#panel-home .panel-scroll { background: #edf2f9; }
-
-/* ── HERO ── */
-.home-hero {
-  background: var(--dark);
-  position: relative; overflow: hidden;
-  min-height: 270px; display: flex; align-items: stretch;
+/* ── HOME ── */
+.home-header {
+  background: linear-gradient(105deg, var(--dark) 0%, #0e3a6a 60%, #1a5fa8 100%);
+  padding: 44px 44px 52px; position: relative; overflow: hidden;
 }
-.home-hero::before {
-  content: '';
-  position: absolute; inset: 0;
-  background: linear-gradient(125deg, #07111c 0%, #0b2240 48%, #0d4880 100%);
+.home-header::after {
+  content: ''; position: absolute; right: -60px; top: -60px;
+  width: 280px; height: 280px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(14,95,168,0.3) 0%, transparent 70%);
 }
-/* glowing orb */
-.home-hero::after {
-  content: '';
-  position: absolute; right: -100px; top: -100px;
-  width: 460px; height: 460px; border-radius: 50%;
-  background: radial-gradient(circle, rgba(58,157,232,0.15) 0%, rgba(14,95,168,0.06) 45%, transparent 70%);
-  animation: heroGlow 7s ease-in-out infinite alternate;
-}
-/* second decorative orb bottom-left */
-.home-hero-inner::before {
-  content: '';
-  position: absolute; left: -80px; bottom: -80px;
-  width: 300px; height: 300px; border-radius: 50%;
-  background: radial-gradient(circle, rgba(201,146,42,0.08) 0%, transparent 65%);
-  pointer-events: none;
-}
-@keyframes heroGlow {
-  from { transform: scale(1) translate(0,0); opacity: .7; }
-  to   { transform: scale(1.2) translate(-18px, 22px); opacity: 1; }
-}
-.home-hero-inner {
-  position: relative; z-index: 2;
-  display: flex; align-items: center;
-  padding: 52px 56px;
-  width: 100%; gap: 44px;
-}
-.home-hero-text { flex: 1; }
-
-.home-eyebrow {
-  display: inline-flex; align-items: center; gap: 8px;
-  font-size: 10px; letter-spacing: 2.5px; text-transform: uppercase;
-  color: var(--blue3); font-weight: 600; margin-bottom: 16px;
-}
-.home-eyebrow-dot {
-  width: 6px; height: 6px; border-radius: 50%;
-  background: var(--blue3);
-  animation: blink 2.4s ease-in-out infinite;
-}
-@keyframes blink {
-  0%,100% { opacity: 1; transform: scale(1); }
-  50%      { opacity: .3; transform: scale(.65); }
-}
-.home-title {
-  font-family: "Playfair Display", serif;
-  font-size: 38px; color: white; font-weight: 400;
-  line-height: 1.17; margin-bottom: 14px; letter-spacing: -.4px;
-}
-.home-title span {
-  background: linear-gradient(90deg, var(--blue3) 0%, var(--gold2) 100%);
-  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-.home-sub {
-  font-size: 13.5px; color: rgba(255,255,255,0.4);
-  line-height: 1.75; max-width: 390px;
-}
-
-/* hero stat pills */
-.home-hero-stats {
-  display: flex; flex-direction: column; gap: 12px; flex-shrink: 0;
-}
-.hero-stat {
-  background: rgba(255,255,255,0.05);
-  border: 1px solid rgba(255,255,255,0.1);
-  border-radius: 14px; padding: 16px 22px;
-  text-align: center; min-width: 112px;
-  backdrop-filter: blur(10px);
-  transition: all 0.22s ease;
-  cursor: default;
-}
-.hero-stat:hover {
-  background: rgba(14,95,168,0.28);
-  border-color: rgba(58,157,232,0.38);
-  transform: translateY(-3px);
-  box-shadow: 0 8px 24px rgba(14,95,168,0.2);
-}
-.hero-stat-num {
-  font-family: "Playfair Display", serif;
-  font-size: 27px; color: white; font-weight: 600; line-height: 1;
-}
-.hero-stat-lbl {
-  font-size: 9.5px; color: rgba(255,255,255,0.3);
-  text-transform: uppercase; letter-spacing: 1.5px; margin-top: 5px;
-}
-
-/* ── Section header ── */
-.section-header {
-  display: flex; align-items: center; gap: 14px;
-  padding: 34px 56px 20px;
-}
-.section-title {
-  font-family: "Playfair Display", serif;
-  font-size: 18px; color: var(--ink); font-weight: 500;
-  white-space: nowrap;
-}
-.section-line {
-  flex: 1; height: 1px;
-  background: linear-gradient(90deg, var(--border), transparent);
-}
-
-/* ── TOOLS GRID ── */
-.tools-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 22px; padding: 0 56px 52px;
-}
+.home-header-content { position: relative; z-index: 1; }
+.home-greeting { font-size: 11px; color: rgba(255,255,255,0.45); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 10px; }
+.home-title { font-family: "Playfair Display", serif; font-size: 32px; color: white; font-weight: 400; line-height: 1.2; margin-bottom: 8px; }
+.home-sub { font-size: 13px; color: rgba(255,255,255,0.45); }
+.tools-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 22px; padding: 36px 44px; }
 .tool-card {
   background: white; border: 1px solid var(--border);
-  border-radius: var(--radius); padding: 30px;
-  cursor: pointer;
-  transition: all 0.22s cubic-bezier(.25,.8,.25,1);
-  box-shadow: 0 2px 14px rgba(14,95,168,0.06);
+  border-radius: var(--radius); padding: 28px;
+  cursor: pointer; transition: all 0.2s; box-shadow: var(--shadow);
   position: relative; overflow: hidden;
 }
-/* top accent bar */
 .tool-card::before {
-  content: '';
-  position: absolute; top: 0; left: 0; right: 0; height: 3px;
-  background: linear-gradient(90deg, var(--blue), var(--blue3));
-  opacity: 0; transition: opacity 0.22s;
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+  background: linear-gradient(90deg, var(--blue), var(--blue3)); opacity: 0; transition: opacity 0.2s;
 }
-/* inner radial glow */
-.tool-card::after {
-  content: '';
-  position: absolute; inset: 0; border-radius: var(--radius);
-  background: radial-gradient(circle at 65% 0%, rgba(58,157,232,0.07), transparent 58%);
-  opacity: 0; transition: opacity 0.22s;
-}
-.tool-card:hover {
-  transform: translateY(-6px);
-  box-shadow: 0 18px 52px rgba(14,95,168,0.15);
-  border-color: rgba(58,157,232,0.38);
-}
+.tool-card:hover { transform: translateY(-3px); box-shadow: 0 12px 40px rgba(14,95,168,0.15); border-color: var(--blue3); }
 .tool-card:hover::before { opacity: 1; }
-.tool-card:hover::after  { opacity: 1; }
-
-.tool-card-icon {
-  width: 56px; height: 56px; border-radius: 14px;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 26px; margin-bottom: 20px;
-  transition: transform 0.22s;
-}
-.tool-card:hover .tool-card-icon { transform: scale(1.1) rotate(-3deg); }
-.tool-card-icon.blue { background: linear-gradient(135deg, #ddeefb, #c2e0f8); }
-.tool-card-icon.gold { background: linear-gradient(135deg, #fdefd8, #f8dea8); }
-
-.tool-card-name {
-  font-family: "Playfair Display", serif;
-  font-size: 18px; color: var(--ink); margin-bottom: 9px;
-}
-.tool-card-desc {
-  font-size: 13px; color: var(--muted); line-height: 1.75; margin-bottom: 22px;
-}
-.tool-card-footer {
-  display: flex; align-items: center; justify-content: space-between;
-}
-.tool-card-tag {
-  display: inline-flex; align-items: center; gap: 5px;
-  font-size: 11px; font-weight: 600; padding: 4px 11px; border-radius: 20px;
-}
-.tool-card-tag.ai   { background: #ddeefb; color: var(--blue); }
-.tool-card-tag.calc { background: #fdefd8; color: var(--gold); }
-.tool-card-tag.tiie { background: #d5f0e8; color: #0a8a5e; }
-
-.tool-card-arrow {
-  width: 34px; height: 34px; border-radius: 50%;
-  background: var(--surface2);
-  display: flex; align-items: center; justify-content: center;
-  font-size: 15px; color: var(--muted); transition: all 0.22s;
-}
-.tool-card:hover .tool-card-arrow {
-  background: var(--blue); color: white; transform: translateX(4px);
-}
+.tool-card-icon { width: 52px; height: 52px; border-radius: 13px; display: flex; align-items: center; justify-content: center; font-size: 24px; margin-bottom: 18px; }
+.tool-card-icon.blue { background: linear-gradient(135deg, #e8f2fc, #d0e8f8); }
+.tool-card-icon.gold { background: linear-gradient(135deg, #fef5e7, #fde9c0); }
+.tool-card-name { font-family: "Playfair Display", serif; font-size: 18px; color: var(--ink); margin-bottom: 8px; }
+.tool-card-desc { font-size: 13px; color: var(--muted); line-height: 1.7; margin-bottom: 18px; }
+.tool-card-tag { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 600; padding: 4px 10px; border-radius: 20px; }
+.tool-card-tag.ai { background: #e8f2fc; color: var(--blue); }
+.tool-card-tag.calc { background: #fef5e7; color: var(--gold); }
+.tool-card-arrow { position: absolute; bottom: 22px; right: 22px; width: 30px; height: 30px; border-radius: 50%; background: var(--surface2); display: flex; align-items: center; justify-content: center; font-size: 13px; color: var(--muted); transition: all 0.2s; }
+.tool-card:hover .tool-card-arrow { background: var(--blue); color: white; }
 
 /* ── TOOL HEADER BAR ── */
 .tool-header {
@@ -315,18 +157,19 @@ html, body { height: 100%; font-family: "IBM Plex Sans", sans-serif; color: var(
 }
 .back-btn {
   display: flex; align-items: center; gap: 5px;
-  padding: 6px 14px; border: 1px solid var(--border);
-  border-radius: 9px; background: none; cursor: pointer;
+  padding: 6px 13px; border: 1px solid var(--border);
+  border-radius: 8px; background: none; cursor: pointer;
   font-size: 12px; color: var(--muted);
   font-family: "IBM Plex Sans", sans-serif; transition: all 0.15s;
 }
 .back-btn:hover { background: var(--surface2); color: var(--ink); }
 .tool-header-title { font-family: "Playfair Display", serif; font-size: 17px; color: var(--ink); }
 
-/* ── TOOL WRAPPERS ── */
+/* ── PAGARE TOOL WRAPPER ── */
 #panel-pagare .panel-scroll { background: #eef3f8; }
-#panel-amort  .panel-scroll { background: #f0f4f8; }
-#panel-aforo  .panel-scroll { background: #f5f2ed; }
+
+/* ── AFORO TOOL WRAPPER ── */
+#panel-aforo .panel-scroll { background: #f5f2ed; }
 </style>
 </head>
 <body>
@@ -354,11 +197,6 @@ html, body { height: 100%; font-family: "IBM Plex Sans", sans-serif; color: var(
       <span>Aforo de Garantía</span>
     </div>
 
-    <div class="nav-item" id="nav-amort" onclick="showPanel('amort')">
-      <div class="nav-icon">📊</div>
-      <span>Tabla de Amortización</span>
-    </div>
-
     <div class="sidebar-spacer"></div>
     <div class="sidebar-footer">ToolsPK v1.0 · Proaktiva</div>
   </nav>
@@ -369,77 +207,28 @@ html, body { height: 100%; font-family: "IBM Plex Sans", sans-serif; color: var(
     <!-- HOME -->
     <div class="panel active" id="panel-home">
       <div class="panel-scroll">
-
-        <!-- HERO -->
-        <div class="home-hero">
-          <div class="home-hero-inner">
-            <div class="home-hero-text">
-              <div class="home-eyebrow">
-                <span class="home-eyebrow-dot"></span>
-                Proaktiva SAPI de CV, SOFOM, ENR
-              </div>
-              <div class="home-title">
-                Portal de<br><span>Herramientas Internas</span>
-              </div>
-              <div class="home-sub">
-                Accede a las herramientas operativas de Proaktiva. Análisis con IA, cálculos financieros y validaciones en un solo lugar.
-              </div>
-            </div>
-            <div class="home-hero-stats">
-              <div class="hero-stat">
-                <div class="hero-stat-num">3</div>
-                <div class="hero-stat-lbl">Herramientas</div>
-              </div>
-              <div class="hero-stat">
-                <div class="hero-stat-num">IA</div>
-                <div class="hero-stat-lbl">Análisis</div>
-              </div>
-              <div class="hero-stat">
-                <div class="hero-stat-num">v1</div>
-                <div class="hero-stat-lbl">Versión</div>
-              </div>
-            </div>
+        <div class="home-header">
+          <div class="home-header-content">
+            <div class="home-greeting">Proaktiva SAPI de CV, SOFOM, ENR</div>
+            <div class="home-title">Portal de Herramientas<br>Internas</div>
+            <div class="home-sub">Selecciona una herramienta para comenzar.</div>
           </div>
         </div>
-
-        <!-- TOOLS SECTION -->
-        <div class="section-header">
-          <div class="section-title">Herramientas disponibles</div>
-          <div class="section-line"></div>
-        </div>
-
         <div class="tools-grid">
-
           <div class="tool-card" onclick="showPanel('pagare')">
             <div class="tool-card-icon blue">📋</div>
             <div class="tool-card-name">Revisión de Pagarés</div>
             <div class="tool-card-desc">Analiza pagarés contra contratos y carátulas Excel con IA. Detecta errores en 10 puntos clave de validación.</div>
-            <div class="tool-card-footer">
-              <div class="tool-card-tag ai">✦ Powered by IA</div>
-              <div class="tool-card-arrow">→</div>
-            </div>
+            <div class="tool-card-tag ai">✦ Powered by IA</div>
+            <div class="tool-card-arrow">→</div>
           </div>
-
           <div class="tool-card" onclick="showPanel('aforo')">
             <div class="tool-card-icon gold">🏠</div>
             <div class="tool-card-name">Aforo de Garantía</div>
             <div class="tool-card-desc">Calcula el aforo requerido para una garantía hipotecaria según las políticas de Proaktiva. Resultado en tiempo real.</div>
-            <div class="tool-card-footer">
-              <div class="tool-card-tag calc">⚡ Cálculo instantáneo</div>
-              <div class="tool-card-arrow">→</div>
-            </div>
+            <div class="tool-card-tag calc">⚡ Cálculo instantáneo</div>
+            <div class="tool-card-arrow">→</div>
           </div>
-
-          <div class="tool-card" onclick="showPanel('amort')">
-            <div class="tool-card-icon blue" style="background:linear-gradient(135deg,#d2edfb,#b8e2f8)">📊</div>
-            <div class="tool-card-name">Tabla de Amortización</div>
-            <div class="tool-card-desc">Genera tablas de amortización con TIIE actualizada automáticamente. Exporta a PDF y Excel.</div>
-            <div class="tool-card-footer">
-              <div class="tool-card-tag tiie">⚡ TIIE en tiempo real</div>
-              <div class="tool-card-arrow">→</div>
-            </div>
-          </div>
-
         </div>
       </div>
     </div>
@@ -975,18 +764,6 @@ function resetAll() {
 }
 </script>
         </div>
-      </div>
-    </div>
-
-    <!-- AMORTIZACIÓN -->
-    <div class="panel" id="panel-amort">
-      <div class="tool-header">
-        <button class="back-btn" onclick="showPanel('home')">← Volver</button>
-        <span class="tool-header-title">Tabla de Amortización</span>
-        <span id="tiie-badge" style="margin-left:auto;font-size:11px;padding:4px 12px;border-radius:20px;background:#e8f4fc;color:#0e5fa8;font-weight:600;"></span>
-      </div>
-      <div class="panel-scroll">
-        <div id="amort-root"></div>
       </div>
     </div>
 
@@ -1610,13 +1387,7 @@ function showPanel(name) {
 
 <!-- Aforo Tool (React) -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-
-
-
-<!-- Amortización Tool -->
-
 <script type="text/babel">
-
 const { useState, useMemo } = React;
 
 const formatMXN = (v) =>
@@ -2265,462 +2036,7 @@ if (document.readyState === 'loading') {
 } else {
   mountAforo();
 }
-
-
-
-
-const TIIE_API = 'https://www.banxico.org.mx/SieAPIRest/service/v1/series/SF43783/datos/oportuno?token=a7befd8a9b5f03f3e69a59e3f5a7e2b8c1d4f6e9';
-
-async function fetchTIIE() {
-  try {
-    const r = await fetch('https://corsproxy.io/?' + encodeURIComponent('https://www.banxico.org.mx/SieAPIRest/service/v1/series/SF43783/datos/oportuno?token=a7befd8a9b5f03f3e69a59e3f5a7e2b8c1d4f6e9'));
-    const j = await r.json();
-    const val = j?.bmx?.series?.[0]?.datos?.[0]?.dato;
-    if (val) return parseFloat(val);
-  } catch(e) {}
-  // Fallback: return last known TIIE
-  return null;
-}
-
-const { useState, useEffect, useMemo, useRef } = React;
-
-const fmt = (v) => new Intl.NumberFormat('es-MX', { style:'currency', currency:'MXN', minimumFractionDigits:2, maximumFractionDigits:2 }).format(v);
-const fmtPct = (v) => (v*100).toFixed(4) + '%';
-const parseMXN = (s) => parseFloat(String(s).replace(/[^0-9.]/g,'')) || 0;
-
-function AmortApp() {
-  // TIIE state
-  const [tiie, setTiie] = useState(null);
-  const [tiieLoading, setTiieLoading] = useState(true);
-  const [tiieError, setTiieError] = useState(false);
-  const [tiieManual, setTiieManual] = useState('');
-
-  // Form fields
-  const [nombre, setNombre] = useState('');
-  const [monto, setMonto] = useState('');
-  const [puntos, setPuntos] = useState('');
-  const [fechaInicio, setFechaInicio] = useState('');
-  const [plazoMeses, setPlazoMeses] = useState('');
-  const [tipoAmort, setTipoAmort] = useState('frances'); 
-  // frances | intereses_capital_trimestral | intereses_capital_anual | intereses_vencimiento
-
-  // For mixed types — capital payment schedule (date + amount)
-  const [capitalRows, setCapitalRows] = useState([{ fecha: '', monto: '' }]);
-
-  // Computed
-  const tiieVal = tiieManual ? parseFloat(tiieManual) / 100 : (tiie ? tiie / 100 : null);
-  const puntosVal = parseFloat(puntos) / 100 || 0;
-  const tasaAnual = tiieVal !== null ? tiieVal + puntosVal : null;
-  const tasaMensual = tasaAnual ? tasaAnual / 12 : null;
-  const montoNum = parseMXN(monto);
-  const plazoNum = parseInt(plazoMeses) || 0;
-
-  useEffect(() => {
-    setTiieLoading(true);
-    fetchTIIE().then(val => {
-      if (val) { setTiie(val); setTiieError(false); }
-      else setTiieError(true);
-      setTiieLoading(false);
-      // Update badge
-      const badge = document.getElementById('tiie-badge');
-      if (badge) badge.textContent = val ? `TIIE: ${val.toFixed(4)}%` : 'TIIE: no disponible';
-    });
-  }, []);
-
-  const tabla = useMemo(() => {
-    if (!montoNum || !plazoNum || !tasaMensual || !fechaInicio) return [];
-    const rows = [];
-    let saldo = montoNum;
-    const startDate = new Date(fechaInicio + 'T12:00:00');
-
-    if (tipoAmort === 'frances') {
-      // Pago fijo mensual (capital + interés)
-      const pago = montoNum * tasaMensual / (1 - Math.pow(1 + tasaMensual, -plazoNum));
-      for (let i = 1; i <= plazoNum; i++) {
-        const fecha = new Date(startDate);
-        fecha.setMonth(fecha.getMonth() + i);
-        const interes = saldo * tasaMensual;
-        const capital = pago - interes;
-        saldo -= capital;
-        rows.push({ n: i, fecha: fecha.toLocaleDateString('es-MX'), interes, capital, pago, saldo: Math.max(0, saldo) });
-      }
-
-    } else if (tipoAmort === 'intereses_mensual_capital_irregular') {
-      // Intereses mensuales, capital en fechas definidas por usuario
-      const capitalMap = {};
-      capitalRows.forEach(r => {
-        if (r.fecha && r.monto) capitalMap[r.fecha] = parseMXN(r.monto);
-      });
-      for (let i = 1; i <= plazoNum; i++) {
-        const fecha = new Date(startDate);
-        fecha.setMonth(fecha.getMonth() + i);
-        const fechaStr = fecha.toISOString().split('T')[0];
-        const interes = saldo * tasaMensual;
-        const capital = capitalMap[fechaStr] || 0;
-        const pago = interes + capital;
-        saldo -= capital;
-        rows.push({ n: i, fecha: fecha.toLocaleDateString('es-MX'), interes, capital, pago, saldo: Math.max(0, saldo) });
-      }
-
-    } else if (tipoAmort === 'intereses_vencimiento') {
-      // Solo intereses mensuales, capital al vencimiento
-      for (let i = 1; i <= plazoNum; i++) {
-        const fecha = new Date(startDate);
-        fecha.setMonth(fecha.getMonth() + i);
-        const interes = saldo * tasaMensual;
-        const capital = i === plazoNum ? saldo : 0;
-        const pago = interes + capital;
-        rows.push({ n: i, fecha: fecha.toLocaleDateString('es-MX'), interes, capital, pago, saldo: Math.max(0, i === plazoNum ? 0 : saldo) });
-      }
-
-    } else if (tipoAmort === 'aleman') {
-      // Capital constante, intereses decrecientes
-      const capitalMensual = montoNum / plazoNum;
-      for (let i = 1; i <= plazoNum; i++) {
-        const fecha = new Date(startDate);
-        fecha.setMonth(fecha.getMonth() + i);
-        const interes = saldo * tasaMensual;
-        const capital = capitalMensual;
-        const pago = interes + capital;
-        saldo -= capital;
-        rows.push({ n: i, fecha: fecha.toLocaleDateString('es-MX'), interes, capital, pago, saldo: Math.max(0, saldo) });
-      }
-    }
-    return rows;
-  }, [montoNum, plazoNum, tasaMensual, fechaInicio, tipoAmort, capitalRows]);
-
-  const totalInteres = tabla.reduce((s, r) => s + r.interes, 0);
-  const totalCapital = tabla.reduce((s, r) => s + r.capital, 0);
-  const totalPago    = tabla.reduce((s, r) => s + r.pago, 0);
-
-  const proaktivaB64 = window.__proaktivaB64 || '';
-
-  const exportPDF = () => {
-    if (!tabla.length) return;
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'letter' });
-    const W = 279.4, H = 215.9, margin = 12;
-
-    // Header
-    doc.setFillColor(13, 71, 161);
-    doc.rect(0, 0, W, 16, 'F');
-    doc.setFontSize(12); doc.setTextColor(255,255,255); doc.setFont('helvetica','bold');
-    doc.text('PROAKTIVA SAPI de CV, SOFOM, ENR', W/2, 10, { align:'center' });
-
-    // Logo
-    try {
-      const imgEl = new Image();
-      imgEl.src = 'data:image/webp;base64,' + (window.__proaktivaB64||'');
-      const cvs = document.createElement('canvas'); cvs.width=400; cvs.height=130;
-      cvs.getContext('2d').drawImage(imgEl,0,0,400,130);
-      doc.addImage(cvs.toDataURL('image/png'),'PNG',margin,18,55,18);
-    } catch(e){}
-
-    doc.setFillColor(13,71,161);
-    doc.rect(margin+60,18,W-margin*2-60,12,'F');
-    doc.setFontSize(11); doc.setTextColor(255,255,255); doc.setFont('helvetica','bold');
-    doc.text('TABLA DE AMORTIZACIÓN', margin+60+(W-margin*2-60)/2, 25.5, { align:'center' });
-    doc.setFontSize(8); doc.setFont('helvetica','normal');
-    doc.text(new Date().toLocaleDateString('es-MX'), W-margin-2, 22, { align:'right' });
-    doc.text(new Date().toLocaleDateString('es-MX'), W-margin-2, 28, { align:'right' });
-
-    let y = 40;
-    // Info row
-    doc.setFontSize(9); doc.setTextColor(30,30,30); doc.setFont('helvetica','bold');
-    doc.text(`Acreditado: `, margin, y); doc.setFont('helvetica','normal'); doc.text(nombre||'—', margin+22, y);
-    doc.setFont('helvetica','bold'); doc.text(`Monto: `, margin+80, y); doc.setFont('helvetica','normal'); doc.text(fmt(montoNum), margin+93, y);
-    doc.setFont('helvetica','bold'); doc.text(`Tasa anual: `, margin+145, y); doc.setFont('helvetica','normal'); doc.text(tasaAnual ? (tasaAnual*100).toFixed(4)+'%' : '—', margin+163, y);
-    doc.setFont('helvetica','bold'); doc.text(`TIIE: `, margin+200, y); doc.setFont('helvetica','normal'); doc.text(tiie ? tiie.toFixed(4)+'%' : (tiieManual||'—')+'%', margin+210, y);
-    y += 5;
-    doc.setFont('helvetica','bold'); doc.text(`Plazo: `, margin, y); doc.setFont('helvetica','normal'); doc.text(plazoNum+' meses', margin+15, y);
-    doc.setFont('helvetica','bold'); doc.text(`Puntos sobre TIIE: `, margin+80, y); doc.setFont('helvetica','normal'); doc.text(puntos+'%', margin+113, y);
-    y += 6;
-
-    // Table header
-    const cols = [14, 38, 70, 110, 150, 190];
-    const headers = ['#','Fecha','Interés','Capital','Pago','Saldo'];
-    doc.setFillColor(13,71,161); doc.rect(margin, y, W-margin*2, 7, 'F');
-    doc.setFontSize(8.5); doc.setTextColor(255,255,255); doc.setFont('helvetica','bold');
-    headers.forEach((h,i) => doc.text(h, margin+cols[i], y+5));
-    y += 9;
-
-    doc.setFontSize(8); doc.setFont('helvetica','normal');
-    tabla.forEach((r, idx) => {
-      if (y > H - 25) { doc.addPage(); y = 15; }
-      if (idx % 2 === 0) { doc.setFillColor(245,248,252); doc.rect(margin, y-1, W-margin*2, 6, 'F'); }
-      doc.setTextColor(30,30,30);
-      doc.text(String(r.n), margin+cols[0], y+3.5);
-      doc.text(r.fecha, margin+cols[1], y+3.5);
-      doc.text(fmt(r.interes), margin+cols[2], y+3.5);
-      doc.text(fmt(r.capital), margin+cols[3], y+3.5);
-      doc.text(fmt(r.pago), margin+cols[4], y+3.5);
-      doc.text(fmt(r.saldo), margin+cols[5], y+3.5);
-      y += 6;
-    });
-
-    // Totals
-    y += 2;
-    doc.setDrawColor(13,71,161); doc.setLineWidth(0.5); doc.line(margin, y, W-margin, y); y += 5;
-    doc.setFont('helvetica','bold'); doc.setFontSize(8.5);
-    doc.text('TOTALES', margin+cols[0], y);
-    doc.text(fmt(totalInteres), margin+cols[2], y);
-    doc.text(fmt(totalCapital), margin+cols[3], y);
-    doc.text(fmt(totalPago), margin+cols[4], y);
-
-    doc.save(`Amortizacion_${nombre||'Credito'}_${new Date().toLocaleDateString('es-MX').replace(/\//g,'-')}.pdf`);
-  };
-
-  const exportExcel = () => {
-    if (!tabla.length) return;
-    const ws_data = [
-      ['PROAKTIVA SAPI de CV, SOFOM, ENR'],
-      ['TABLA DE AMORTIZACIÓN'],
-      [],
-      ['Acreditado:', nombre, '', 'Monto:', montoNum, '', 'Tasa anual:', tasaAnual ? (tasaAnual*100).toFixed(4)+'%' : ''],
-      ['Plazo (meses):', plazoNum, '', 'TIIE:', tiie ? tiie.toFixed(4)+'%' : (tiieManual||''), '', 'Puntos:', puntos+'%'],
-      [],
-      ['#', 'Fecha', 'Interés', 'Capital', 'Pago Total', 'Saldo'],
-      ...tabla.map(r => [r.n, r.fecha, r.interes, r.capital, r.pago, r.saldo]),
-      [],
-      ['', 'TOTALES', totalInteres, totalCapital, totalPago, ''],
-    ];
-    const wb = XLSX.utils.book_new();
-    const ws = XLSX.utils.aoa_to_sheet(ws_data);
-    ws['!cols'] = [8,14,16,16,16,16].map(w => ({ wch: w }));
-    XLSX.utils.book_append_sheet(wb, ws, 'Amortización');
-    XLSX.writeFile(wb, `Amortizacion_${nombre||'Credito'}.xlsx`);
-  };
-
-  const TIPOS = [
-    { key:'frances',       label:'Francés',         desc:'Pagos iguales de capital e interés mensual' },
-    { key:'aleman',        label:'Alemán',           desc:'Capital constante + intereses decrecientes mensual' },
-    { key:'intereses_mensual_capital_irregular', label:'Interés mensual / Capital irregular', desc:'Pago de interés mensual y capital en fechas definidas' },
-    { key:'intereses_vencimiento', label:'Interés mensual / Capital al vencimiento', desc:'Solo intereses mensuales, capital completo al final' },
-  ];
-
-  const isReady = montoNum > 0 && plazoNum > 0 && tasaMensual && fechaInicio;
-
-  return (
-    <div style={{fontFamily:"'IBM Plex Sans',sans-serif",background:'#f0f4f8',minHeight:'100%'}}>
-      <style>{`
-        .am-wrap{display:grid;grid-template-columns:380px 1fr;gap:0;min-height:100%}
-        @media(max-width:900px){.am-wrap{grid-template-columns:1fr}}
-        .am-form{padding:28px 24px;display:flex;flex-direction:column;gap:18px;border-right:1px solid #dce5f0;background:white}
-        .am-card{background:white;border:1px solid #dce5f0;border-radius:12px;overflow:hidden;box-shadow:0 2px 10px rgba(0,0,0,.06)}
-        .am-card-head{background:#f4f7fb;border-bottom:1px solid #dce5f0;padding:10px 16px;display:flex;align-items:center;gap:9px}
-        .am-card-num{width:24px;height:24px;background:#0e5fa8;color:white;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0}
-        .am-card-title{font-size:14px;font-weight:600;color:#1a2b3c}
-        .am-card-body{padding:16px;display:flex;flex-direction:column;gap:12px}
-        .am-label{font-size:10px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:#6a85a0;margin-bottom:4px;display:block}
-        .am-input{width:100%;padding:9px 12px;border:1.5px solid #dce5f0;border-radius:8px;font-family:'IBM Plex Sans',sans-serif;font-size:14px;color:#1a2b3c;outline:none;transition:border-color .15s;background:white}
-        .am-input:focus{border-color:#0e5fa8}
-        .am-row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-        .am-tipo{display:flex;flex-direction:column;gap:6px}
-        .am-tipo-opt{display:flex;align-items:flex-start;gap:9px;padding:9px 12px;border:1.5px solid #dce5f0;border-radius:8px;cursor:pointer;transition:all .15s;font-size:12px}
-        .am-tipo-opt:hover{border-color:#0e5fa8;background:#f0f6fc}
-        .am-tipo-opt.sel{border-color:#0e5fa8;background:#e8f2fc}
-        .am-tipo-opt input{margin-top:2px;accent-color:#0e5fa8;flex-shrink:0}
-        .am-tipo-name{font-weight:600;color:#1a2b3c;font-size:12px}
-        .am-tipo-desc{font-size:11px;color:#6a85a0;margin-top:1px}
-        .am-tiie-box{background:#e8f4fc;border:1px solid #b8ddf0;border-radius:10px;padding:12px 14px;display:flex;align-items:center;gap:10px}
-        .am-tiie-val{font-size:22px;font-weight:700;color:#0e5fa8;font-family:'IBM Plex Mono',monospace}
-        .am-tiie-lbl{font-size:11px;color:#4a7a9b;line-height:1.4}
-        .am-capital-row{display:grid;grid-template-columns:1fr 1fr 32px;gap:8px;align-items:center}
-        .am-add-btn{padding:6px 14px;border:1.5px dashed #b8ddf0;border-radius:7px;background:none;color:#0e5fa8;font-family:'IBM Plex Sans',sans-serif;font-size:12px;cursor:pointer;width:100%;margin-top:4px}
-        .am-add-btn:hover{background:#e8f4fc}
-        .am-del-btn{width:28px;height:28px;border:none;background:#fee;color:#c00;border-radius:6px;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center}
-        /* Result panel */
-        .am-result{padding:24px;overflow-y:auto;background:#f0f4f8}
-        .am-summary{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:20px}
-        .am-kpi{background:white;border:1px solid #dce5f0;border-radius:10px;padding:14px 16px;box-shadow:0 1px 6px rgba(0,0,0,.05)}
-        .am-kpi-lbl{font-size:10px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:#6a85a0;margin-bottom:4px}
-        .am-kpi-val{font-size:18px;font-weight:700;color:#0e5fa8}
-        .am-actions{display:flex;gap:10px;margin-bottom:18px;flex-wrap:wrap}
-        .am-btn{display:flex;align-items:center;gap:7px;padding:10px 18px;border:none;border-radius:9px;font-family:'IBM Plex Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all .15s}
-        .am-btn:disabled{opacity:.4;cursor:not-allowed}
-        .am-btn-pdf{background:#0e5fa8;color:white}
-        .am-btn-pdf:hover:not(:disabled){background:#0a4d8a}
-        .am-btn-excel{background:#1a7340;color:white}
-        .am-btn-excel:hover:not(:disabled){background:#145a30}
-        .am-table-wrap{background:white;border:1px solid #dce5f0;border-radius:12px;overflow:hidden;box-shadow:0 2px 10px rgba(0,0,0,.06)}
-        .am-table{width:100%;border-collapse:collapse;font-size:12.5px}
-        .am-table th{background:#0e5fa8;color:white;padding:9px 12px;text-align:left;font-weight:600;font-size:11px;letter-spacing:.5px}
-        .am-table td{padding:8px 12px;border-bottom:1px solid #f0f4f8;color:#1a2b3c}
-        .am-table tr:hover td{background:#f4f8fd}
-        .am-table tr:last-child td{border-bottom:none}
-        .am-table .tot{background:#f4f7fb;font-weight:700}
-        .am-table td.num{text-align:right;font-family:'IBM Plex Mono',monospace;font-size:12px}
-        .am-empty{padding:60px 24px;text-align:center;color:#6a85a0;font-size:14px;line-height:1.8}
-      `}</style>
-
-      <div className="am-wrap">
-        {/* FORM */}
-        <div className="am-form">
-
-          {/* TIIE */}
-          <div className="am-card">
-            <div className="am-card-head">
-              <div className="am-card-num">T</div>
-              <span className="am-card-title">TIIE Vigente (Banco de México)</span>
-            </div>
-            <div className="am-card-body">
-              {tiieLoading ? (
-                <div style={{fontSize:13,color:'#6a85a0'}}>⏳ Consultando Banxico...</div>
-              ) : tiieError ? (
-                <div>
-                  <div style={{fontSize:12,color:'#c00',marginBottom:8}}>⚠ No se pudo obtener la TIIE automáticamente. Ingrésala manualmente:</div>
-                  <input className="am-input" type="number" step="0.0001" placeholder="Ej: 10.5" value={tiieManual} onChange={e=>setTiieManual(e.target.value)} style={{width:'50%'}} />
-                </div>
-              ) : (
-                <div className="am-tiie-box">
-                  <div>
-                    <div className="am-tiie-val">{tiie?.toFixed(4)}%</div>
-                    <div className="am-tiie-lbl">TIIE 28 días · Fuente: Banco de México<br/>Actualización automática</div>
-                  </div>
-                  <div style={{marginLeft:'auto',fontSize:11,color:'#4a7a9b'}}>
-                    <button style={{border:'1px solid #b8ddf0',background:'white',padding:'4px 10px',borderRadius:6,cursor:'pointer',fontSize:11,color:'#0e5fa8'}}
-                      onClick={()=>{setTiieLoading(true);fetchTIIE().then(v=>{if(v)setTiie(v);setTiieLoading(false);})}}>
-                      ↻ Actualizar
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Datos generales */}
-          <div className="am-card">
-            <div className="am-card-head"><div className="am-card-num">1</div><span className="am-card-title">Datos del Crédito</span></div>
-            <div className="am-card-body">
-              <div>
-                <label className="am-label">Nombre del Acreditado</label>
-                <input className="am-input" type="text" placeholder="Nombre completo" value={nombre} onChange={e=>setNombre(e.target.value)} />
-              </div>
-              <div className="am-row2">
-                <div>
-                  <label className="am-label">Monto del Crédito (MXN)</label>
-                  <input className="am-input" type="text" placeholder="1,000,000" value={monto} onChange={e=>setMonto(e.target.value)} />
-                </div>
-                <div>
-                  <label className="am-label">Plazo (meses)</label>
-                  <input className="am-input" type="number" placeholder="24" value={plazoMeses} onChange={e=>setPlazoMeses(e.target.value)} />
-                </div>
-              </div>
-              <div className="am-row2">
-                <div>
-                  <label className="am-label">Puntos sobre TIIE (%)</label>
-                  <input className="am-input" type="number" step="0.01" placeholder="Ej: 12" value={puntos} onChange={e=>setPuntos(e.target.value)} />
-                </div>
-                <div>
-                  <label className="am-label">Fecha primera disposición</label>
-                  <input className="am-input" type="date" value={fechaInicio} onChange={e=>setFechaInicio(e.target.value)} />
-                </div>
-              </div>
-              {tasaAnual !== null && (
-                <div style={{background:'#e8f2fc',borderRadius:8,padding:'8px 12px',fontSize:13,color:'#0e5fa8',fontWeight:600}}>
-                  Tasa anual resultante: {(tasaAnual*100).toFixed(4)}% &nbsp;·&nbsp; Tasa mensual: {(tasaMensual*100).toFixed(4)}%
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Tipo amortización */}
-          <div className="am-card">
-            <div className="am-card-head"><div className="am-card-num">2</div><span className="am-card-title">Tipo de Amortización</span></div>
-            <div className="am-card-body">
-              <div className="am-tipo">
-                {TIPOS.map(t => (
-                  <label key={t.key} className={`am-tipo-opt${tipoAmort===t.key?' sel':''}`}>
-                    <input type="radio" checked={tipoAmort===t.key} onChange={()=>setTipoAmort(t.key)} />
-                    <div><div className="am-tipo-name">{t.label}</div><div className="am-tipo-desc">{t.desc}</div></div>
-                  </label>
-                ))}
-              </div>
-
-              {/* Capital irregular — date/amount rows */}
-              {tipoAmort === 'intereses_mensual_capital_irregular' && (
-                <div style={{marginTop:8,paddingTop:12,borderTop:'1px solid #dce5f0'}}>
-                  <label className="am-label">Calendario de pagos de capital</label>
-                  {capitalRows.map((row,i) => (
-                    <div key={i} className="am-capital-row" style={{marginBottom:6}}>
-                      <input className="am-input" type="date" value={row.fecha}
-                        onChange={e=>{const r=[...capitalRows];r[i]={...r[i],fecha:e.target.value};setCapitalRows(r);}} />
-                      <input className="am-input" type="text" placeholder="Monto" value={row.monto}
-                        onChange={e=>{const r=[...capitalRows];r[i]={...r[i],monto:e.target.value};setCapitalRows(r);}} />
-                      <button className="am-del-btn" onClick={()=>setCapitalRows(capitalRows.filter((_,j)=>j!==i))}>×</button>
-                    </div>
-                  ))}
-                  <button className="am-add-btn" onClick={()=>setCapitalRows([...capitalRows,{fecha:'',monto:''}])}>+ Agregar fecha de capital</button>
-                </div>
-              )}
-            </div>
-          </div>
-
-        </div>
-
-        {/* RESULT */}
-        <div className="am-result">
-          {!isReady ? (
-            <div className="am-empty">
-              <div style={{fontSize:40,marginBottom:12}}>📊</div>
-              Completa los datos del crédito para generar la tabla de amortización.<br/>
-              <span style={{fontSize:12}}>La tabla se calculará en tiempo real.</span>
-            </div>
-          ) : (
-            <>
-              <div className="am-summary">
-                <div className="am-kpi"><div className="am-kpi-lbl">Total Intereses</div><div className="am-kpi-val">{fmt(totalInteres)}</div></div>
-                <div className="am-kpi"><div className="am-kpi-lbl">Total Capital</div><div className="am-kpi-val">{fmt(totalCapital)}</div></div>
-                <div className="am-kpi"><div className="am-kpi-lbl">Costo Total</div><div className="am-kpi-val">{fmt(totalPago)}</div></div>
-              </div>
-
-              <div className="am-actions">
-                <button className="am-btn am-btn-pdf" onClick={exportPDF} disabled={!tabla.length}>⬇ Exportar PDF</button>
-                <button className="am-btn am-btn-excel" onClick={exportExcel} disabled={!tabla.length}>⬇ Exportar Excel</button>
-              </div>
-
-              <div className="am-table-wrap">
-                <table className="am-table">
-                  <thead>
-                    <tr><th>#</th><th>Fecha</th><th>Interés</th><th>Capital</th><th>Pago Total</th><th>Saldo</th></tr>
-                  </thead>
-                  <tbody>
-                    {tabla.map(r => (
-                      <tr key={r.n}>
-                        <td>{r.n}</td>
-                        <td>{r.fecha}</td>
-                        <td className="num">{fmt(r.interes)}</td>
-                        <td className="num">{fmt(r.capital)}</td>
-                        <td className="num">{fmt(r.pago)}</td>
-                        <td className="num">{fmt(r.saldo)}</td>
-                      </tr>
-                    ))}
-                    <tr className="tot">
-                      <td colSpan={2}>TOTALES</td>
-                      <td className="num">{fmt(totalInteres)}</td>
-                      <td className="num">{fmt(totalCapital)}</td>
-                      <td className="num">{fmt(totalPago)}</td>
-                      <td className="num">—</td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// Store proaktiva logo for PDF use
-window.__proaktivaB64 = "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";
-
-const amortContainer = document.getElementById('amort-root');
-if (amortContainer) {
-  ReactDOM.createRoot(amortContainer).render(React.createElement(AmortApp));
-}
-
 </script>
+
 </body>
-</html>PLACEHOLDER_AMORT
+</html>
