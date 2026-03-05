@@ -282,15 +282,23 @@ html, body { height: 100%; font-family: "IBM Plex Sans", sans-serif; color: var(
       <div class="file-name" id="fn-pagare"></div>
       <div class="remove-btn" id="rm-pagare" onclick="removeFile('pagare',event)">✕ Quitar</div>
     </div>
-    <!-- Carátula Excel -->
-    <div class="upload-card" id="card-excel">
-      <input type="file" id="inp-excel" accept=".xlsx,.xls" onchange="handleFile('excel',this)">
+    <!-- Carátula Excel (opcional) -->
+    <div class="upload-card" id="card-excel" style="position:relative">
+      <input type="file" id="inp-excel" accept=".xlsx,.xls" onchange="handleFile('excel',this)" style="display:none">
       <span class="icon">📊</span>
-      <h3>Carátula Excel</h3>
-      <p>Tabla de amortización del crédito (varias pestañas)</p>
+      <h3>Carátula Excel <span style="font-size:11px;font-weight:500;color:var(--muted)">(opcional)</span></h3>
+      <p>Adjunta si cuentas con la carátula. El análisis funciona sin ella.</p>
       <span class="fmt" id="fmt-excel">XLSX / XLS</span>
       <div class="file-name" id="fn-excel"></div>
-      <div class="remove-btn" id="rm-excel" onclick="removeFile('excel',event)">✕ Quitar</div>
+      <div style="display:flex;gap:8px;margin-top:8px;justify-content:center;flex-wrap:wrap">
+        <label for="inp-excel" id="lbl-attach-excel" style="display:inline-flex;align-items:center;gap:5px;padding:6px 14px;background:var(--primary);color:white;border-radius:7px;font-size:12px;font-weight:600;cursor:pointer">
+          📎 Adjuntar Excel
+        </label>
+        <button id="btn-skip-excel" onclick="toggleSkipExcel()" style="padding:6px 14px;background:#f0f4f8;border:1.5px solid #b0c4d8;color:#4a6a8a;border-radius:7px;font-size:12px;font-weight:600;cursor:pointer">
+          ✗ Omitir
+        </button>
+      </div>
+      <div class="remove-btn" id="rm-excel" onclick="removeFile('excel',event)" style="display:none">✕ Quitar</div>
     </div>
   </div>
 
@@ -405,6 +413,15 @@ async function handleFile(type, input) {
     card.classList.add('loaded');
     fn.textContent = file.name;
     document.getElementById('fmt-' + type).textContent = '✓ Cargado';
+    if (type === 'excel') {
+      var rmBtn = document.getElementById('rm-excel');
+      var lblA  = document.getElementById('lbl-attach-excel');
+      var btnS  = document.getElementById('btn-skip-excel');
+      if (rmBtn) rmBtn.style.display = 'inline-flex';
+      if (lblA)  lblA.style.display  = 'none';
+      if (btnS)  btnS.style.display  = 'none';
+      excelSkipped = false;
+    }
   } catch(e) {
     fn.textContent = '⚠️ Error: ' + e.message;
   }
@@ -472,11 +489,50 @@ function removeFile(type, e) {
   document.getElementById('inp-' + type).value = '';
   var fmtMap = { contrato:'PDF o DOCX', pagare:'DOCX', excel:'XLSX / XLS' };
   document.getElementById('fmt-' + type).textContent = fmtMap[type];
+  if (type === 'excel') {
+    var rmBtn = document.getElementById('rm-excel');
+    var lblA  = document.getElementById('lbl-attach-excel');
+    var btnS  = document.getElementById('btn-skip-excel');
+    if (rmBtn) rmBtn.style.display = 'none';
+    if (lblA)  { lblA.style.display = 'inline-flex'; lblA.style.opacity = '1'; }
+    if (btnS)  { btnS.style.display = 'inline-flex'; btnS.textContent = '✗ Omitir'; btnS.style.background='#f0f4f8'; btnS.style.color='#4a6a8a'; btnS.style.borderColor='#b0c4d8'; }
+    excelSkipped = false;
+  }
   checkReady();
 }
 
 function checkReady() {
   document.getElementById('btn-analyze').disabled = !(docs.contrato && docs.pagare);
+}
+
+var excelSkipped = false;
+
+function toggleSkipExcel() {
+  excelSkipped = !excelSkipped;
+  var card  = document.getElementById('card-excel');
+  var btn   = document.getElementById('btn-skip-excel');
+  var lbl   = document.getElementById('lbl-attach-excel');
+  var inpEl = document.getElementById('inp-excel');
+  if (excelSkipped) {
+    card.classList.add('loaded');
+    btn.textContent  = '↩ Incluir Excel';
+    btn.style.background = '#fef3c7';
+    btn.style.color  = '#92400e';
+    btn.style.borderColor = '#f59e0b';
+    if (lbl) lbl.style.opacity = '0.4';
+    document.getElementById('fn-excel').textContent = '⚠ Sin carátula — análisis solo con contrato';
+    docs.excel = { name:'[omitido]', text:'[No se adjuntó carátula Excel. Analiza únicamente con contrato y pagaré.]' };
+  } else {
+    card.classList.remove('loaded');
+    btn.textContent  = '✗ Omitir';
+    btn.style.background = '#f0f4f8';
+    btn.style.color  = '#4a6a8a';
+    btn.style.borderColor = '#b0c4d8';
+    if (lbl) lbl.style.opacity = '1';
+    document.getElementById('fn-excel').textContent = '';
+    docs.excel = null;
+  }
+  checkReady();
 }
 
 // ── TABS ───────────────────────────────────────────────────────────────────
@@ -533,6 +589,7 @@ async function startAnalysis() {
     renderResumen(rRes);
 
     var all = (rDatos.findings||[]).concat(rPartes.findings||[]).concat(rAmort.findings||[]);
+    window.__allFindings = { datos: rDatos.findings||[], partes: rPartes.findings||[], amort: rAmort.findings||[] };
     document.getElementById('cnt-err').textContent  = all.filter(function(f){ return f.type==='error'; }).length;
     document.getElementById('cnt-warn').textContent = all.filter(function(f){ return f.type==='warning'; }).length;
     document.getElementById('cnt-info').textContent = all.filter(function(f){ return f.type==='info'||f.type==='comment'; }).length;
@@ -553,7 +610,8 @@ async function startAnalysis() {
 // ── PROMPTS ────────────────────────────────────────────────────────────────
 function buildPromptDatos(C, P, today, fmtHint) {
   fmtHint = fmtHint || '';
-  return fmtHint + 'Eres un especialista en revisión de pagarés para PROAKTIVA, empresa financiera mexicana.\n'
+  var normRule = 'REGLA UNIVERSAL DE COMPARACIÓN DE NOMBRES (aplica en TODOS los puntos): Antes de comparar cualquier nombre, normaliza AMBAS versiones: (1) convierte a MAYÚSCULAS, (2) elimina todos los acentos/tildes (á→A, é→E, í→I, ó→O, ú→U, ü→U, Á→A, É→E, etc.). Compara solo letras base. NUNCA reportes error por diferencia de tilde o mayúscula/minúscula solamente.\n\n';
+  return fmtHint + normRule + 'Eres un especialista en revisión de pagarés para PROAKTIVA, empresa financiera mexicana.\n'
     + 'Hoy es: ' + today + '\n\n'
     + 'Analiza el PAGARÉ comparándolo con el CONTRATO en los siguientes puntos. Sé muy minucioso:\n\n'
     + 'PUNTO 1 — No. de Contrato:\n'
@@ -599,7 +657,8 @@ function buildPromptDatos(C, P, today, fmtHint) {
 
 function buildPromptPartes(C, P, fmtHint) {
   fmtHint = fmtHint || '';
-  return fmtHint + 'Eres un especialista en revisión de pagarés para PROAKTIVA, empresa financiera mexicana.\n\n'
+  var normRule = 'REGLA UNIVERSAL DE COMPARACIÓN DE NOMBRES (aplica en TODOS los puntos): Antes de comparar cualquier nombre, normaliza AMBAS versiones: (1) convierte a MAYÚSCULAS, (2) elimina todos los acentos/tildes (á→A, é→E, í→I, ó→O, ú→U, ü→U, Á→A, É→E, etc.). Compara solo letras base. NUNCA reportes error por diferencia de tilde o mayúscula/minúscula solamente.\n\n';
+  return fmtHint + normRule + 'Eres un especialista en revisión de pagarés para PROAKTIVA, empresa financiera mexicana.\n\n'
     + 'Analiza PUNTO 3 y PUNTO 10 con máximo detalle:\n\n'
     + 'PUNTO 3 — Suscriptor (persona moral o física):\n'
     + '- Determina si el suscriptor es persona MORAL o FÍSICA.\n'
@@ -619,7 +678,8 @@ function buildPromptPartes(C, P, fmtHint) {
 
 function buildPromptAmort(C, P, E, fmtHint) {
   fmtHint = fmtHint || '';
-  return fmtHint + 'Eres un especialista en revisión de pagarés para PROAKTIVA, empresa financiera mexicana.\n\n'
+  var normRule = 'REGLA UNIVERSAL DE COMPARACIÓN DE NOMBRES (aplica en TODOS los puntos): Antes de comparar cualquier nombre, normaliza AMBAS versiones: (1) convierte a MAYÚSCULAS, (2) elimina todos los acentos/tildes (á→A, é→E, í→I, ó→O, ú→U, ü→U, Á→A, É→E, etc.). Compara solo letras base. NUNCA reportes error por diferencia de tilde o mayúscula/minúscula solamente.\n\n';
+  return fmtHint + normRule + 'Eres un especialista en revisión de pagarés para PROAKTIVA, empresa financiera mexicana.\n\n'
     + 'Analiza PUNTO 7 y PUNTO 9:\n\n'
     + 'PUNTO 7 — Amortizaciones:\n'
     + '- El pagaré declara un rango de amortizaciones (ej: "del 1 al 1", "del 1 al 12").\n'
@@ -640,7 +700,8 @@ function buildPromptAmort(C, P, E, fmtHint) {
     + '- Si el tipo de crédito es "Cuenta Corriente", "Habilitación", "Avío" o similar: estos créditos NO llevan tabla de amortización en Excel, no la exijas ni la busques.\n'
     + '- Para créditos de Cuenta Corriente específicamente: VERIFICA que el plazo de cada amortización en la tabla del pagaré NO exceda el plazo máximo de disposición estipulado en el CONTRATO. El contrato puede indicar un plazo máximo en días (ej: "vencimiento máximo de hasta 180 días", "plazo máximo de disposición de 90 días"). Calcula la diferencia en días entre la fecha de suscripción del pagaré y cada fecha de vencimiento de la tabla. Si alguna amortización excede ese plazo contractual: marca como ERROR indicando la fecha infractora y cuántos días excede. Si todas cumplen: marca como OK.\n'
     + '- Extrae y muestra como COMENTARIO la tabla de amortización del pagaré (número de pago, fecha de vencimiento, importe, días desde suscripción), a modo de recordatorio visual.\n'
-    + '- Si no se proporcionó Excel, indicarlo como comentario.\n\n'
+    + '- Si no se proporcionó Excel, indicarlo como comentario.\n'
+    + '- VERIFICACIÓN GENERAL DE PLAZOS: Sin importar el tipo de crédito, verifica que la fecha de vencimiento de CADA amortización en el pagaré NO sea posterior a la fecha de vencimiento del contrato. Si el contrato establece una fecha final o un plazo total, ninguna amortización puede excederlo. Reporta como ERROR cualquier amortización que supere la fecha máxima del contrato.\n\n'
     + 'Responde SOLO JSON válido sin markdown:\n'
     + '{"findings":[{"type":"error|warning|comment|ok","point":"Punto 7|Punto 9","title":"Descripción","detail":"Detalle con números, fechas e importes","quote":"Pagaré: X / Excel: Y"}]}\n\n'
     + '=== CONTRATO ===\n' + C + '\n\n=== PAGARÉ ===\n' + P + '\n\n=== CARÁTULA EXCEL ===\n' + E;
@@ -1138,6 +1199,15 @@ async function handleFile(type, input) {
     card.classList.add('loaded');
     fn.textContent = file.name;
     document.getElementById('fmt-' + type).textContent = '✓ Cargado';
+    if (type === 'excel') {
+      var rmBtn = document.getElementById('rm-excel');
+      var lblA  = document.getElementById('lbl-attach-excel');
+      var btnS  = document.getElementById('btn-skip-excel');
+      if (rmBtn) rmBtn.style.display = 'inline-flex';
+      if (lblA)  lblA.style.display  = 'none';
+      if (btnS)  btnS.style.display  = 'none';
+      excelSkipped = false;
+    }
   } catch(e) {
     fn.textContent = '⚠️ Error: ' + e.message;
   }
@@ -1205,11 +1275,50 @@ function removeFile(type, e) {
   document.getElementById('inp-' + type).value = '';
   var fmtMap = { contrato:'PDF o DOCX', pagare:'DOCX', excel:'XLSX / XLS' };
   document.getElementById('fmt-' + type).textContent = fmtMap[type];
+  if (type === 'excel') {
+    var rmBtn = document.getElementById('rm-excel');
+    var lblA  = document.getElementById('lbl-attach-excel');
+    var btnS  = document.getElementById('btn-skip-excel');
+    if (rmBtn) rmBtn.style.display = 'none';
+    if (lblA)  { lblA.style.display = 'inline-flex'; lblA.style.opacity = '1'; }
+    if (btnS)  { btnS.style.display = 'inline-flex'; btnS.textContent = '✗ Omitir'; btnS.style.background='#f0f4f8'; btnS.style.color='#4a6a8a'; btnS.style.borderColor='#b0c4d8'; }
+    excelSkipped = false;
+  }
   checkReady();
 }
 
 function checkReady() {
   document.getElementById('btn-analyze').disabled = !(docs.contrato && docs.pagare);
+}
+
+var excelSkipped = false;
+
+function toggleSkipExcel() {
+  excelSkipped = !excelSkipped;
+  var card  = document.getElementById('card-excel');
+  var btn   = document.getElementById('btn-skip-excel');
+  var lbl   = document.getElementById('lbl-attach-excel');
+  var inpEl = document.getElementById('inp-excel');
+  if (excelSkipped) {
+    card.classList.add('loaded');
+    btn.textContent  = '↩ Incluir Excel';
+    btn.style.background = '#fef3c7';
+    btn.style.color  = '#92400e';
+    btn.style.borderColor = '#f59e0b';
+    if (lbl) lbl.style.opacity = '0.4';
+    document.getElementById('fn-excel').textContent = '⚠ Sin carátula — análisis solo con contrato';
+    docs.excel = { name:'[omitido]', text:'[No se adjuntó carátula Excel. Analiza únicamente con contrato y pagaré.]' };
+  } else {
+    card.classList.remove('loaded');
+    btn.textContent  = '✗ Omitir';
+    btn.style.background = '#f0f4f8';
+    btn.style.color  = '#4a6a8a';
+    btn.style.borderColor = '#b0c4d8';
+    if (lbl) lbl.style.opacity = '1';
+    document.getElementById('fn-excel').textContent = '';
+    docs.excel = null;
+  }
+  checkReady();
 }
 
 // ── TABS ───────────────────────────────────────────────────────────────────
@@ -1266,6 +1375,7 @@ async function startAnalysis() {
     renderResumen(rRes);
 
     var all = (rDatos.findings||[]).concat(rPartes.findings||[]).concat(rAmort.findings||[]);
+    window.__allFindings = { datos: rDatos.findings||[], partes: rPartes.findings||[], amort: rAmort.findings||[] };
     document.getElementById('cnt-err').textContent  = all.filter(function(f){ return f.type==='error'; }).length;
     document.getElementById('cnt-warn').textContent = all.filter(function(f){ return f.type==='warning'; }).length;
     document.getElementById('cnt-info').textContent = all.filter(function(f){ return f.type==='info'||f.type==='comment'; }).length;
@@ -1286,7 +1396,8 @@ async function startAnalysis() {
 // ── PROMPTS ────────────────────────────────────────────────────────────────
 function buildPromptDatos(C, P, today, fmtHint) {
   fmtHint = fmtHint || '';
-  return fmtHint + 'Eres un especialista en revisión de pagarés para PROAKTIVA, empresa financiera mexicana.\n'
+  var normRule = 'REGLA UNIVERSAL DE COMPARACIÓN DE NOMBRES (aplica en TODOS los puntos): Antes de comparar cualquier nombre, normaliza AMBAS versiones: (1) convierte a MAYÚSCULAS, (2) elimina todos los acentos/tildes (á→A, é→E, í→I, ó→O, ú→U, ü→U, Á→A, É→E, etc.). Compara solo letras base. NUNCA reportes error por diferencia de tilde o mayúscula/minúscula solamente.\n\n';
+  return fmtHint + normRule + 'Eres un especialista en revisión de pagarés para PROAKTIVA, empresa financiera mexicana.\n'
     + 'Hoy es: ' + today + '\n\n'
     + 'Analiza el PAGARÉ comparándolo con el CONTRATO en los siguientes puntos. Sé muy minucioso:\n\n'
     + 'PUNTO 1 — No. de Contrato:\n'
@@ -1332,7 +1443,8 @@ function buildPromptDatos(C, P, today, fmtHint) {
 
 function buildPromptPartes(C, P, fmtHint) {
   fmtHint = fmtHint || '';
-  return fmtHint + 'Eres un especialista en revisión de pagarés para PROAKTIVA, empresa financiera mexicana.\n\n'
+  var normRule = 'REGLA UNIVERSAL DE COMPARACIÓN DE NOMBRES (aplica en TODOS los puntos): Antes de comparar cualquier nombre, normaliza AMBAS versiones: (1) convierte a MAYÚSCULAS, (2) elimina todos los acentos/tildes (á→A, é→E, í→I, ó→O, ú→U, ü→U, Á→A, É→E, etc.). Compara solo letras base. NUNCA reportes error por diferencia de tilde o mayúscula/minúscula solamente.\n\n';
+  return fmtHint + normRule + 'Eres un especialista en revisión de pagarés para PROAKTIVA, empresa financiera mexicana.\n\n'
     + 'Analiza PUNTO 3 y PUNTO 10 con máximo detalle:\n\n'
     + 'PUNTO 3 — Suscriptor (persona moral o física):\n'
     + '- Determina si el suscriptor es persona MORAL o FÍSICA.\n'
@@ -1352,7 +1464,8 @@ function buildPromptPartes(C, P, fmtHint) {
 
 function buildPromptAmort(C, P, E, fmtHint) {
   fmtHint = fmtHint || '';
-  return fmtHint + 'Eres un especialista en revisión de pagarés para PROAKTIVA, empresa financiera mexicana.\n\n'
+  var normRule = 'REGLA UNIVERSAL DE COMPARACIÓN DE NOMBRES (aplica en TODOS los puntos): Antes de comparar cualquier nombre, normaliza AMBAS versiones: (1) convierte a MAYÚSCULAS, (2) elimina todos los acentos/tildes (á→A, é→E, í→I, ó→O, ú→U, ü→U, Á→A, É→E, etc.). Compara solo letras base. NUNCA reportes error por diferencia de tilde o mayúscula/minúscula solamente.\n\n';
+  return fmtHint + normRule + 'Eres un especialista en revisión de pagarés para PROAKTIVA, empresa financiera mexicana.\n\n'
     + 'Analiza PUNTO 7 y PUNTO 9:\n\n'
     + 'PUNTO 7 — Amortizaciones:\n'
     + '- El pagaré declara un rango de amortizaciones (ej: "del 1 al 1", "del 1 al 12").\n'
@@ -1373,7 +1486,8 @@ function buildPromptAmort(C, P, E, fmtHint) {
     + '- Si el tipo de crédito es "Cuenta Corriente", "Habilitación", "Avío" o similar: estos créditos NO llevan tabla de amortización en Excel, no la exijas ni la busques.\n'
     + '- Para créditos de Cuenta Corriente específicamente: VERIFICA que el plazo de cada amortización en la tabla del pagaré NO exceda el plazo máximo de disposición estipulado en el CONTRATO. El contrato puede indicar un plazo máximo en días (ej: "vencimiento máximo de hasta 180 días", "plazo máximo de disposición de 90 días"). Calcula la diferencia en días entre la fecha de suscripción del pagaré y cada fecha de vencimiento de la tabla. Si alguna amortización excede ese plazo contractual: marca como ERROR indicando la fecha infractora y cuántos días excede. Si todas cumplen: marca como OK.\n'
     + '- Extrae y muestra como COMENTARIO la tabla de amortización del pagaré (número de pago, fecha de vencimiento, importe, días desde suscripción), a modo de recordatorio visual.\n'
-    + '- Si no se proporcionó Excel, indicarlo como comentario.\n\n'
+    + '- Si no se proporcionó Excel, indicarlo como comentario.\n'
+    + '- VERIFICACIÓN GENERAL DE PLAZOS: Sin importar el tipo de crédito, verifica que la fecha de vencimiento de CADA amortización en el pagaré NO sea posterior a la fecha de vencimiento del contrato. Si el contrato establece una fecha final o un plazo total, ninguna amortización puede excederlo. Reporta como ERROR cualquier amortización que supere la fecha máxima del contrato.\n\n'
     + 'Responde SOLO JSON válido sin markdown:\n'
     + '{"findings":[{"type":"error|warning|comment|ok","point":"Punto 7|Punto 9","title":"Descripción","detail":"Detalle con números, fechas e importes","quote":"Pagaré: X / Excel: Y"}]}\n\n'
     + '=== CONTRATO ===\n' + C + '\n\n=== PAGARÉ ===\n' + P + '\n\n=== CARÁTULA EXCEL ===\n' + E;
@@ -1517,138 +1631,274 @@ function resetAll() {
 // ── DICTAMEN PDF ──────────────────────────────────────────────────────
 async function generateDictamenPDF() {
   var d = window.__lastDictamen;
-  if (!d) { alert('No hay dictamen generado aún.'); return; }
-  if (!window.jspdf) { alert('Librería PDF no disponible.'); return; }
+  if (!d) { alert('Genera el análisis primero.'); return; }
+  if (!window.jspdf) { alert('Librería PDF no cargada.'); return; }
 
+  var F = window.__allFindings || { datos:[], partes:[], amort:[] };
   var { jsPDF } = window.jspdf;
-  var doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'letter' });
-  var W = 215.9, margin = 18, contentW = W - margin * 2;
+  var doc = new jsPDF({ orientation:'portrait', unit:'mm', format:'letter' });
+  var W=215.9, H=279.4, mL=15, mR=15, cW=W-mL-mR;
+
+  // ── Palette por veredicto ──
+  var pal = {
+    green:  { hdr:[22,100,45],  bg:[235,250,240], ink:[15,70,30]  },
+    yellow: { hdr:[140,100,0],  bg:[255,250,220], ink:[100,70,0]  },
+    orange: { hdr:[165,70,0],   bg:[255,240,225], ink:[130,55,0]  },
+    red:    { hdr:[170,25,25],  bg:[255,232,232], ink:[130,20,20] },
+  }[d.verdict_color] || { hdr:[55,80,110], bg:[240,244,250], ink:[30,50,80] };
+
+  var fechaHoy = new Date().toLocaleDateString('es-MX',{day:'2-digit',month:'long',year:'numeric'});
   var y = 0;
 
-  // ── HEADER BAND ──
-  doc.setFillColor(13, 71, 161);
-  doc.rect(0, 0, W, 18, 'F');
-  doc.setFontSize(11); doc.setTextColor(255,255,255); doc.setFont('helvetica','bold');
-  doc.text('PROAKTIVA SAPI de CV, SOFOM, ENR', W/2, 11.5, { align:'center' });
+  /* ══════════════════════════════════════════════════
+     PÁGINA 1 — PORTADA EJECUTIVA
+  ══════════════════════════════════════════════════ */
 
-  // ── LOGO + TITLE ROW ──
+  // Banda superior azul marino
+  doc.setFillColor(8,28,80); doc.rect(0,0,W,26,'F');
+
+  // Logo
   try {
-    var img = new Image();
-    img.src = 'data:image/webp;base64,' + PROAKTIVA_LOGO_B64;
+    var imgEl = new Image();
+    imgEl.src = 'data:image/webp;base64,'+PROAKTIVA_LOGO_B64;
     var cvs = document.createElement('canvas'); cvs.width=400; cvs.height=130;
-    cvs.getContext('2d').drawImage(img,0,0,400,130);
-    doc.addImage(cvs.toDataURL('image/png'),'PNG', margin-4, 20, 52, 17);
-  } catch(e){}
+    cvs.getContext('2d').drawImage(imgEl,0,0,400,130);
+    doc.addImage(cvs.toDataURL('image/png'),'PNG', mL, 4, 56, 18);
+  } catch(e) {}
 
-  doc.setFillColor(13, 71, 161);
-  doc.rect(margin+50, 20, contentW-50, 11, 'F');
+  // Nombre empresa derecha
+  doc.setFontSize(9); doc.setTextColor(200,215,240); doc.setFont('helvetica','bold');
+  doc.text('PROAKTIVA SAPI de CV, SOFOM, ENR', W-mR, 11, {align:'right'});
+  doc.setFontSize(7); doc.setFont('helvetica','normal'); doc.setTextColor(140,165,205);
+  doc.text('Le damos crédito a tu negocio', W-mR, 17, {align:'right'});
+
+  // Franja de título azul real
+  doc.setFillColor(13,71,161); doc.rect(0,26,W,12,'F');
   doc.setFontSize(10.5); doc.setTextColor(255,255,255); doc.setFont('helvetica','bold');
-  doc.text('DICTAMEN DE REVISIÓN DE PAGARÉ', margin+50+(contentW-50)/2, 27, { align:'center' });
+  doc.text('DICTAMEN DE REVISIÓN DE PAGARÉ', W/2, 33.5, {align:'center'});
 
-  // Date top right inside blue box
-  doc.setFontSize(7.5); doc.setFont('helvetica','normal');
-  doc.text(new Date().toLocaleDateString('es-MX'), W-margin, 24, { align:'right' });
+  // Metadatos debajo del título
+  doc.setFillColor(230,236,252); doc.rect(0,38,W,9,'F');
+  doc.setFontSize(7.5); doc.setTextColor(40,60,120); doc.setFont('helvetica','normal');
+  doc.text('Fecha de emisión: '+fechaHoy, mL, 43.5);
+  doc.text('ToolsPK — Revisión automatizada', W-mR, 43.5, {align:'right'});
 
-  y = 42;
+  y = 54;
 
-  // ── ACREDITADO INFO (from docs if available) ──
-  doc.setDrawColor(200,210,225); doc.setLineWidth(0.3);
-  doc.line(margin, y, W-margin, y); y += 5;
+  // ── Bloque veredicto ──
+  doc.setFillColor(pal.hdr[0],pal.hdr[1],pal.hdr[2]);
+  doc.roundedRect(mL, y, cW, 22, 3, 3, 'F');
+  // Calificación
+  doc.setFontSize(30); doc.setTextColor(255,255,255); doc.setFont('helvetica','bold');
+  doc.text(d.grade||'—', mL+11, y+16);
+  // Divisor vertical
+  doc.setDrawColor(255,255,255); doc.setLineWidth(0.4);
+  doc.line(mL+27, y+4, mL+27, y+18);
+  // Texto veredicto
+  doc.setFontSize(13); doc.setTextColor(255,255,255); doc.setFont('helvetica','bold');
+  doc.text(d.verdict||'', mL+32, y+10);
+  doc.setFontSize(8); doc.setFont('helvetica','normal'); doc.setTextColor(210,225,250);
+  doc.text('Revisión automatizada · Proaktiva ToolsPK', mL+32, y+17);
+  y += 28;
 
-  // ── VERDICT BLOCK ──
-  var verdictColors = { green:[27,120,50], yellow:[161,120,0], orange:[180,80,0], red:[180,0,0] };
-  var vc = verdictColors[d.verdict_color] || [80,80,80];
-
-  doc.setFillColor(vc[0], vc[1], vc[2]);
-  doc.roundedRect(margin, y, contentW, 16, 3, 3, 'F');
-  doc.setFontSize(22); doc.setTextColor(255,255,255); doc.setFont('helvetica','bold');
-  doc.text(d.grade || '—', margin+12, y+11);
-  doc.setFontSize(11); doc.setFont('helvetica','bold');
-  doc.text(d.verdict || '', margin+28, y+7.5);
-  doc.setFontSize(8.5); doc.setFont('helvetica','normal');
-  doc.text('Dictamen del pagaré revisado', margin+28, y+13);
-  y += 22;
-
-  // ── SUMMARY ──
+  // ── Resumen ejecutivo ──
   if (d.summary) {
-    doc.setFontSize(9); doc.setTextColor(40,40,40); doc.setFont('helvetica','normal');
-    var lines = doc.splitTextToSize(d.summary, contentW);
-    doc.text(lines, margin, y);
-    y += lines.length * 5 + 4;
+    doc.setFillColor(pal.bg[0],pal.bg[1],pal.bg[2]);
+    var sl = doc.splitTextToSize(d.summary, cW-10);
+    var sh = sl.length*5.2+8;
+    doc.roundedRect(mL, y, cW, sh, 2, 2, 'F');
+    doc.setFillColor(pal.hdr[0],pal.hdr[1],pal.hdr[2]);
+    doc.roundedRect(mL, y, 3, sh, 1, 1, 'F');
+    doc.setFontSize(8.5); doc.setTextColor(pal.ink[0],pal.ink[1],pal.ink[2]); doc.setFont('helvetica','normal');
+    doc.text(sl, mL+6, y+6);
+    y += sh+8;
   }
 
-  // ── HELPER: draw a finding row ──
-  var badgeColors = {
-    URGENTE: [[220,38,38],[255,255,255]],
-    NOTA:    [[245,158,11],[255,255,255]],
-    OK:      [[22,101,52],[255,255,255]],
-    'SIGUIENTE PASO': [[13,71,161],[255,255,255]],
+  // ── Scorecard numérico ──
+  var allF = F.datos.concat(F.partes).concat(F.amort);
+  var nErr  = allF.filter(function(f){return f.type==='error';}).length;
+  var nWarn = allF.filter(function(f){return f.type==='warning';}).length;
+  var nOk   = allF.filter(function(f){return f.type==='ok';}).length;
+  var nInfo = allF.filter(function(f){return f.type==='info'||f.type==='comment';}).length;
+
+  var scores = [
+    {lbl:'Errores',       n:nErr,  c:[210,40,40]},
+    {lbl:'Advertencias',  n:nWarn, c:[200,130,10]},
+    {lbl:'Observaciones', n:nInfo, c:[13,71,161]},
+    {lbl:'Correctos',     n:nOk,   c:[22,120,55]},
+  ];
+  var boxW = cW/4-3;
+  scores.forEach(function(s,i){
+    var bx = mL+i*(boxW+4);
+    doc.setFillColor(s.c[0],s.c[1],s.c[2]);
+    doc.roundedRect(bx, y, boxW, 18, 2, 2, 'F');
+    doc.setFontSize(18); doc.setTextColor(255,255,255); doc.setFont('helvetica','bold');
+    doc.text(String(s.n), bx+boxW/2, y+12, {align:'center'});
+    doc.setFontSize(6.5); doc.setFont('helvetica','normal');
+    doc.text(s.lbl, bx+boxW/2, y+17, {align:'center'});
+  });
+  y += 26;
+
+  // ── Documentos revisados ──
+  var contratoName = (docs&&docs.contrato)?docs.contrato.name:'—';
+  var pagareName   = (docs&&docs.pagare)  ?docs.pagare.name:'—';
+  var excelName    = (docs&&docs.excel&&docs.excel.name!=='[omitido]')?docs.excel.name:'No adjuntada';
+
+  doc.setFillColor(245,247,252); doc.roundedRect(mL,y,cW,18,2,2,'F');
+  doc.setFontSize(7); doc.setTextColor(80,100,130); doc.setFont('helvetica','bold');
+  doc.text('DOCUMENTOS ANALIZADOS', mL+4, y+5);
+  doc.setFont('helvetica','normal'); doc.setTextColor(40,55,80);
+  doc.text('📑 Contrato:', mL+4, y+10);
+  doc.setFont('helvetica','normal'); doc.text(contratoName, mL+26, y+10);
+  doc.text('📋 Pagaré:', mL+4, y+15);
+  doc.text(pagareName, mL+26, y+15);
+  doc.text('📊 Carátula Excel:', mL+90, y+10);
+  doc.text(excelName, mL+118, y+10);
+  y += 24;
+
+  /* ══════════════════════════════════════════════════
+     HELPERS DE LAYOUT
+  ══════════════════════════════════════════════════ */
+
+  function pageHeader() {
+    doc.setFillColor(8,28,80); doc.rect(0,0,W,10,'F');
+    doc.setFontSize(7); doc.setTextColor(180,200,235); doc.setFont('helvetica','bold');
+    doc.text('PROAKTIVA — DICTAMEN DE PAGARÉ', mL, 7);
+    doc.text(fechaHoy, W-mR, 7, {align:'right'});
+  }
+
+  function checkPage(needed) {
+    if (y+needed > H-16) { doc.addPage(); pageHeader(); y=16; }
+  }
+
+  function secBanner(titulo, r,g,b) {
+    checkPage(14);
+    doc.setFillColor(r,g,b); doc.rect(mL,y,cW,9,'F');
+    doc.setFontSize(8); doc.setTextColor(255,255,255); doc.setFont('helvetica','bold');
+    doc.text(titulo, mL+4, y+6.2);
+    y += 12;
+  }
+
+  var badgeCfg = {
+    error:   { lbl:'ERROR',    bg:[210,38,38],   tbg:[255,244,244] },
+    warning: { lbl:'AVISO',    bg:[190,120,10],  tbg:[255,250,230] },
+    ok:      { lbl:'OK',       bg:[22,120,55],   tbg:[238,252,240] },
+    comment: { lbl:'NOTA',     bg:[13,71,161],   tbg:[238,244,255] },
+    info:    { lbl:'INFO',     bg:[60,90,140],   tbg:[242,246,255] },
   };
-  function drawFinding(label, text, bgRGB, fgRGB) {
-    if (y > 255) { doc.addPage(); y = 18; }
-    var textLines = doc.splitTextToSize(text, contentW - 26);
-    var blockH = Math.max(10, textLines.length * 5 + 6);
+
+  function drawFinding(f) {
+    var cfg = badgeCfg[f.type] || badgeCfg.info;
+    var txt = (f.point?'['+f.point+'] ':'') + (f.title?f.title+' — ':'') + (f.detail||'');
+    if (f.quote) txt += '\n▸ '+f.quote;
+    var lines = doc.splitTextToSize(txt, cW-26);
+    var fH = Math.max(10, lines.length*4.6+6);
+    checkPage(fH+3);
     // Badge
-    doc.setFillColor(bgRGB[0], bgRGB[1], bgRGB[2]);
-    doc.roundedRect(margin, y, 22, blockH, 2, 2, 'F');
-    doc.setFontSize(6.5); doc.setTextColor(fgRGB[0], fgRGB[1], fgRGB[2]); doc.setFont('helvetica','bold');
-    doc.text(label, margin+11, y+blockH/2+1, { align:'center' });
-    // Text
-    doc.setFillColor(248,250,252);
-    doc.roundedRect(margin+24, y, contentW-24, blockH, 2, 2, 'F');
-    doc.setFontSize(8.5); doc.setTextColor(30,30,30); doc.setFont('helvetica','normal');
-    doc.text(textLines, margin+27, y+5.5);
-    y += blockH + 4;
+    doc.setFillColor(cfg.bg[0],cfg.bg[1],cfg.bg[2]);
+    doc.roundedRect(mL, y, 18, fH, 1.5, 1.5, 'F');
+    var bl = doc.splitTextToSize(cfg.lbl, 16);
+    doc.setFontSize(5.5); doc.setTextColor(255,255,255); doc.setFont('helvetica','bold');
+    bl.forEach(function(b,i){ doc.text(b, mL+9, y+fH/2-bl.length*1.8+i*3.8+1.5, {align:'center'}); });
+    // Contenido
+    doc.setFillColor(cfg.tbg[0],cfg.tbg[1],cfg.tbg[2]);
+    doc.roundedRect(mL+20, y, cW-20, fH, 1.5, 1.5, 'F');
+    doc.setFontSize(7.8); doc.setTextColor(25,30,40); doc.setFont('helvetica','normal');
+    doc.text(lines, mL+23, y+5);
+    y += fH+3;
   }
 
-  // ── CRITICAL ──
+  /* ══════════════════════════════════════════════════
+     SECCIONES DE HALLAZGOS
+  ══════════════════════════════════════════════════ */
+
+  // Datos del pagaré
+  if (F.datos.length) {
+    checkPage(20);
+    secBanner('📋  Datos del pagaré — Puntos 1 al 8', 30,80,140);
+    F.datos.forEach(drawFinding);
+    y += 4;
+  }
+
+  // Partes y firmas
+  if (F.partes.length) {
+    checkPage(20);
+    secBanner('👤  Partes y firmas — Puntos 3 y 10', 60,50,120);
+    F.partes.forEach(drawFinding);
+    y += 4;
+  }
+
+  // Amortizaciones
+  if (F.amort.length) {
+    checkPage(20);
+    secBanner('📊  Amortizaciones — Puntos 7 y 9', 20,90,80);
+    F.amort.forEach(drawFinding);
+    y += 4;
+  }
+
+  /* ══════════════════════════════════════════════════
+     DICTAMEN FINAL
+  ══════════════════════════════════════════════════ */
+  checkPage(30);
+  doc.setDrawColor(180,195,215); doc.setLineWidth(0.3);
+  doc.line(mL, y, W-mR, y); y += 6;
+
+  secBanner('🏁  Dictamen final', pal.hdr[0],pal.hdr[1],pal.hdr[2]);
+
+  // Urgentes
   if (d.critical && d.critical.length) {
-    doc.setFontSize(9); doc.setTextColor(180,0,0); doc.setFont('helvetica','bold');
-    doc.text('PUNTOS URGENTES', margin, y); y += 5;
-    d.critical.forEach(function(c) { drawFinding('URGENTE', c, [220,38,38], [255,255,255]); });
+    d.critical.forEach(function(c){
+      drawFinding({type:'error', title:'URGENTE', detail:c});
+    });
     y += 2;
   }
-
-  // ── COMMENTS ──
-  if (d.comments && d.comments.length) {
-    if (y > 248) { doc.addPage(); y = 18; }
-    doc.setFontSize(9); doc.setTextColor(140,80,0); doc.setFont('helvetica','bold');
-    doc.text('NOTAS Y OBSERVACIONES', margin, y); y += 5;
-    d.comments.forEach(function(c) { drawFinding('NOTA', c, [245,158,11], [255,255,255]); });
-    y += 2;
-  }
-
-  // ── OK POINTS ──
+  // OK points
   if (d.ok_points && d.ok_points.length) {
-    if (y > 248) { doc.addPage(); y = 18; }
-    doc.setFontSize(9); doc.setTextColor(22,101,52); doc.setFont('helvetica','bold');
-    doc.text('PUNTOS CORRECTOS', margin, y); y += 5;
-    d.ok_points.forEach(function(c) { drawFinding('OK', c, [22,101,52], [255,255,255]); });
+    d.ok_points.forEach(function(c){
+      drawFinding({type:'ok', detail:c});
+    });
     y += 2;
   }
-
-  // ── RECOMMENDATION ──
+  // Comments
+  if (d.comments && d.comments.length) {
+    d.comments.forEach(function(c){
+      drawFinding({type:'comment', detail:c});
+    });
+    y += 2;
+  }
+  // Recomendación
   if (d.recommendation) {
-    if (y > 248) { doc.addPage(); y = 18; }
-    doc.setFontSize(9); doc.setTextColor(13,71,161); doc.setFont('helvetica','bold');
-    doc.text('SIGUIENTE PASO', margin, y); y += 5;
-    drawFinding('SIGUIENTE\nPASO', d.recommendation, [13,71,161], [255,255,255]);
+    checkPage(14);
+    doc.setFillColor(13,71,161); doc.roundedRect(mL,y,cW,10,2,2,'F');
+    doc.setFontSize(8); doc.setTextColor(255,255,255); doc.setFont('helvetica','bold');
+    doc.text('RECOMENDACIÓN', mL+4, y+7);
+    y += 13;
+    var rl = doc.splitTextToSize(d.recommendation, cW-10);
+    var rh = rl.length*5+8;
+    checkPage(rh);
+    doc.setFillColor(235,242,255); doc.roundedRect(mL,y,cW,rh,2,2,'F');
+    doc.setFillColor(13,71,161); doc.roundedRect(mL,y,3,rh,1,1,'F');
+    doc.setFontSize(8.5); doc.setTextColor(20,40,100); doc.setFont('helvetica','normal');
+    doc.text(rl, mL+6, y+6);
+    y += rh+6;
   }
 
-  // ── FOOTER on each page ──
-  var totalPages = doc.internal.getNumberOfPages();
-  for (var p = 1; p <= totalPages; p++) {
+  /* ══════════════════════════════════════════════════
+     FOOTER TODAS LAS PÁGINAS
+  ══════════════════════════════════════════════════ */
+  var nPages = doc.internal.getNumberOfPages();
+  for (var p=1; p<=nPages; p++) {
     doc.setPage(p);
-    doc.setFillColor(240,244,248);
-    doc.rect(0, 270, W, 8, 'F');
-    doc.setFontSize(7); doc.setTextColor(120,140,160); doc.setFont('helvetica','normal');
-    doc.text('Generado por ToolsPK · Proaktiva SAPI de CV, SOFOM, ENR · Documento de uso interno', W/2, 274.5, { align:'center' });
-    doc.text('Página '+p+' de '+totalPages, W-margin, 274.5, { align:'right' });
+    doc.setFillColor(230,235,245); doc.rect(0, H-11, W, 11, 'F');
+    doc.setDrawColor(13,71,161); doc.setLineWidth(0.3);
+    doc.line(0, H-11, W, H-11);
+    doc.setFontSize(6.5); doc.setTextColor(80,100,130); doc.setFont('helvetica','normal');
+    doc.text('Proaktiva SAPI de CV, SOFOM, ENR  ·  Documento confidencial de uso interno  ·  Generado por ToolsPK', mL, H-5.5);
+    doc.text('Página '+p+' / '+nPages, W-mR, H-5.5, {align:'right'});
   }
 
   doc.save('Dictamen_Pagare_'+new Date().toLocaleDateString('es-MX').replace(/\//g,'-')+'.pdf');
 }
-
 } catch(e) { console.error('Pagare script error:', e); }</script>
 
 <!-- Portal navigation -->
