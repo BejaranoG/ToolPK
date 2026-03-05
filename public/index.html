@@ -745,14 +745,22 @@ function badgeText(t) {
   return m[t] || (t||'NOTA').toUpperCase();
 }
 function esc(s) {
-  return String(s)
-    .replace(/→/g, '->')
-    .replace(/←/g, '<-')
-    .replace(/[\u2018\u2019]/g, "'")
-    .replace(/[\u201C\u201D]/g, '"')
-    .replace(/\u2014/g, '--')
-    .replace(/\u2013/g, '-')
-    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  // Normalise Unicode special chars BEFORE HTML-escaping
+  s = String(s)
+    .replace(/[\u2192\u21D2\u27A1\u2794\uFE62]/g, '->') // arrows right
+    .replace(/[\u2190\u21D0\u2B05]/g, '<-')               // arrows left
+    .replace(/[\u2018\u2019\u02BC]/g, "'")                 // smart single quotes
+    .replace(/[\u201C\u201D\u00AB\u00BB]/g, '"')          // smart double quotes
+    .replace(/[\u2014\u2015]/g, '--')                       // em dash
+    .replace(/[\u2013\u2012]/g, '-')                        // en dash
+    .replace(/\u00B7/g, '.')                                 // middle dot
+    .replace(/[\u0000-\u0008\u000B\u000E-\u001F]/g, ''); // control chars
+  // HTML-escape (& must go first)
+  return s
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
 }
 
 // ── EXPORTAR PDF (solo hallazgos, sin dictamen) ───────────────────────────
@@ -1119,7 +1127,7 @@ body { background: var(--bg); color: var(--ink); font-family: "IBM Plex Sans", s
 .fcontent { flex: 1; }
 .ftitle { font-size: 13px; font-weight: 500; margin-bottom: 3px; }
 .fdetail { font-size: 13px; color: var(--ink2); line-height: 1.6; }
-.fquote { font-family: "IBM Plex Mono", "IBM Plex Sans", monospace; font-size: 11px; background: rgba(0,0,0,0.04); padding: 6px 10px; border-radius: 5px; margin-top: 7px; border-left: 3px solid var(--border2); white-space: pre-wrap; word-break: break-word; }
+.fquote { font-family: "IBM Plex Mono", "IBM Plex Sans", monospace; font-size: 11px; background: rgba(0,0,0,0.04); padding: 6px 10px; border-radius: 5px; margin-top: 7px; border-left: 3px solid var(--border2); white-space: normal; word-break: break-word; overflow-wrap: anywhere; }
 
 /* RESUMEN */
 .verdict-row { display: flex; align-items: center; gap: 18px; padding: 18px; background: var(--bg2); border-radius: 10px; margin-bottom: 18px; }
