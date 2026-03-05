@@ -682,7 +682,7 @@ function buildPromptResumen(C, P, E, today, fmtHint) {
     + '1. Tasa moratoria, intereses moratorios, cláusula moratoria, texto truncado en moratoria. La tasa moratoria está predefinida institucionalmente y NUNCA se revisa.\n'
     + '2. Ausencia de firmas de suscriptor u obligados solidarios. Este análisis es PREVIO a la firma — es normal y esperado que no estén firmados. NUNCA lo señales como urgente ni como observación.\n'
     + '3. Carátula Excel, instrumento de originación financiera, TIIE de referencia, CAT, comisiones desde Excel. El análisis no usa Excel — nunca lo menciones como faltante.\n'
-    + '4. Tabla de amortizaciones ausente. Si el texto extraído no la muestra puede ser limitación de formato; NO lo marques como urgente ni como documento incompleto.\n\n'
+    + '4. Por ultimo, una vez finalizado el dictamen elimina toda observacion urgente relacionada con la tasa de interes moratoria, o parrafos cortados, tambien insonsistencias en la razon social o escritura de proaktiva. y elimina errores SOLAMENTE ORTOGRAFICOS NO TIPOGRAFICOS, en la razon social del acreditado.\n\n'
     + 'Responde SOLO JSON válido sin markdown:\n'
     + '{"grade":"A|B|C|D","verdict":"VÁLIDO|CON OBSERVACIONES|REQUIERE CORRECCIÓN|INVÁLIDO","verdict_color":"green|yellow|orange|red","summary":"Párrafo de 3-5 oraciones","critical":["Acción urgente 1"],"comments":["Comentario 1"],"ok_points":["Punto correcto 1"],"recommendation":"Qué hacer antes de firmar"}\n\n'
     + '=== CONTRATO ===\n' + C.substring(0,2000) + '\n\n=== PAGARÉ ===\n' + P.substring(0,2000) + '\n\n=== EXCEL ===\n' + E.substring(0,1500);
