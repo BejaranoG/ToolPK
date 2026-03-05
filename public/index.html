@@ -17,22 +17,24 @@
 
 <style>
 /* ═══════════════════════════════════════════════════
-   PORTAL TOOLSPK — ESTILOS GLOBALES
+   PORTAL TOOLSPK — MODERN LANDING REDESIGN
 ═══════════════════════════════════════════════════ */
 :root {
-  --dark: #0a1520;
-  --dark2: #0f1e2e;
-  --blue: #0e5fa8;
-  --blue2: #1a7dd4;
-  --blue3: #3a9de8;
-  --gold: #c9922a;
+  --dark:    #07111c;
+  --dark2:   #0c1a28;
+  --dark3:   #122540;
+  --blue:    #0e5fa8;
+  --blue2:   #1a7dd4;
+  --blue3:   #3a9de8;
+  --gold:    #c9922a;
+  --gold2:   #dfa83c;
   --surface: #ffffff;
-  --surface2: #f4f7fb;
-  --border: #dce5f0;
-  --ink: #1a2b3c;
-  --muted: #6a85a0;
-  --radius: 16px;
-  --shadow: 0 4px 20px rgba(14,95,168,0.1);
+  --surface2:#f2f6fb;
+  --border:  #d8e4f0;
+  --ink:     #0f1e2e;
+  --muted:   #5a7896;
+  --radius:  18px;
+  --shadow:  0 6px 28px rgba(14,95,168,0.1);
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
 html, body { height: 100%; font-family: "IBM Plex Sans", sans-serif; color: var(--ink); overflow: hidden; }
@@ -40,68 +42,72 @@ html, body { height: 100%; font-family: "IBM Plex Sans", sans-serif; color: var(
 /* ── LAYOUT ── */
 #app { display: flex; height: 100vh; }
 
-/* ── SIDEBAR ── */
+/* ════════════════════════════════
+   SIDEBAR
+════════════════════════════════ */
 .sidebar {
-  width: 240px; min-width: 240px;
+  width: 248px; min-width: 248px;
   background: var(--dark);
   display: flex; flex-direction: column;
   height: 100vh; overflow-y: auto;
+  border-right: 1px solid rgba(255,255,255,0.04);
+  position: relative;
 }
+/* subtle dot-grid texture */
+.sidebar::before {
+  content: '';
+  position: absolute; inset: 0; pointer-events: none; z-index: 0;
+  background-image: radial-gradient(circle, rgba(58,157,232,0.05) 1px, transparent 1px);
+  background-size: 22px 22px;
+}
+.sidebar > * { position: relative; z-index: 1; }
+
 .sidebar-logo {
-  padding: 20px 12px 16px;
-  border-bottom: 1px solid rgba(255,255,255,0.08);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-.sidebar-logo-name {
-  font-family: "Playfair Display", serif;
-  font-size: 20px; color: white;
-  display: flex; align-items: center; gap: 10px;
-}
-.sidebar-logo-mark {
-  width: 32px; height: 32px;
-  background: linear-gradient(135deg, var(--blue), var(--blue3));
-  border-radius: 8px;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 15px; color: white; font-weight: 700;
-  font-family: "Playfair Display", serif;
-  flex-shrink: 0;
-}
-.sidebar-logo-sub {
-  font-size: 10px; color: rgba(255,255,255,0.3);
-  letter-spacing: 1.5px; text-transform: uppercase; margin-top: 3px;
+  padding: 22px 16px 18px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  display: flex; justify-content: center; align-items: center;
 }
 .sidebar-section {
-  padding: 18px 16px 6px;
-  font-size: 10px; letter-spacing: 2px; text-transform: uppercase;
-  color: rgba(255,255,255,0.25); font-weight: 500;
+  padding: 20px 18px 6px;
+  font-size: 9.5px; letter-spacing: 2.5px; text-transform: uppercase;
+  color: rgba(255,255,255,0.2); font-weight: 600;
 }
 .nav-item {
-  display: flex; align-items: center; gap: 11px;
-  padding: 10px 14px; margin: 2px 8px;
-  border-radius: 10px; cursor: pointer;
-  transition: all 0.15s; color: rgba(255,255,255,0.5);
-  font-size: 13px; border: 1px solid transparent;
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px 12px; margin: 2px 10px;
+  border-radius: 11px; cursor: pointer;
+  transition: all 0.18s ease;
+  color: rgba(255,255,255,0.45);
+  font-size: 13px; font-weight: 400;
+  border: 1px solid transparent;
 }
-.nav-item:hover { background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.85); }
-.nav-item.active { background: rgba(14,95,168,0.25); border-color: rgba(14,95,168,0.4); color: white; }
+.nav-item:hover {
+  background: rgba(255,255,255,0.07);
+  color: rgba(255,255,255,0.9);
+}
+.nav-item.active {
+  background: linear-gradient(135deg, rgba(14,95,168,0.38), rgba(26,125,212,0.2));
+  border-color: rgba(58,157,232,0.28);
+  color: white;
+  box-shadow: 0 2px 14px rgba(14,95,168,0.22);
+}
 .nav-icon {
-  width: 30px; height: 30px; border-radius: 7px;
+  width: 32px; height: 32px; border-radius: 9px;
   display: flex; align-items: center; justify-content: center;
-  font-size: 15px; background: rgba(255,255,255,0.07); flex-shrink: 0;
+  font-size: 15px; background: rgba(255,255,255,0.06);
+  flex-shrink: 0; transition: background 0.18s;
 }
-.nav-item.active .nav-icon { background: rgba(14,95,168,0.4); }
+.nav-item.active .nav-icon { background: rgba(14,95,168,0.5); }
 .nav-badge {
-  font-size: 10px; padding: 2px 6px; border-radius: 10px;
-  background: rgba(14,95,168,0.3); color: var(--blue3); font-weight: 600;
-  margin-left: auto;
+  font-size: 9px; padding: 2px 7px; border-radius: 20px;
+  background: rgba(58,157,232,0.18); color: var(--blue3);
+  font-weight: 700; margin-left: auto; letter-spacing: 0.5px;
 }
 .sidebar-spacer { flex: 1; }
 .sidebar-footer {
-  padding: 14px 16px;
-  border-top: 1px solid rgba(255,255,255,0.08);
-  font-size: 10px; color: rgba(255,255,255,0.2);
+  padding: 14px 18px;
+  border-top: 1px solid rgba(255,255,255,0.06);
+  font-size: 10px; color: rgba(255,255,255,0.18);
   letter-spacing: 0.5px;
 }
 
@@ -111,43 +117,195 @@ html, body { height: 100%; font-family: "IBM Plex Sans", sans-serif; color: var(
 .panel.active { display: flex; }
 .panel-scroll { flex: 1; overflow-y: auto; }
 
-/* ── HOME ── */
-.home-header {
-  background: linear-gradient(105deg, var(--dark) 0%, #0e3a6a 60%, #1a5fa8 100%);
-  padding: 44px 44px 52px; position: relative; overflow: hidden;
+/* ════════════════════════════════
+   HOME — Landing layout
+════════════════════════════════ */
+#panel-home .panel-scroll { background: #edf2f9; }
+
+/* ── HERO ── */
+.home-hero {
+  background: var(--dark);
+  position: relative; overflow: hidden;
+  min-height: 270px; display: flex; align-items: stretch;
 }
-.home-header::after {
-  content: ''; position: absolute; right: -60px; top: -60px;
-  width: 280px; height: 280px; border-radius: 50%;
-  background: radial-gradient(circle, rgba(14,95,168,0.3) 0%, transparent 70%);
+.home-hero::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(125deg, #07111c 0%, #0b2240 48%, #0d4880 100%);
 }
-.home-header-content { position: relative; z-index: 1; }
-.home-greeting { font-size: 11px; color: rgba(255,255,255,0.45); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 10px; }
-.home-title { font-family: "Playfair Display", serif; font-size: 32px; color: white; font-weight: 400; line-height: 1.2; margin-bottom: 8px; }
-.home-sub { font-size: 13px; color: rgba(255,255,255,0.45); }
-.tools-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 22px; padding: 36px 44px; }
+/* glowing orb */
+.home-hero::after {
+  content: '';
+  position: absolute; right: -100px; top: -100px;
+  width: 460px; height: 460px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(58,157,232,0.15) 0%, rgba(14,95,168,0.06) 45%, transparent 70%);
+  animation: heroGlow 7s ease-in-out infinite alternate;
+}
+/* second decorative orb bottom-left */
+.home-hero-inner::before {
+  content: '';
+  position: absolute; left: -80px; bottom: -80px;
+  width: 300px; height: 300px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(201,146,42,0.08) 0%, transparent 65%);
+  pointer-events: none;
+}
+@keyframes heroGlow {
+  from { transform: scale(1) translate(0,0); opacity: .7; }
+  to   { transform: scale(1.2) translate(-18px, 22px); opacity: 1; }
+}
+.home-hero-inner {
+  position: relative; z-index: 2;
+  display: flex; align-items: center;
+  padding: 52px 56px;
+  width: 100%; gap: 44px;
+}
+.home-hero-text { flex: 1; }
+
+.home-eyebrow {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-size: 10px; letter-spacing: 2.5px; text-transform: uppercase;
+  color: var(--blue3); font-weight: 600; margin-bottom: 16px;
+}
+.home-eyebrow-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--blue3);
+  animation: blink 2.4s ease-in-out infinite;
+}
+@keyframes blink {
+  0%,100% { opacity: 1; transform: scale(1); }
+  50%      { opacity: .3; transform: scale(.65); }
+}
+.home-title {
+  font-family: "Playfair Display", serif;
+  font-size: 38px; color: white; font-weight: 400;
+  line-height: 1.17; margin-bottom: 14px; letter-spacing: -.4px;
+}
+.home-title span {
+  background: linear-gradient(90deg, var(--blue3) 0%, var(--gold2) 100%);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.home-sub {
+  font-size: 13.5px; color: rgba(255,255,255,0.4);
+  line-height: 1.75; max-width: 390px;
+}
+
+/* hero stat pills */
+.home-hero-stats {
+  display: flex; flex-direction: column; gap: 12px; flex-shrink: 0;
+}
+.hero-stat {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 14px; padding: 16px 22px;
+  text-align: center; min-width: 112px;
+  backdrop-filter: blur(10px);
+  transition: all 0.22s ease;
+  cursor: default;
+}
+.hero-stat:hover {
+  background: rgba(14,95,168,0.28);
+  border-color: rgba(58,157,232,0.38);
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(14,95,168,0.2);
+}
+.hero-stat-num {
+  font-family: "Playfair Display", serif;
+  font-size: 27px; color: white; font-weight: 600; line-height: 1;
+}
+.hero-stat-lbl {
+  font-size: 9.5px; color: rgba(255,255,255,0.3);
+  text-transform: uppercase; letter-spacing: 1.5px; margin-top: 5px;
+}
+
+/* ── Section header ── */
+.section-header {
+  display: flex; align-items: center; gap: 14px;
+  padding: 34px 56px 20px;
+}
+.section-title {
+  font-family: "Playfair Display", serif;
+  font-size: 18px; color: var(--ink); font-weight: 500;
+  white-space: nowrap;
+}
+.section-line {
+  flex: 1; height: 1px;
+  background: linear-gradient(90deg, var(--border), transparent);
+}
+
+/* ── TOOLS GRID ── */
+.tools-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 22px; padding: 0 56px 52px;
+}
 .tool-card {
   background: white; border: 1px solid var(--border);
-  border-radius: var(--radius); padding: 28px;
-  cursor: pointer; transition: all 0.2s; box-shadow: var(--shadow);
+  border-radius: var(--radius); padding: 30px;
+  cursor: pointer;
+  transition: all 0.22s cubic-bezier(.25,.8,.25,1);
+  box-shadow: 0 2px 14px rgba(14,95,168,0.06);
   position: relative; overflow: hidden;
 }
+/* top accent bar */
 .tool-card::before {
-  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
-  background: linear-gradient(90deg, var(--blue), var(--blue3)); opacity: 0; transition: opacity 0.2s;
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0; height: 3px;
+  background: linear-gradient(90deg, var(--blue), var(--blue3));
+  opacity: 0; transition: opacity 0.22s;
 }
-.tool-card:hover { transform: translateY(-3px); box-shadow: 0 12px 40px rgba(14,95,168,0.15); border-color: var(--blue3); }
+/* inner radial glow */
+.tool-card::after {
+  content: '';
+  position: absolute; inset: 0; border-radius: var(--radius);
+  background: radial-gradient(circle at 65% 0%, rgba(58,157,232,0.07), transparent 58%);
+  opacity: 0; transition: opacity 0.22s;
+}
+.tool-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 18px 52px rgba(14,95,168,0.15);
+  border-color: rgba(58,157,232,0.38);
+}
 .tool-card:hover::before { opacity: 1; }
-.tool-card-icon { width: 52px; height: 52px; border-radius: 13px; display: flex; align-items: center; justify-content: center; font-size: 24px; margin-bottom: 18px; }
-.tool-card-icon.blue { background: linear-gradient(135deg, #e8f2fc, #d0e8f8); }
-.tool-card-icon.gold { background: linear-gradient(135deg, #fef5e7, #fde9c0); }
-.tool-card-name { font-family: "Playfair Display", serif; font-size: 18px; color: var(--ink); margin-bottom: 8px; }
-.tool-card-desc { font-size: 13px; color: var(--muted); line-height: 1.7; margin-bottom: 18px; }
-.tool-card-tag { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 600; padding: 4px 10px; border-radius: 20px; }
-.tool-card-tag.ai { background: #e8f2fc; color: var(--blue); }
-.tool-card-tag.calc { background: #fef5e7; color: var(--gold); }
-.tool-card-arrow { position: absolute; bottom: 22px; right: 22px; width: 30px; height: 30px; border-radius: 50%; background: var(--surface2); display: flex; align-items: center; justify-content: center; font-size: 13px; color: var(--muted); transition: all 0.2s; }
-.tool-card:hover .tool-card-arrow { background: var(--blue); color: white; }
+.tool-card:hover::after  { opacity: 1; }
+
+.tool-card-icon {
+  width: 56px; height: 56px; border-radius: 14px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 26px; margin-bottom: 20px;
+  transition: transform 0.22s;
+}
+.tool-card:hover .tool-card-icon { transform: scale(1.1) rotate(-3deg); }
+.tool-card-icon.blue { background: linear-gradient(135deg, #ddeefb, #c2e0f8); }
+.tool-card-icon.gold { background: linear-gradient(135deg, #fdefd8, #f8dea8); }
+
+.tool-card-name {
+  font-family: "Playfair Display", serif;
+  font-size: 18px; color: var(--ink); margin-bottom: 9px;
+}
+.tool-card-desc {
+  font-size: 13px; color: var(--muted); line-height: 1.75; margin-bottom: 22px;
+}
+.tool-card-footer {
+  display: flex; align-items: center; justify-content: space-between;
+}
+.tool-card-tag {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: 11px; font-weight: 600; padding: 4px 11px; border-radius: 20px;
+}
+.tool-card-tag.ai   { background: #ddeefb; color: var(--blue); }
+.tool-card-tag.calc { background: #fdefd8; color: var(--gold); }
+.tool-card-tag.tiie { background: #d5f0e8; color: #0a8a5e; }
+
+.tool-card-arrow {
+  width: 34px; height: 34px; border-radius: 50%;
+  background: var(--surface2);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 15px; color: var(--muted); transition: all 0.22s;
+}
+.tool-card:hover .tool-card-arrow {
+  background: var(--blue); color: white; transform: translateX(4px);
+}
 
 /* ── TOOL HEADER BAR ── */
 .tool-header {
@@ -157,22 +315,18 @@ html, body { height: 100%; font-family: "IBM Plex Sans", sans-serif; color: var(
 }
 .back-btn {
   display: flex; align-items: center; gap: 5px;
-  padding: 6px 13px; border: 1px solid var(--border);
-  border-radius: 8px; background: none; cursor: pointer;
+  padding: 6px 14px; border: 1px solid var(--border);
+  border-radius: 9px; background: none; cursor: pointer;
   font-size: 12px; color: var(--muted);
   font-family: "IBM Plex Sans", sans-serif; transition: all 0.15s;
 }
 .back-btn:hover { background: var(--surface2); color: var(--ink); }
 .tool-header-title { font-family: "Playfair Display", serif; font-size: 17px; color: var(--ink); }
 
-/* ── PAGARE TOOL WRAPPER ── */
+/* ── TOOL WRAPPERS ── */
 #panel-pagare .panel-scroll { background: #eef3f8; }
-
-/* ── AMORT TOOL WRAPPER ── */
-#panel-amort .panel-scroll { background: #f0f4f8; }
-
-/* ── AFORO TOOL WRAPPER ── */
-#panel-aforo .panel-scroll { background: #f5f2ed; }
+#panel-amort  .panel-scroll { background: #f0f4f8; }
+#panel-aforo  .panel-scroll { background: #f5f2ed; }
 </style>
 </head>
 <body>
@@ -215,34 +369,77 @@ html, body { height: 100%; font-family: "IBM Plex Sans", sans-serif; color: var(
     <!-- HOME -->
     <div class="panel active" id="panel-home">
       <div class="panel-scroll">
-        <div class="home-header">
-          <div class="home-header-content">
-            <div class="home-greeting">Proaktiva SAPI de CV, SOFOM, ENR</div>
-            <div class="home-title">Portal de Herramientas<br>Internas</div>
-            <div class="home-sub">Selecciona una herramienta para comenzar.</div>
+
+        <!-- HERO -->
+        <div class="home-hero">
+          <div class="home-hero-inner">
+            <div class="home-hero-text">
+              <div class="home-eyebrow">
+                <span class="home-eyebrow-dot"></span>
+                Proaktiva SAPI de CV, SOFOM, ENR
+              </div>
+              <div class="home-title">
+                Portal de<br><span>Herramientas Internas</span>
+              </div>
+              <div class="home-sub">
+                Accede a las herramientas operativas de Proaktiva. Análisis con IA, cálculos financieros y validaciones en un solo lugar.
+              </div>
+            </div>
+            <div class="home-hero-stats">
+              <div class="hero-stat">
+                <div class="hero-stat-num">3</div>
+                <div class="hero-stat-lbl">Herramientas</div>
+              </div>
+              <div class="hero-stat">
+                <div class="hero-stat-num">IA</div>
+                <div class="hero-stat-lbl">Análisis</div>
+              </div>
+              <div class="hero-stat">
+                <div class="hero-stat-num">v1</div>
+                <div class="hero-stat-lbl">Versión</div>
+              </div>
+            </div>
           </div>
         </div>
+
+        <!-- TOOLS SECTION -->
+        <div class="section-header">
+          <div class="section-title">Herramientas disponibles</div>
+          <div class="section-line"></div>
+        </div>
+
         <div class="tools-grid">
+
           <div class="tool-card" onclick="showPanel('pagare')">
             <div class="tool-card-icon blue">📋</div>
             <div class="tool-card-name">Revisión de Pagarés</div>
             <div class="tool-card-desc">Analiza pagarés contra contratos y carátulas Excel con IA. Detecta errores en 10 puntos clave de validación.</div>
-            <div class="tool-card-tag ai">✦ Powered by IA</div>
-            <div class="tool-card-arrow">→</div>
+            <div class="tool-card-footer">
+              <div class="tool-card-tag ai">✦ Powered by IA</div>
+              <div class="tool-card-arrow">→</div>
+            </div>
           </div>
+
           <div class="tool-card" onclick="showPanel('aforo')">
             <div class="tool-card-icon gold">🏠</div>
             <div class="tool-card-name">Aforo de Garantía</div>
             <div class="tool-card-desc">Calcula el aforo requerido para una garantía hipotecaria según las políticas de Proaktiva. Resultado en tiempo real.</div>
-            <div class="tool-card-tag calc">⚡ Cálculo instantáneo</div>
-            <div class="tool-card-arrow">→</div>
+            <div class="tool-card-footer">
+              <div class="tool-card-tag calc">⚡ Cálculo instantáneo</div>
+              <div class="tool-card-arrow">→</div>
+            </div>
+          </div>
+
           <div class="tool-card" onclick="showPanel('amort')">
-            <div class="tool-card-icon blue" style="background:linear-gradient(135deg,#e8f6fc,#d0eef8)">📊</div>
+            <div class="tool-card-icon blue" style="background:linear-gradient(135deg,#d2edfb,#b8e2f8)">📊</div>
             <div class="tool-card-name">Tabla de Amortización</div>
             <div class="tool-card-desc">Genera tablas de amortización con TIIE actualizada automáticamente. Exporta a PDF y Excel.</div>
-            <div class="tool-card-tag ai" style="background:#e8f6fc;color:#0e7fa8">⚡ TIIE en tiempo real</div>
-            <div class="tool-card-arrow">→</div>
+            <div class="tool-card-footer">
+              <div class="tool-card-tag tiie">⚡ TIIE en tiempo real</div>
+              <div class="tool-card-arrow">→</div>
+            </div>
           </div>
+
         </div>
       </div>
     </div>
