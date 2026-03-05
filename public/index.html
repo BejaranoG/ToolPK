@@ -650,13 +650,14 @@ function buildPromptAmort(C, P, fmtHint) {
     + '- Si todas las amortizaciones vencen antes o en la misma fecha que el contrato: type "ok".\n'
     + '- Este punto se evalúa de forma INDEPENDIENTE al punto 9B.\n\n'
     + 'PUNTO 9B — Período de disposición del pagaré vs plazo máximo por disposición del contrato:\n'
-    + '- Extrae del CONTRATO el plazo máximo de disposición POR PAGARÉ INDIVIDUAL (ej: "vencimiento máximo de hasta 180 días", "plazo máximo de disposición de 90 días"). Este plazo aplica desde la fecha de suscripción de CADA pagaré hasta su último vencimiento — NO es la duración total del contrato marco.\n'
-    + '- Extrae la fecha de suscripción del pagaré y la fecha del ÚLTIMO PAGO de la tabla de amortizaciones.\n'
-    + '- Calcula los días entre ambas fechas.\n'
-    + '- Si los días calculados EXCEDEN el plazo máximo por disposición: type "error", indicando: días reales entre suscripción y último vencimiento, plazo máximo permitido, y cuántos días excede. NO busques justificaciones alternativas — si excede, es error.\n'
-    + '- Si NO excede: type "ok" indicando días reales y plazo permitido.\n'
-    + '- Si el contrato no establece plazo máximo de disposición por pagaré: type "comment" indicando que no se encontró ese límite.\n'
-    + '- Este punto se evalúa de forma INDEPENDIENTE al punto 9A.\n\n'
+    + '- Extrae del CONTRATO el plazo máximo de disposición POR PAGARÉ INDIVIDUAL (ej: "vencimiento máximo de hasta 180 días"). Este plazo aplica a cada pagaré desde su fecha de suscripción hasta la fecha de su ÚLTIMO PAGO — NO es la duración del contrato marco.\n'
+    + '- Extrae: (1) fecha de suscripción del pagaré, (2) fecha del ÚLTIMO PAGO en la tabla de amortizaciones.\n'
+    + '- Calcula los días calendario exactos entre esas dos fechas.\n'
+    + '- REGLA ABSOLUTA: Si días calculados > plazo máximo → type DEBE ser "error". OBLIGATORIO. No importa si el vencimiento coincide con la fecha del contrato marco, no importa ninguna otra condición. Si los días exceden el plazo máximo por pagaré → ERROR sin excepción.\n'
+    + '- Detalla: días reales calculados, plazo máximo permitido, días de exceso (días reales − plazo máximo).\n'
+    + '- Si días calculados ≤ plazo máximo → type "ok" indicando días reales y plazo permitido.\n'
+    + '- Si el contrato no establece plazo máximo de disposición por pagaré → type "comment".\n'
+    + '- Este punto es INDEPENDIENTE del 9A.\n\n'
     + 'PUNTO 9C — Disposición parcial:\n'
     + '- Si el monto del pagaré es menor al monto total del contrato: type "comment" indicando monto del pagaré, monto del contrato, porcentaje utilizado y saldo disponible.\n'
     + '- Si el monto del pagaré es igual al total del contrato: omite este punto.\n\n'
@@ -840,7 +841,7 @@ async function generateDictamenPDF() {
     doc.setFillColor(8,28,80);
     doc.rect(0,0,W,9,'F');
     doc.setFontSize(7); doc.setTextColor(170,195,230); doc.setFont('helvetica','bold');
-    doc.text('PROAKTIVA SAPI DE CV, SOFOM, ENR  —  DICTAMEN DE REVISIÓN DE PAGARÉ', mL, 6.3);
+    doc.text('PROAKTIVA SAPI DE CV, SOFOM, ENR  -  DICTAMEN DE REVISION DE PAGARE', mL, 6.3);
     doc.text(fechaHoy, W-mR, 6.3, {align:'right'});
     return 14;
   }
@@ -875,7 +876,7 @@ async function generateDictamenPDF() {
     var titleTxt  = f.title  ? f.title  : '';
     var pointTxt  = f.point  ? '['+f.point+']  ' : '';
     var detailTxt = f.detail ? f.detail : '';
-    var quoteTxt  = f.quote  ? '▸  '+f.quote : '';
+    var quoteTxt  = f.quote  ? '> '+f.quote : '';
 
     var titleLines  = doc.splitTextToSize(pointTxt + titleTxt,  cW-28);
     var detailLines = doc.splitTextToSize(detailTxt, cW-28);
@@ -941,20 +942,20 @@ async function generateDictamenPDF() {
   doc.setFontSize(9); doc.setTextColor(195,215,245); doc.setFont('helvetica','bold');
   doc.text('PROAKTIVA SAPI de CV, SOFOM, ENR', W-mR, 11, {align:'right'});
   doc.setFontSize(7); doc.setFont('helvetica','normal'); doc.setTextColor(130,160,205);
-  doc.text('Le damos crédito a tu negocio', W-mR, 17, {align:'right'});
+  doc.text('Le damos credito a tu negocio', W-mR, 17, {align:'right'});
 
   // Franja título
   doc.setFillColor(13,71,161);
   doc.rect(0,26,W,11,'F');
   doc.setFontSize(10.5); doc.setTextColor(255,255,255); doc.setFont('helvetica','bold');
-  doc.text('DICTAMEN DE REVISIÓN DE PAGARÉ', W/2, 33, {align:'center'});
+  doc.text('DICTAMEN DE REVISION DE PAGARE', W/2, 33, {align:'center'});
 
   // Metadatos
   doc.setFillColor(228,235,252);
   doc.rect(0,37,W,8,'F');
   doc.setFontSize(7.5); doc.setTextColor(35,55,115); doc.setFont('helvetica','normal');
-  doc.text('Fecha de emisión: '+fechaHoy, mL, 42.5);
-  doc.text('Análisis automatizado — ToolsPK / Proaktiva', W-mR, 42.5, {align:'right'});
+  doc.text('Fecha de emision: '+fechaHoy, mL, 42.5);
+  doc.text('Analisis automatizado - ToolsPK / Proaktiva', W-mR, 42.5, {align:'right'});
 
   y = 51;
 
@@ -968,7 +969,7 @@ async function generateDictamenPDF() {
   doc.setFontSize(13); doc.setTextColor(255,255,255); doc.setFont('helvetica','bold');
   doc.text(d.verdict||'', mL+30, y+10);
   doc.setFontSize(7.5); doc.setFont('helvetica','normal'); doc.setTextColor(215,228,252);
-  doc.text('Revisión automatizada · Proaktiva ToolsPK', mL+30, y+17);
+  doc.text('Revision automatizada - Proaktiva ToolsPK', mL+30, y+17);
   y += 27;
 
   // ── Resumen ejecutivo ──
@@ -1017,8 +1018,8 @@ async function generateDictamenPDF() {
   doc.setFontSize(6.5); doc.setTextColor(70,90,130); doc.setFont('helvetica','bold');
   doc.text('DOCUMENTOS ANALIZADOS', mL+4, y+5);
   doc.setFont('helvetica','normal'); doc.setTextColor(35,50,80);
-  doc.text('📑  Contrato: '+cNom, mL+4, y+10.5);
-  doc.text('📄  Pagaré: '+pNom, mL+4+cW/2, y+10.5);
+  doc.text('Contrato: '+cNom, mL+4, y+10.5);
+  doc.text('Pagare: '+pNom, mL+4+cW/2, y+10.5);
   y += 19;
 
   /* ════════════════════════════════════════════════
@@ -1027,7 +1028,7 @@ async function generateDictamenPDF() {
   checkPage(16);
   doc.setDrawColor(pal.hdr[0],pal.hdr[1],pal.hdr[2]); doc.setLineWidth(0.4);
   doc.line(mL, y, W-mR, y); y += 5;
-  sectionBanner('🏁  DICTAMEN FINAL', pal.hdr[0],pal.hdr[1],pal.hdr[2]);
+  sectionBanner('DICTAMEN FINAL', pal.hdr[0],pal.hdr[1],pal.hdr[2]);
 
   if (d.critical && d.critical.length) {
     d.critical.forEach(function(c){ drawFinding({type:'error',  title:'URGENTE', detail:c}); });
@@ -1045,7 +1046,7 @@ async function generateDictamenPDF() {
     checkPage(20);
     doc.setFillColor(13,71,161); doc.roundedRect(mL,y,cW,8,2,2,'F');
     doc.setFontSize(7.5); doc.setTextColor(255,255,255); doc.setFont('helvetica','bold');
-    doc.text('RECOMENDACIÓN Y SIGUIENTE PASO', mL+4, y+5.5);
+    doc.text('RECOMENDACION Y SIGUIENTE PASO', mL+4, y+5.5);
     y += 11;
     var rl = doc.splitTextToSize(d.recommendation, cW-10);
     var rh = rl.length*5+8;
@@ -1063,19 +1064,19 @@ async function generateDictamenPDF() {
   if (F.datos && F.datos.length) {
     checkPage(18);
     y += 4;
-    sectionBanner('📋  DATOS DEL PAGARÉ  —  Puntos 1, 2, 4, 5, 6, 8', 35,75,140);
+    sectionBanner('DATOS DEL PAGARE  -  Puntos 1, 2, 4, 5, 6, 8', 35,75,140);
     F.datos.forEach(drawFinding);
   }
   if (F.partes && F.partes.length) {
     checkPage(18);
     y += 4;
-    sectionBanner('👤  PARTES Y FIRMAS  —  Puntos 3 y 10', 65,50,125);
+    sectionBanner('PARTES Y FIRMAS  -  Puntos 3 y 10', 65,50,125);
     F.partes.forEach(drawFinding);
   }
   if (F.amort && F.amort.length) {
     checkPage(18);
     y += 4;
-    sectionBanner('📊  AMORTIZACIONES Y PLAZOS  —  Puntos 7, 9A, 9B, 9C', 20,95,85);
+    sectionBanner('AMORTIZACIONES Y PLAZOS  -  Puntos 7, 9A, 9B, 9C', 20,95,85);
     F.amort.forEach(drawFinding);
   }
 
@@ -1089,8 +1090,8 @@ async function generateDictamenPDF() {
     doc.setDrawColor(13,71,161); doc.setLineWidth(0.25);
     doc.line(0, H-11, W, H-11);
     doc.setFontSize(6.2); doc.setTextColor(75,95,130); doc.setFont('helvetica','normal');
-    doc.text('Proaktiva SAPI de CV, SOFOM, ENR  ·  Documento confidencial de uso interno  ·  Generado por ToolsPK', mL, H-5.5);
-    doc.text('Página '+p+' / '+nPages, W-mR, H-5.5, {align:'right'});
+    doc.text('Proaktiva SAPI de CV, SOFOM, ENR  |  Documento confidencial  |  Generado por ToolsPK', mL, H-5.5);
+    doc.text('Pagina '+p+' / '+nPages, W-mR, H-5.5, {align:'right'});
   }
 
   doc.save('Dictamen_Pagare_'+new Date().toLocaleDateString('es-MX').replace(/\//g,'-')+'.pdf');
