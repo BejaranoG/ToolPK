@@ -483,7 +483,7 @@ function setTab(name, el) {
 
 // ── PROGRESS ───────────────────────────────────────────────────────────────
 function setProgress(pct, label) {
-  document.getElementById('progress-fill').style.width = pct + '%';
+  if (pct >= 0) document.getElementById('progress-fill').style.width = pct + '%';
   document.getElementById('progress-label').textContent = label;
 }
 
@@ -510,17 +510,17 @@ async function startAnalysis() {
     setProgress(15, 'Analizando datos del pagaré (Puntos 1 al 5)...');
     var rDatos = await callAI(buildPromptDatos(C, P, today, fmtHint));
     renderFindings('body-datos', rDatos.findings);
-    await sleep(3000);
+    await sleep(5000);
 
     setProgress(45, 'Revisando partes: suscriptor y avales (Puntos 6 y 7)...');
     var rPartes = await callAI(buildPromptPartes(C, P, fmtHint));
     renderFindings('body-partes', rPartes.findings);
-    await sleep(3000);
+    await sleep(5000);
 
     setProgress(70, 'Cotejando tabla, vencimientos y plazos de disposición (Puntos 8, 9 y 10)...');
     var rAmort = await callAI(buildPromptAmort(C, P, fmtHint));
     renderFindings('body-amort', rAmort.findings);
-    await sleep(3000);
+    await sleep(5000);
 
     setProgress(90, 'Generando dictamen final...');
     var rRes = await callAI(buildPromptResumen(C, P, E, today, fmtHint));
@@ -670,22 +670,42 @@ function buildPromptResumen(C, P, E, today, fmtHint) {
 async function callAI(prompt) {
   var endpoint = '/api/analyze';
   var headers = { 'Content-Type': 'application/json' };
+  var maxRetries = 4;
+  var delayMs = 8000;
 
-  var resp = await fetch(endpoint, {
-    method: 'POST',
-    headers: headers,
-    body: JSON.stringify({
-      model: 'claude-sonnet-4-6',
-      max_tokens: 4000,
-      messages: [{ role: 'user', content: prompt }]
-    })
-  });
+  for (var attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      var resp = await fetch(endpoint, {
+        method: 'POST',
+        headers: headers,
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-6',
+          max_tokens: 4000,
+          messages: [{ role: 'user', content: prompt }]
+        })
+      });
 
-  var data = await resp.json();
-  if (!resp.ok) throw new Error(data.error ? data.error.message : 'Error API');
+      if (resp.status === 429 || resp.status === 529) {
+        if (attempt < maxRetries) {
+          var wait = delayMs * attempt;
+          setProgress(-1, 'Límite de solicitudes alcanzado — reintentando en ' + Math.round(wait/1000) + 's (intento ' + attempt + '/' + maxRetries + ')...');
+          await sleep(wait);
+          continue;
+        }
+        throw new Error('Límite de solicitudes del API alcanzado. Espera un momento y vuelve a intentar.');
+      }
 
-  var raw = data.content ? data.content.map(function(c){ return c.text || ''; }).join('') : '{}';
-  return parseJSON(raw);
+      var data = await resp.json();
+      if (!resp.ok) throw new Error(data.error ? data.error.message : 'Error API ' + resp.status);
+
+      var raw = data.content ? data.content.map(function(c){ return c.text || ''; }).join('') : '{}';
+      return parseJSON(raw);
+
+    } catch(e) {
+      if (attempt === maxRetries || (e.message && e.message.indexOf('Límite') === 0)) throw e;
+      await sleep(delayMs * attempt);
+    }
+  }
 }
 
 function parseJSON(raw) {
