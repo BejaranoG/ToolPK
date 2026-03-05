@@ -282,24 +282,6 @@ html, body { height: 100%; font-family: "IBM Plex Sans", sans-serif; color: var(
       <div class="file-name" id="fn-pagare"></div>
       <div class="remove-btn" id="rm-pagare" onclick="removeFile('pagare',event)">✕ Quitar</div>
     </div>
-    <!-- Carátula Excel (opcional) -->
-    <div class="upload-card" id="card-excel" style="position:relative">
-      <input type="file" id="inp-excel" accept=".xlsx,.xls" onchange="handleFile('excel',this)" style="display:none">
-      <span class="icon">📊</span>
-      <h3>Carátula Excel <span style="font-size:11px;font-weight:500;color:var(--muted)">(opcional)</span></h3>
-      <p>Adjunta si cuentas con la carátula. El análisis funciona sin ella.</p>
-      <span class="fmt" id="fmt-excel">XLSX / XLS</span>
-      <div class="file-name" id="fn-excel"></div>
-      <div style="display:flex;gap:8px;margin-top:8px;justify-content:center;flex-wrap:wrap">
-        <label for="inp-excel" id="lbl-attach-excel" style="display:inline-flex;align-items:center;gap:5px;padding:6px 14px;background:var(--primary);color:white;border-radius:7px;font-size:12px;font-weight:600;cursor:pointer">
-          📎 Adjuntar Excel
-        </label>
-        <button id="btn-skip-excel" onclick="toggleSkipExcel()" style="padding:6px 14px;background:#f0f4f8;border:1.5px solid #b0c4d8;color:#4a6a8a;border-radius:7px;font-size:12px;font-weight:600;cursor:pointer">
-          ✗ Omitir
-        </button>
-      </div>
-      <div class="remove-btn" id="rm-excel" onclick="removeFile('excel',event)" style="display:none">✕ Quitar</div>
-    </div>
   </div>
 
   <div class="analyze-wrap">
@@ -413,15 +395,7 @@ async function handleFile(type, input) {
     card.classList.add('loaded');
     fn.textContent = file.name;
     document.getElementById('fmt-' + type).textContent = '✓ Cargado';
-    if (type === 'excel') {
-      var rmBtn = document.getElementById('rm-excel');
-      var lblA  = document.getElementById('lbl-attach-excel');
-      var btnS  = document.getElementById('btn-skip-excel');
-      if (rmBtn) rmBtn.style.display = 'inline-flex';
-      if (lblA)  lblA.style.display  = 'none';
-      if (btnS)  btnS.style.display  = 'none';
-      excelSkipped = false;
-    }
+
   } catch(e) {
     fn.textContent = '⚠️ Error: ' + e.message;
   }
@@ -489,15 +463,7 @@ function removeFile(type, e) {
   document.getElementById('inp-' + type).value = '';
   var fmtMap = { contrato:'PDF o DOCX', pagare:'DOCX', excel:'XLSX / XLS' };
   document.getElementById('fmt-' + type).textContent = fmtMap[type];
-  if (type === 'excel') {
-    var rmBtn = document.getElementById('rm-excel');
-    var lblA  = document.getElementById('lbl-attach-excel');
-    var btnS  = document.getElementById('btn-skip-excel');
-    if (rmBtn) rmBtn.style.display = 'none';
-    if (lblA)  { lblA.style.display = 'inline-flex'; lblA.style.opacity = '1'; }
-    if (btnS)  { btnS.style.display = 'inline-flex'; btnS.textContent = '✗ Omitir'; btnS.style.background='#f0f4f8'; btnS.style.color='#4a6a8a'; btnS.style.borderColor='#b0c4d8'; }
-    excelSkipped = false;
-  }
+
   checkReady();
 }
 
@@ -505,35 +471,6 @@ function checkReady() {
   document.getElementById('btn-analyze').disabled = !(docs.contrato && docs.pagare);
 }
 
-var excelSkipped = false;
-
-function toggleSkipExcel() {
-  excelSkipped = !excelSkipped;
-  var card  = document.getElementById('card-excel');
-  var btn   = document.getElementById('btn-skip-excel');
-  var lbl   = document.getElementById('lbl-attach-excel');
-  var inpEl = document.getElementById('inp-excel');
-  if (excelSkipped) {
-    card.classList.add('loaded');
-    btn.textContent  = '↩ Incluir Excel';
-    btn.style.background = '#fef3c7';
-    btn.style.color  = '#92400e';
-    btn.style.borderColor = '#f59e0b';
-    if (lbl) lbl.style.opacity = '0.4';
-    document.getElementById('fn-excel').textContent = '⚠ Sin carátula — análisis solo con contrato';
-    docs.excel = { name:'[omitido]', text:'[No se adjuntó carátula Excel. Analiza únicamente con contrato y pagaré.]' };
-  } else {
-    card.classList.remove('loaded');
-    btn.textContent  = '✗ Omitir';
-    btn.style.background = '#f0f4f8';
-    btn.style.color  = '#4a6a8a';
-    btn.style.borderColor = '#b0c4d8';
-    if (lbl) lbl.style.opacity = '1';
-    document.getElementById('fn-excel').textContent = '';
-    docs.excel = null;
-  }
-  checkReady();
-}
 
 // ── TABS ───────────────────────────────────────────────────────────────────
 function setTab(name, el) {
@@ -565,7 +502,7 @@ async function startAnalysis() {
   var fmtHint = '';
   if (contratoEsPDF) fmtHint += 'NOTA: El CONTRATO fue extraído de un PDF; el texto puede tener palabras pegadas o saltos de línea irregulares, interpreta el contenido con tolerancia de formato.\n';
   if (pagareEsPDF)   fmtHint += 'NOTA: El PAGARÉ fue extraído de un PDF; el texto puede tener palabras pegadas o saltos de línea irregulares, interpreta el contenido con tolerancia de formato.\n';
-  var E     = docs.excel ? docs.excel.text.substring(0, 75000) : 'No se proporcionó carátula Excel.';
+  var E     = '[Sin carátula Excel — análisis basado exclusivamente en contrato y pagaré]';
   var today = new Date().toLocaleDateString('es-MX', { day:'2-digit', month:'long', year:'numeric' });
 
   try {
@@ -580,7 +517,7 @@ async function startAnalysis() {
     await sleep(3000);
 
     setProgress(70, 'Cotejando amortizaciones, plazos, suma total y carátula (Puntos 7a-7h y 9)...');
-    var rAmort = await callAI(buildPromptAmort(C, P, E, fmtHint));
+    var rAmort = await callAI(buildPromptAmort(C, P, fmtHint));
     renderFindings('body-amort', rAmort.findings);
     await sleep(3000);
 
@@ -647,6 +584,7 @@ function buildPromptDatos(C, P, today, fmtHint) {
     + '- Verifica que el número de páginas declarado en el pagaré sea coherente con el documento.\n'
     + '- Verifica que el número de páginas esté escrito CORRECTAMENTE EN LETRA (ej: si dice "cuatro" y hay 4 páginas: OK; si dice "tres" y hay 4 páginas: ERROR).\n'
     + '- Si el número en letra no corresponde: ERROR indicando el número correcto.\n\n'
+    + 'REGLA DE TIPOS: type "error" SOLO si hay dato real incorrecto o faltante. type "ok" cuando el dato es correcto y coincide. NUNCA uses "error" para algo que verificaste y está bien.\n\n'
     + 'Responde SOLO JSON válido sin markdown:\n'
     + '{"findings":[{"type":"error|warning|comment|ok","point":"Punto N — Nombre","title":"Descripción corta","detail":"Explicación detallada","quote":"Pagaré: X → Contrato: Y"}]}\n\n'
     + '=== CONTRATO ===\n' + C + '\n\n=== PAGARÉ ===\n' + P;
@@ -672,64 +610,40 @@ function buildPromptPartes(C, P, fmtHint) {
     + '- Si SÍ aparece: compara nombre (ignora tildes/mayúsculas en nombres de personas). SÍ reporta ERROR si hay letra base diferente, nombre incompleto, apellido cambiado o espacios internos ilegítimos.\n'
     + '- Lista CADA persona individualmente con resultado OK o ERROR.\n'
     + '- Si no hay avales: COMMENT indicándolo.\n\n'
+    + 'TIPOS DE FINDING — USA EL CORRECTO:\n'
+    + '- type "error": SOLO si hay una diferencia real que invalida el documento (letra distinta en razón social, nombre incorrecto, aval faltante).\n'
+    + '- type "ok": cuando la comparación es correcta y los datos coinciden (incluyendo casos donde solo difieren en tilde/mayúscula y eso es aceptable).\n'
+    + '- type "warning": discrepancia menor que no invalida pero conviene revisar.\n'
+    + '- type "comment": información relevante sin carácter de error.\n'
+    + 'REGLA CRÍTICA: Si en tu análisis concluyes "Status: OK" o "coinciden" → el type DEBE ser "ok", NUNCA "error". Un finding con type "error" que dice "Status: OK" en el detail es una contradicción prohibida.\n\n'
     + 'Responde SOLO JSON válido sin markdown:\n'
     + '{"findings":[{"type":"error|warning|comment|ok","point":"Punto 3|Punto 10","title":"Nombre del hallazgo","detail":"Comparación detallada","quote":"Pagaré: X → Contrato: Y"}]}\n\n'
     + '=== CONTRATO ===\n' + C + '\n\n=== PAGARÉ ===\n' + P;
 }
 
-function buildPromptAmort(C, P, E, fmtHint) {
+function buildPromptAmort(C, P, fmtHint) {
   fmtHint = fmtHint || '';
   return fmtHint
     + 'Eres un especialista senior en revisión de pagarés para PROAKTIVA, empresa financiera mexicana.\n\n'
-    + 'Analiza los siguientes puntos sobre la tabla de amortización y condiciones del pagaré:\n\n'
-    + 'PUNTO 7a — Montos de amortización en letra:\n'
-    + '- Localiza la tabla de amortización en el pagaré.\n'
-    + '- Para CADA amortización: verifica que el importe escrito EN LETRA coincida con el importe en número. Ignora tildes/mayúsculas.\n'
-    + '- Si alguna cantidad en letra no corresponde al número: ERROR indicando qué amortización y cuál es la diferencia.\n\n'
-    + 'PUNTO 7b — Tasa en letra:\n'
-    + '- Localiza la tasa de interés ordinaria escrita en letra dentro del cuerpo del pagaré.\n'
-    + '- Verifica que la escritura en letra sea ortográficamente correcta y coincida con el número de la tasa. Ignora tildes/mayúsculas.\n'
-    + '- Si no coincide o hay error ortográfico: ERROR. Si es correcta: OK.\n\n'
-    + 'PUNTO 7c — Vencimiento anticipado: rango de amortizaciones:\n'
-    + '- Busca en el pagaré la cláusula o sección de VENCIMIENTO ANTICIPADO.\n'
-    + '- Verifica que el rango de amortizaciones mencionado en esa sección corresponda exactamente al número total de amortizaciones de la tabla (ej: si hay 6 amortizaciones, debe decir "de la 1 a la 6" o equivalente).\n'
-    + '- Si el rango no coincide con la tabla: ERROR indicando el rango declarado vs el correcto.\n'
-    + '- Si coincide: OK.\n\n'
-    + 'PUNTO 7d — Recordatorio de fecha:\n'
-    + '- Extrae la fecha de suscripción del pagaré.\n'
-    + '- Genera siempre un COMMENT con el texto: "Recordatorio: La fecha del pagaré es [día de semana] [dd] de [mes] de [año] — confirma que sea la fecha correcta de firma".\n\n'
-    + 'PUNTO 7e — Número de páginas:\n'
-    + '- Extrae el número de páginas declarado en el pagaré (en número y en letra).\n'
-    + '- Verifica que el número de páginas en LETRA sea correcto (ortografía y concordancia con el número).\n'
-    + '- Si hay error en la escritura: ERROR con la forma correcta.\n\n'
-    + 'PUNTO 7f — Tabla de amortización: suma total = monto del pagaré:\n'
-    + '- Suma todos los importes de capital de la tabla de amortización del pagaré.\n'
-    + '- Verifica que el total sume exactamente el monto de disposición del pagaré.\n'
-    + '- Si la suma no coincide: ERROR indicando la diferencia exacta.\n'
-    + '- Si coincide: OK con la suma total.\n\n'
-    + 'PUNTO 7g — Última amortización vs vencimiento del contrato:\n'
-    + '- Busca en el CONTRATO la fecha de vencimiento del crédito (cláusulas DÉCIMA, PLAZO, VIGENCIA, VENCIMIENTO o frases como "el crédito vencerá el", "fecha de vencimiento").\n'
-    + '- Extrae la fecha de la ÚLTIMA amortización de la tabla del pagaré.\n'
-    + '- Si la última amortización es POSTERIOR a la fecha de vencimiento del contrato: ERROR crítico con ambas fechas.\n'
-    + '- Si la última amortización coincide o es anterior: OK.\n'
-    + '- Si no se puede localizar la fecha de vencimiento en el contrato: WARNING.\n\n'
-    + 'PUNTO 7h — Cuentas Corrientes: plazo máximo de disposición:\n'
-    + '- Si el tipo de crédito es Cuenta Corriente, Habilitación, Avío o similar:\n'
-    + '- Busca en el CONTRATO el plazo máximo por disposición (frases como "vencimiento máximo de X días", "plazo máximo de disposición de X días", "cada disposición tendrá plazo de").\n'
-    + '- Para CADA amortización: calcula los días entre la fecha de suscripción del pagaré y la fecha de esa amortización.\n'
-    + '- Si alguna amortización supera ese plazo máximo: ERROR indicando la fecha y cuántos días excede.\n'
-    + '- Si todas cumplen: OK.\n'
-    + '- Si el tipo de crédito NO es Cuenta Corriente: omite este punto.\n\n'
-    + 'PUNTO 9 — Cotejo pagaré vs carátula Excel:\n'
-    + '- Si no se proporcionó Excel: COMMENT indicando que no hay carátula y el análisis se realiza solo con pagaré y contrato.\n'
-    + '- Si hay Excel: identifica la tabla correcta usando monto, número de contrato y fechas.\n'
-    + '- IMPORTANTE: Los montos en Excel ESTÁN EN MILES (Excel $50.00 = Pagaré $50,000). Multiplica x1000 antes de comparar.\n'
-    + '- Coteja CADA fila: número de pago, fecha, importe. Reporta diferencias como ERROR.\n'
-    + '- Si el tipo de crédito es Cuenta Corriente, Habilitación o Avío: estos créditos NO tienen tabla en Excel — no la exijas.\n\n'
+    + 'Analiza PUNTO 7 y PUNTO 9 usando ÚNICAMENTE el contrato y el pagaré (no hay carátula Excel):\n\n'
+    + 'PUNTO 7 — Amortizaciones:\n'
+    + '- Extrae el rango de amortizaciones declarado en el pagaré (ej: "del 1 al 12").\n'
+    + '- Busca la tabla de amortizaciones en el propio pagaré y extráela completa (número de pago, fecha de vencimiento, importe).\n'
+    + '- Verifica que el número de amortizaciones en la tabla coincida con el rango declarado.\n'
+    + '- Muestra la tabla extraída como COMMENT informativo para quien revisa.\n\n'
+    + 'PUNTO 9 — Verificación de plazos vs contrato:\n'
+    + '- Extrae la fecha de suscripción del pagaré y la fecha de cada amortización.\n'
+    + '- Extrae del CONTRATO: (a) plazo máximo de disposición en días si lo menciona (ej: "180 días", "90 días"), y (b) fecha de vencimiento del contrato si la establece.\n'
+    + '- Para créditos de Cuenta Corriente, Habilitación o Avío: verifica que los días entre la fecha de suscripción del pagaré y cada fecha de amortización NO excedan el plazo máximo de disposición del contrato. Si alguna fecha excede: ERROR indicando cuál y cuántos días excede.\n'
+    + '- Para cualquier tipo de crédito: verifica que ninguna amortización tenga fecha posterior a la fecha de vencimiento del contrato.\n'
+    + '- Si el monto del pagaré es menor al monto total del contrato: COMMENT indicando que es disposición parcial, mostrando porcentaje utilizado y saldo disponible.\n'
+    + '- TIPOS DE FINDING: type "error" solo si hay incumplimiento real de plazo o fecha. type "ok" si los plazos se respetan. type "comment" para información informativa.\n\n'
     + 'Responde SOLO JSON válido sin markdown:\n'
-    + '{"findings":[{"type":"error|warning|comment|ok","point":"Punto 7a|7b|7c|7d|7e|7f|7g|7h|9","title":"Descripción","detail":"Detalle con números, fechas e importes","quote":"Pagaré: X / Contrato: Y"}]}\n\n'
-    + '=== CONTRATO ===\n' + C + '\n\n=== PAGARÉ ===\n' + P + '\n\n=== CARÁTULA EXCEL ===\n' + E;
+    + '{"findings":[{"type":"error|warning|comment|ok","point":"Punto 7|Punto 9","title":"Descripción","detail":"Detalle con fechas e importes","quote":"Pagaré: X / Contrato: Y"}]}\n\n'
+    + '=== CONTRATO ===\n' + C + '\n\n=== PAGARÉ ===\n' + P;
 }
+
+
 
 function buildPromptResumen(C, P, E, today, fmtHint) {
   return 'Eres un abogado senior especialista en crédito empresarial mexicano de PROAKTIVA.\n'
