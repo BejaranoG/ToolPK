@@ -1413,7 +1413,13 @@ function showPanel(name) {
 
 <!-- Aforo Tool (React) -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+
+
+<!-- Amortización Tool -->
+
 <script type="text/babel">
+
 const { useState, useMemo } = React;
 
 const formatMXN = (v) =>
@@ -2062,12 +2068,9 @@ if (document.readyState === 'loading') {
 } else {
   mountAforo();
 }
-</script>
 
 
-<!-- Amortización Tool -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<script type="text/babel" data-type="module">
+
 
 const TIIE_API = 'https://www.banxico.org.mx/SieAPIRest/service/v1/series/SF43783/datos/oportuno?token=a7befd8a9b5f03f3e69a59e3f5a7e2b8c1d4f6e9';
 
@@ -2520,6 +2523,7 @@ const amortContainer = document.getElementById('amort-root');
 if (amortContainer) {
   ReactDOM.createRoot(amortContainer).render(React.createElement(AmortApp));
 }
+
 </script>
 </body>
 </html>PLACEHOLDER_AMORT
