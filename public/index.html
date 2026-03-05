@@ -552,23 +552,24 @@ function buildPromptDatos(C, P, today, fmtHint) {
     + 'Hoy es: ' + today + '\n\n'
     + 'Revisa el PAGARÉ contra el CONTRATO en los siguientes puntos. Sé exhaustivo y literal.\n\n'
     + 'PUNTO 1 — Número de contrato:\n'
-    + '- Localiza el número de contrato en el CONTRATO (encabezado, pie de página o cualquier mención).\n'
     + '- Localiza el número de contrato en el PAGARÉ.\n'
-    + '- Compáralos IGNORANDO espacios y guiones (CS-3099-26 = CS - 3099 - 26 = CS3099 26). Lo que importa son los caracteres alfanuméricos en el mismo orden.\n'
-    + '- Si los caracteres base son idénticos: OK. Si hay algún carácter diferente (letra, número o serie): ERROR.\n'
+    + '- Busca ese número en el CONTRATO de forma EXHAUSTIVA: revisa encabezado, pie de página, cuerpo del texto, cláusulas, carátula, número de expediente, referencia de crédito, o cualquier campo que identifique el documento. El número puede aparecer como "Contrato No.", "No. de Crédito", "Crédito No.", "Expediente", "Referencia", o simplemente impreso en cualquier parte del documento.\n'
+    + '- Compara IGNORANDO espacios, guiones y puntos (CCC-3329-26 = CCC 3329 26 = CCC332926). Solo importan los caracteres alfanuméricos en el mismo orden.\n'
+    + '- Si los caracteres base son idénticos: OK.\n'
+    + '- SOLO si después de buscar exhaustivamente en TODO el contrato no encuentras ningún número que coincida: ERROR indicando que no se localizó. Si hay cualquier coincidencia razonable: OK con nota.\n'
     + '- Muestra ambas versiones en el campo quote.\n\n'
     + 'PUNTO 2 — Tipo de crédito y monto total del contrato:\n'
     + '- Verifica que el tipo de crédito en el pagaré (Cuenta Corriente, Habilitación, Refaccionario, etc.) coincida con el del contrato. Si no coincide: ERROR.\n'
-    + '- Verifica que el MONTO TOTAL del pagaré coincida con el del contrato. Si el pagaré es una disposición parcial menor al total del contrato: COMMENT informativo (no error).\n'
-    + '- Verifica que el monto esté escrito correctamente EN LETRA en el pagaré. Ignora tildes/mayúsculas al revisar la ortografía. Si la cantidad en letra NO corresponde al número: ERROR.\n'
-    + '- Muestra: monto en número, monto en letra del pagaré, y monto del contrato.\n\n'
+    + '- Compara el monto del pagaré contra el monto total del contrato. El pagaré casi siempre representa una DISPOSICIÓN PARCIAL y su monto será menor al del contrato — esto es completamente normal. NUNCA marques como error que el monto del pagaré sea menor al del contrato. Manejar como COMMENT informativo mostrando: monto del pagaré, monto total del contrato, porcentaje utilizado y saldo disponible.\n'
+    + '- Verifica que el monto esté escrito correctamente EN LETRA en el pagaré. Ignora tildes/mayúsculas. Si la cantidad en letra NO corresponde al número: ERROR.\n'
+    + '- Muestra: monto del pagaré en número, monto en letra del pagaré, y monto total del contrato.\n\n'
     + 'PUNTO 4 — Domicilio del suscriptor:\n'
-    + '- El domicilio del acreditado se encuentra en las CLÁUSULAS VIGÉSIMAS (Vigésima, Vigésima Primera, Vigésima Segunda…), en cláusulas de DOMICILIOS o NOTIFICACIONES del contrato.\n'
-    + '- Busca EXHAUSTIVAMENTE en todo el contrato cualquier dirección, calle, número, colonia, C.P., ciudad.\n'
-    + '- Compara con el domicilio que aparece en el pagaré de forma ESTRICTA y exacta: incluyendo acentos, números, abreviaciones, puntuación y orden. El domicilio NO aplica la regla de ignorar tildes — debe coincidir exactamente.\n'
-    + '- Si coinciden exactamente o de forma equivalente: OK.\n'
-    + '- Si hay diferencias en calle, número, colonia, C.P. o ciudad: ERROR con detalle de la diferencia.\n'
-    + '- Si el fragmento del contrato no alcanza esas cláusulas: WARNING indicando que no se pudo verificar.\n\n'
+    + '- Busca el domicilio del acreditado/suscriptor en el CONTRATO de forma EXHAUSTIVA: cláusulas VIGÉSIMAS, DOMICILIOS, NOTIFICACIONES, cualquier sección con dirección, calle, número, colonia, C.P., ciudad.\n'
+    + '- Compara con el domicilio del PAGARÉ. Para comparar domicilios: ignora diferencias de puntuación menor, comas y puntos finales. SÍ considera diferencia real si cambia calle, número, colonia, C.P. o ciudad.\n'
+    + '- EMITE UN SOLO FINDING para este punto. No emitas primero un error y luego un ok — decide cuál es el resultado final y emite solo ese.\n'
+    + '- Si coinciden (exactamente o de forma equivalente): type "ok".\n'
+    + '- Si hay diferencia real en algún componente: type "error" con detalle exacto de qué difiere.\n'
+    + '- Si no se encuentra domicilio en el contrato: type "warning".\n\n'
     + 'PUNTO 5 — Monto de disposición del pagaré:\n'
     + '- El monto de disposición del pagaré puede ser igual o MENOR al monto total del contrato.\n'
     + '- Si es menor: COMMENT informativo indicando que es disposición parcial, mostrando monto usado y saldo restante del contrato.\n'
@@ -584,7 +585,10 @@ function buildPromptDatos(C, P, today, fmtHint) {
     + '- Verifica que el número de páginas declarado en el pagaré sea coherente con el documento.\n'
     + '- Verifica que el número de páginas esté escrito CORRECTAMENTE EN LETRA (ej: si dice "cuatro" y hay 4 páginas: OK; si dice "tres" y hay 4 páginas: ERROR).\n'
     + '- Si el número en letra no corresponde: ERROR indicando el número correcto.\n\n'
-    + 'REGLA DE TIPOS: type "error" SOLO si hay dato real incorrecto o faltante. type "ok" cuando el dato es correcto y coincide. NUNCA uses "error" para algo que verificaste y está bien.\n\n'
+    + 'REGLAS CRÍTICAS DE CALIDAD:\n'
+    + '1. UN SOLO FINDING POR PUNTO: Nunca emitas dos findings para el mismo punto que se contradigan entre sí. Analiza completamente y emite solo el resultado final.\n'
+    + '2. TIPOS CORRECTOS: type "error" SOLO si hay dato real incorrecto. type "ok" cuando coincide o es correcto. NUNCA uses "error" para algo que verificaste y está bien.\n'
+    + '3. CONSISTENCIA: Si tu análisis concluye que algo coincide, el type DEBE ser "ok". Si concluye que hay diferencia, DEBE ser "error". No puede haber contradicción entre el detail y el type.\n\n'
     + 'Responde SOLO JSON válido sin markdown:\n'
     + '{"findings":[{"type":"error|warning|comment|ok","point":"Punto N — Nombre","title":"Descripción corta","detail":"Explicación detallada","quote":"Pagaré: X → Contrato: Y"}]}\n\n'
     + '=== CONTRATO ===\n' + C + '\n\n=== PAGARÉ ===\n' + P;
@@ -615,7 +619,10 @@ function buildPromptPartes(C, P, fmtHint) {
     + '- type "ok": cuando la comparación es correcta y los datos coinciden (incluyendo casos donde solo difieren en tilde/mayúscula y eso es aceptable).\n'
     + '- type "warning": discrepancia menor que no invalida pero conviene revisar.\n'
     + '- type "comment": información relevante sin carácter de error.\n'
-    + 'REGLA CRÍTICA: Si en tu análisis concluyes "Status: OK" o "coinciden" → el type DEBE ser "ok", NUNCA "error". Un finding con type "error" que dice "Status: OK" en el detail es una contradicción prohibida.\n\n'
+    + 'REGLAS CRÍTICAS:\n'
+    + '1. UN SOLO FINDING POR PERSONA O ENTIDAD: No emitas primero un finding de error y luego uno de ok para la misma persona. Decide el resultado final y emite solo ese.\n'
+    + '2. Si concluyes "coincide" o "Status: OK" → type DEBE ser "ok". Un finding type "error" que dice "coinciden" es contradicción prohibida.\n'
+    + '3. CONSISTENCIA ABSOLUTA entre el type, el title y el detail.\n\n'
     + 'Responde SOLO JSON válido sin markdown:\n'
     + '{"findings":[{"type":"error|warning|comment|ok","point":"Punto 3|Punto 10","title":"Nombre del hallazgo","detail":"Comparación detallada","quote":"Pagaré: X → Contrato: Y"}]}\n\n'
     + '=== CONTRATO ===\n' + C + '\n\n=== PAGARÉ ===\n' + P;
@@ -637,7 +644,7 @@ function buildPromptAmort(C, P, fmtHint) {
     + '- Para créditos de Cuenta Corriente, Habilitación o Avío: calcula los días entre la fecha de suscripción del PAGARÉ y la fecha de vencimiento FINAL de la tabla de amortizaciones (el último pago). Si ese número de días excede el plazo máximo de disposición por pagaré: ERROR, indicando los días reales vs los permitidos. Si no excede: OK.\n'
     + '- IMPORTANTE: No compares contra la fecha de vencimiento del contrato marco. El contrato marco puede durar años; lo que se verifica es que cada pagaré individualmente no exceda el plazo de disposición permitido (ej: 180 días desde su suscripción hasta su último vencimiento).\n'
     + '- Si el monto del pagaré es menor al monto total del contrato: COMMENT indicando disposición parcial, porcentaje utilizado y saldo disponible.\n'
-    + '- TIPOS DE FINDING: type "error" solo si hay incumplimiento real de plazo o fecha. type "ok" si los plazos se respetan. type "comment" para información informativa.\n\n'
+    + '- TIPOS DE FINDING: type "error" solo si hay incumplimiento real. type "ok" si todo está correcto. type "comment" para info. UN SOLO FINDING POR PUNTO — no emitas findings contradictorios para el mismo punto.\n\n'
     + 'Responde SOLO JSON válido sin markdown:\n'
     + '{"findings":[{"type":"error|warning|comment|ok","point":"Punto 7|Punto 9","title":"Descripción","detail":"Detalle con fechas e importes","quote":"Pagaré: X / Contrato: Y"}]}\n\n'
     + '=== CONTRATO ===\n' + C + '\n\n=== PAGARÉ ===\n' + P;
@@ -664,7 +671,7 @@ async function callAI(prompt) {
     method: 'POST',
     headers: headers,
     body: JSON.stringify({
-      model: 'claude-haiku-4-5-20251001',
+      model: 'claude-sonnet-4-6',
       max_tokens: 4000,
       messages: [{ role: 'user', content: prompt }]
     })
