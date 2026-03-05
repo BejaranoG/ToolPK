@@ -580,6 +580,8 @@ function buildPromptDatos(C, P, today, fmtHint) {
     + '- Extrae la tasa de interés ordinaria del pagaré (en número y en letra).\n'
     + '- Verifica que la tasa EN LETRA esté escrita correctamente y coincida con el número. Ignora tildes/mayúsculas.\n'
     + '- Si la tasa en letra no coincide con el número: ERROR.\n'
+   + 'PUNTO 6b — Tasa de interés moratoria.\n'
+    + '- Ignora la tasa moratoria no la revises ni corrijas.\n'
     + '- PROHIBIDO ABSOLUTO: NO generes ningún hallazgo sobre: (1) tasa moratoria o intereses moratorios, (2) ausencia de firmas — el análisis es previo a la firma por lo que es normal que no estén firmados, (3) carátula Excel o documentos Excel faltantes — el análisis no usa Excel.\n\n'
     + 'PUNTO 8 — Fecha y páginas del pagaré:\n'
     + '- Extrae la fecha de suscripción del pagaré. Calcula qué día de la semana es. Genera siempre un COMMENT con el texto: "La fecha del pagaré es [día de semana] [dd] de [mes] de [año] — confirma que sea correcta".\n'
