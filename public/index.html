@@ -706,7 +706,7 @@ async function callAI(prompt) {
 }
 
 function parseJSON(raw) {
-  var s = raw.replace(/```json\n?/g,'').replace(/```\n?/g,'').trim();
+  var s = raw.replace(/[\u0060]{3}json\n?/g,'').replace(/[\u0060]{3}\n?/g,'').trim();
   var fb = s.indexOf('{'), lb = s.lastIndexOf('}');
   if (fb > -1) s = s.substring(fb, lb+1);
   try { return JSON.parse(s); }
