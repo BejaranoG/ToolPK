@@ -1446,10 +1446,11 @@ const CONTRATACION = [
   { label: "Fideicomiso", value: -0.1 },
 ];
 const ISR_OPCIONES = [
-  { label: "Persona Moral", value: 0, key: "pm" },
-  { label: "Persona Física – bien comprado antes del 2014", value: 0.15, key: "pf1" },
-  { label: "Persona Física – bien comprado después del 2014, sin CFDI", value: 0.3, key: "pf2" },
-  { label: "Persona Física – bien comprado después del 2014, con CFDI", value: 0, key: "pf3" },
+  { label: "ISR Persona Moral", value: 0, key: "pm" },
+  { label: "ISR Persona Física Mueble comprado antes del 2014 SI hay CFDI", value: 0.15, key: "pf1" },
+  { label: "ISR Persona Física Mueble comprado antes del 2014 NO hay CFDI", value: 0.35, key: "pf2" },
+  { label: "ISR Persona Física Mueble comprado después del 2014 y NO hay CFDI", value: 0.25, key: "pf3" },
+  { label: "ISR Persona Física Mueble comprado después del 2014 y SI hay CFDI", value: 0, key: "pf4" },
 ];
 
 function Section({ number, title, children }) {
