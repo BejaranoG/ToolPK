@@ -634,25 +634,37 @@ function buildPromptAmort(C, P, fmtHint) {
   fmtHint = fmtHint || '';
   return fmtHint
     + 'Eres un especialista senior en revisión de pagarés para PROAKTIVA, empresa financiera mexicana.\n\n'
-    + 'Analiza PUNTO 7 y PUNTO 9 usando ÚNICAMENTE el contrato y el pagaré:\n\n'
-    + 'PUNTO 7 — Amortizaciones:\n'
+    + 'Analiza los siguientes PUNTOS de forma INDEPENDIENTE. Cada punto genera su propio finding separado.\n\n'
+    + 'PUNTO 7 — Tabla de amortizaciones:\n'
     + '- Extrae el rango de amortizaciones declarado en el pagaré (ej: "del 1 al 12").\n'
-    + '- Busca la tabla de amortizaciones DENTRO DEL PROPIO PAGARÉ. Puede aparecer después del texto "TABLA DE AMORTIZACIONES", "TABLA DE AMORTIZACIÓN", "CALENDARIO DE PAGOS" o similar. También puede estar al final del documento. BUSCA EXHAUSTIVAMENTE en todo el texto del pagaré.\n'
-    + '- Si encuentras la tabla: extráela completa (número de pago, fecha de vencimiento, importe) y muéstrala como COMMENT informativo.\n'
-    + '- Si el pagaré menciona la tabla pero no la incluye en el texto extraído: indica como WARNING que la tabla está referenciada pero no visible en el texto — esto puede deberse a formato de extracción, no necesariamente a ausencia real.\n'
-    + '- Verifica que el número de amortizaciones en la tabla coincida con el rango declarado.\n\n'
-    + 'PUNTO 9 — Verificación de plazos vs contrato:\n'
-    + '- Extrae la fecha de suscripción del pagaré y la fecha de cada amortización.\n'
-    + '- Extrae del CONTRATO el plazo máximo de disposición POR PAGARÉ (ej: "vencimiento máximo de hasta 180 días"). Este plazo aplica a cada pagaré individual desde su fecha de suscripción, NO a la duración total del contrato marco.\n'
-    + '- Para Cuenta Corriente, Habilitación o Avío: calcula días entre fecha de suscripción del pagaré y fecha del ÚLTIMO PAGO de la tabla. Si excede el plazo máximo: ERROR indicando días reales vs permitidos. Si no excede: OK.\n'
-    + '- Para cualquier tipo: verifica que ninguna amortización sea posterior al vencimiento del contrato marco.\n'
-    + '- Si el monto del pagaré es menor al monto total del contrato: COMMENT de disposición parcial con porcentaje y saldo.\n'
-    + '- PROHIBIDO: No menciones carátula Excel, no la busques, no la exijas. No existe en este análisis.\n'
-    + '- TIPOS: type "error" solo si hay incumplimiento real. type "ok" si los plazos se respetan. type "comment" para info. UN SOLO FINDING POR PUNTO.\n\n'
-    + 'Responde SOLO JSON válido sin markdown:\n'
-    + '{"findings":[{"type":"error|warning|comment|ok","point":"Punto 7|Punto 9","title":"Descripción","detail":"Detalle con fechas e importes","quote":"Pagaré: X / Contrato: Y"}]}\n\n'
+    + '- Busca la tabla DENTRO DEL PAGARÉ después del texto "TABLA DE AMORTIZACIONES", "TABLA DE AMORTIZACIÓN", "CALENDARIO DE PAGOS" o similar. BUSCA EXHAUSTIVAMENTE en todo el texto.\n'
+    + '- Si la encuentras: extráela completa (número de pago, fecha de vencimiento, importe) como COMMENT informativo.\n'
+    + '- Si no aparece en el texto extraído: WARNING (puede ser límite de extracción, no necesariamente ausencia real).\n'
+    + '- Verifica que el número de amortizaciones coincida con el rango declarado.\n\n'
+    + 'PUNTO 9A — Vencimiento de amortizaciones vs fecha final del contrato:\n'
+    + '- Extrae la fecha de vencimiento FINAL del contrato marco (cláusula de plazo, vigencia o vencimiento del contrato).\n'
+    + '- Extrae la fecha de cada amortización del pagaré.\n'
+    + '- Verifica que NINGUNA amortización tenga fecha posterior a la fecha de vencimiento del contrato marco.\n'
+    + '- Si alguna amortización vence después del contrato: type "error", indicando cuál(es) y cuántos días se exceden.\n'
+    + '- Si todas las amortizaciones vencen antes o en la misma fecha que el contrato: type "ok".\n'
+    + '- Este punto se evalúa de forma INDEPENDIENTE al punto 9B.\n\n'
+    + 'PUNTO 9B — Período de disposición del pagaré vs plazo máximo por disposición del contrato:\n'
+    + '- Extrae del CONTRATO el plazo máximo de disposición POR PAGARÉ INDIVIDUAL (ej: "vencimiento máximo de hasta 180 días", "plazo máximo de disposición de 90 días"). Este plazo aplica desde la fecha de suscripción de CADA pagaré hasta su último vencimiento — NO es la duración total del contrato marco.\n'
+    + '- Extrae la fecha de suscripción del pagaré y la fecha del ÚLTIMO PAGO de la tabla de amortizaciones.\n'
+    + '- Calcula los días entre ambas fechas.\n'
+    + '- Si los días calculados EXCEDEN el plazo máximo por disposición: type "error", indicando: días reales entre suscripción y último vencimiento, plazo máximo permitido, y cuántos días excede. NO busques justificaciones alternativas — si excede, es error.\n'
+    + '- Si NO excede: type "ok" indicando días reales y plazo permitido.\n'
+    + '- Si el contrato no establece plazo máximo de disposición por pagaré: type "comment" indicando que no se encontró ese límite.\n'
+    + '- Este punto se evalúa de forma INDEPENDIENTE al punto 9A.\n\n'
+    + 'PUNTO 9C — Disposición parcial:\n'
+    + '- Si el monto del pagaré es menor al monto total del contrato: type "comment" indicando monto del pagaré, monto del contrato, porcentaje utilizado y saldo disponible.\n'
+    + '- Si el monto del pagaré es igual al total del contrato: omite este punto.\n\n'
+    + 'PROHIBIDO: No menciones carátula Excel. No menciones ausencia de firmas.\n\n'
+    + 'Responde SOLO JSON válido sin markdown. Genera un finding SEPARADO e INDEPENDIENTE por cada punto:\n'
+    + '{"findings":[{"type":"error|warning|comment|ok","point":"Punto 7|Punto 9A|Punto 9B|Punto 9C","title":"Descripción","detail":"Detalle con fechas, días e importes exactos","quote":"Pagaré: X / Contrato: Y"}]}\n\n'
     + '=== CONTRATO ===\n' + C + '\n\n=== PAGARÉ ===\n' + P;
 }
+
 
 
 
@@ -795,275 +807,290 @@ function resetAll() {
   document.querySelectorAll('.report-card').forEach(function(c,i){ c.classList.toggle('visible', i===0); });
 // ── DICTAMEN PDF ──────────────────────────────────────────────────────
 async function generateDictamenPDF() {
+  // ── Guards ──
   var d = window.__lastDictamen;
-  if (!d) { alert('Genera el análisis primero.'); return; }
-  if (!window.jspdf) { alert('Librería PDF no cargada.'); return; }
+  if (!d) { alert('Genera el análisis primero antes de exportar.'); return; }
+  if (!window.jspdf) { alert('La librería de PDF no está disponible aún. Espera un momento y vuelve a intentar.'); return; }
 
-  var F = window.__allFindings || { datos:[], partes:[], amort:[] };
+  var F   = window.__allFindings || { datos:[], partes:[], amort:[] };
+  var allF = (F.datos||[]).concat(F.partes||[]).concat(F.amort||[]);
+
   var { jsPDF } = window.jspdf;
   var doc = new jsPDF({ orientation:'portrait', unit:'mm', format:'letter' });
-  var W=215.9, H=279.4, mL=15, mR=15, cW=W-mL-mR;
+  var W = 215.9, H = 279.4, mL = 16, mR = 16, cW = W - mL - mR;
 
-  // ── Palette por veredicto ──
-  var pal = {
-    green:  { hdr:[22,100,45],  bg:[235,250,240], ink:[15,70,30]  },
-    yellow: { hdr:[140,100,0],  bg:[255,250,220], ink:[100,70,0]  },
-    orange: { hdr:[165,70,0],   bg:[255,240,225], ink:[130,55,0]  },
-    red:    { hdr:[170,25,25],  bg:[255,232,232], ink:[130,20,20] },
-  }[d.verdict_color] || { hdr:[55,80,110], bg:[240,244,250], ink:[30,50,80] };
+  // ── Paleta por veredicto ──
+  var pal = ({
+    green:  { hdr:[22,100,45],   lt:[235,252,240], ink:[15,70,30]   },
+    yellow: { hdr:[140,100,0],   lt:[255,252,220], ink:[90,65,0]    },
+    orange: { hdr:[160,70,0],    lt:[255,240,220], ink:[120,50,0]   },
+    red:    { hdr:[175,25,25],   lt:[255,232,232], ink:[130,20,20]  },
+  })[d.verdict_color] || { hdr:[50,75,110], lt:[240,244,252], ink:[30,50,80] };
 
   var fechaHoy = new Date().toLocaleDateString('es-MX',{day:'2-digit',month:'long',year:'numeric'});
   var y = 0;
 
-  /* ══════════════════════════════════════════════════
+  /* ════════════════════════════════════════════════
+     HELPERS
+  ════════════════════════════════════════════════ */
+  function newPageHeader() {
+    doc.setFillColor(8,28,80);
+    doc.rect(0,0,W,9,'F');
+    doc.setFontSize(7); doc.setTextColor(170,195,230); doc.setFont('helvetica','bold');
+    doc.text('PROAKTIVA SAPI DE CV, SOFOM, ENR  —  DICTAMEN DE REVISIÓN DE PAGARÉ', mL, 6.3);
+    doc.text(fechaHoy, W-mR, 6.3, {align:'right'});
+    return 14;
+  }
+
+  function checkPage(need) {
+    if (y + need > H - 14) {
+      doc.addPage();
+      y = newPageHeader();
+    }
+  }
+
+  function sectionBanner(title, r,g,b) {
+    checkPage(12);
+    doc.setFillColor(r,g,b);
+    doc.rect(mL, y, cW, 8, 'F');
+    doc.setFontSize(7.5); doc.setTextColor(255,255,255); doc.setFont('helvetica','bold');
+    doc.text(title, mL+4, y+5.5);
+    y += 11;
+  }
+
+  var badgeCfg = {
+    error:   {lbl:'ERROR',   bg:[205,35,35],   tbg:[255,244,244], ink:[100,15,15]},
+    warning: {lbl:'AVISO',   bg:[185,115,5],   tbg:[255,251,228], ink:[100,65,0] },
+    ok:      {lbl:'OK',      bg:[20,115,50],   tbg:[236,252,240], ink:[10,65,25] },
+    comment: {lbl:'NOTA',    bg:[13,71,161],   tbg:[236,243,255], ink:[10,45,110]},
+    info:    {lbl:'INFO',    bg:[55,85,135],   tbg:[242,246,255], ink:[30,50,100]},
+  };
+
+  function drawFinding(f) {
+    var cfg = badgeCfg[f.type] || badgeCfg.info;
+    // Build text content
+    var titleTxt  = f.title  ? f.title  : '';
+    var pointTxt  = f.point  ? '['+f.point+']  ' : '';
+    var detailTxt = f.detail ? f.detail : '';
+    var quoteTxt  = f.quote  ? '▸  '+f.quote : '';
+
+    var titleLines  = doc.splitTextToSize(pointTxt + titleTxt,  cW-28);
+    var detailLines = doc.splitTextToSize(detailTxt, cW-28);
+    var quoteLines  = quoteTxt ? doc.splitTextToSize(quoteTxt, cW-30) : [];
+
+    var totalH = titleLines.length*5 + detailLines.length*4.5 + (quoteLines.length ? quoteLines.length*4.2+5 : 0) + 8;
+    totalH = Math.max(12, totalH);
+    checkPage(totalH + 3);
+
+    // Badge
+    doc.setFillColor(cfg.bg[0],cfg.bg[1],cfg.bg[2]);
+    doc.roundedRect(mL, y, 18, totalH, 1.5,1.5,'F');
+    var bl = doc.splitTextToSize(cfg.lbl, 16);
+    doc.setFontSize(5.5); doc.setTextColor(255,255,255); doc.setFont('helvetica','bold');
+    var bStartY = y + totalH/2 - (bl.length-1)*1.8;
+    bl.forEach(function(b,i){ doc.text(b, mL+9, bStartY+i*3.8, {align:'center'}); });
+
+    // Content box
+    doc.setFillColor(cfg.tbg[0],cfg.tbg[1],cfg.tbg[2]);
+    doc.roundedRect(mL+20, y, cW-20, totalH, 1.5,1.5,'F');
+
+    var cy = y + 5.5;
+    // Title
+    if (titleLines.length) {
+      doc.setFontSize(8); doc.setTextColor(cfg.ink[0],cfg.ink[1],cfg.ink[2]); doc.setFont('helvetica','bold');
+      doc.text(titleLines, mL+23, cy);
+      cy += titleLines.length*5 + 1;
+    }
+    // Detail
+    if (detailLines.length) {
+      doc.setFontSize(7.5); doc.setTextColor(30,35,45); doc.setFont('helvetica','normal');
+      doc.text(detailLines, mL+23, cy);
+      cy += detailLines.length*4.5 + 1;
+    }
+    // Quote bar
+    if (quoteLines.length) {
+      doc.setFillColor(cfg.bg[0],cfg.bg[1],cfg.bg[2]);
+      doc.roundedRect(mL+22, cy+1, cW-24, quoteLines.length*4.2+4, 1,1,'F');
+      doc.setFontSize(6.8); doc.setTextColor(255,255,255); doc.setFont('helvetica','normal');
+      doc.text(quoteLines, mL+25, cy+4.5);
+    }
+    y += totalH + 3;
+  }
+
+  /* ════════════════════════════════════════════════
      PÁGINA 1 — PORTADA EJECUTIVA
-  ══════════════════════════════════════════════════ */
+  ════════════════════════════════════════════════ */
 
-  // Banda superior azul marino
-  doc.setFillColor(8,28,80); doc.rect(0,0,W,26,'F');
+  // Banda azul marino top
+  doc.setFillColor(8,28,80);
+  doc.rect(0,0,W,26,'F');
 
-  // Logo
+  // Logo Proaktiva
   try {
     var imgEl = new Image();
     imgEl.src = 'data:image/webp;base64,'+PROAKTIVA_LOGO_B64;
     var cvs = document.createElement('canvas'); cvs.width=400; cvs.height=130;
     cvs.getContext('2d').drawImage(imgEl,0,0,400,130);
-    doc.addImage(cvs.toDataURL('image/png'),'PNG', mL, 4, 56, 18);
+    doc.addImage(cvs.toDataURL('image/png'),'PNG', mL, 4, 58, 19);
   } catch(e) {}
 
-  // Nombre empresa derecha
-  doc.setFontSize(9); doc.setTextColor(200,215,240); doc.setFont('helvetica','bold');
+  // Nombre empresa (derecha)
+  doc.setFontSize(9); doc.setTextColor(195,215,245); doc.setFont('helvetica','bold');
   doc.text('PROAKTIVA SAPI de CV, SOFOM, ENR', W-mR, 11, {align:'right'});
-  doc.setFontSize(7); doc.setFont('helvetica','normal'); doc.setTextColor(140,165,205);
+  doc.setFontSize(7); doc.setFont('helvetica','normal'); doc.setTextColor(130,160,205);
   doc.text('Le damos crédito a tu negocio', W-mR, 17, {align:'right'});
 
-  // Franja de título azul real
-  doc.setFillColor(13,71,161); doc.rect(0,26,W,12,'F');
+  // Franja título
+  doc.setFillColor(13,71,161);
+  doc.rect(0,26,W,11,'F');
   doc.setFontSize(10.5); doc.setTextColor(255,255,255); doc.setFont('helvetica','bold');
-  doc.text('DICTAMEN DE REVISIÓN DE PAGARÉ', W/2, 33.5, {align:'center'});
+  doc.text('DICTAMEN DE REVISIÓN DE PAGARÉ', W/2, 33, {align:'center'});
 
-  // Metadatos debajo del título
-  doc.setFillColor(230,236,252); doc.rect(0,38,W,9,'F');
-  doc.setFontSize(7.5); doc.setTextColor(40,60,120); doc.setFont('helvetica','normal');
-  doc.text('Fecha de emisión: '+fechaHoy, mL, 43.5);
-  doc.text('ToolsPK — Revisión automatizada', W-mR, 43.5, {align:'right'});
+  // Metadatos
+  doc.setFillColor(228,235,252);
+  doc.rect(0,37,W,8,'F');
+  doc.setFontSize(7.5); doc.setTextColor(35,55,115); doc.setFont('helvetica','normal');
+  doc.text('Fecha de emisión: '+fechaHoy, mL, 42.5);
+  doc.text('Análisis automatizado — ToolsPK / Proaktiva', W-mR, 42.5, {align:'right'});
 
-  y = 54;
+  y = 51;
 
   // ── Bloque veredicto ──
   doc.setFillColor(pal.hdr[0],pal.hdr[1],pal.hdr[2]);
-  doc.roundedRect(mL, y, cW, 22, 3, 3, 'F');
-  // Calificación
-  doc.setFontSize(30); doc.setTextColor(255,255,255); doc.setFont('helvetica','bold');
-  doc.text(d.grade||'—', mL+11, y+16);
-  // Divisor vertical
-  doc.setDrawColor(255,255,255); doc.setLineWidth(0.4);
-  doc.line(mL+27, y+4, mL+27, y+18);
-  // Texto veredicto
+  doc.roundedRect(mL, y, cW, 22, 3,3,'F');
+  doc.setFontSize(28); doc.setTextColor(255,255,255); doc.setFont('helvetica','bold');
+  doc.text(d.grade||'—', mL+10, y+15);
+  doc.setDrawColor(255,255,255); doc.setLineWidth(0.35);
+  doc.line(mL+26, y+4, mL+26, y+18);
   doc.setFontSize(13); doc.setTextColor(255,255,255); doc.setFont('helvetica','bold');
-  doc.text(d.verdict||'', mL+32, y+10);
-  doc.setFontSize(8); doc.setFont('helvetica','normal'); doc.setTextColor(210,225,250);
-  doc.text('Revisión automatizada · Proaktiva ToolsPK', mL+32, y+17);
-  y += 28;
+  doc.text(d.verdict||'', mL+30, y+10);
+  doc.setFontSize(7.5); doc.setFont('helvetica','normal'); doc.setTextColor(215,228,252);
+  doc.text('Revisión automatizada · Proaktiva ToolsPK', mL+30, y+17);
+  y += 27;
 
   // ── Resumen ejecutivo ──
   if (d.summary) {
-    doc.setFillColor(pal.bg[0],pal.bg[1],pal.bg[2]);
-    var sl = doc.splitTextToSize(d.summary, cW-10);
-    var sh = sl.length*5.2+8;
-    doc.roundedRect(mL, y, cW, sh, 2, 2, 'F');
+    doc.setFillColor(pal.lt[0],pal.lt[1],pal.lt[2]);
+    var sl = doc.splitTextToSize(d.summary, cW-12);
+    var sh = sl.length*5+9;
+    doc.roundedRect(mL, y, cW, sh, 2,2,'F');
     doc.setFillColor(pal.hdr[0],pal.hdr[1],pal.hdr[2]);
-    doc.roundedRect(mL, y, 3, sh, 1, 1, 'F');
+    doc.roundedRect(mL, y, 3, sh, 1,1,'F');
     doc.setFontSize(8.5); doc.setTextColor(pal.ink[0],pal.ink[1],pal.ink[2]); doc.setFont('helvetica','normal');
-    doc.text(sl, mL+6, y+6);
-    y += sh+8;
+    doc.text(sl, mL+7, y+6.5);
+    y += sh+7;
   }
 
-  // ── Scorecard numérico ──
-  var allF = F.datos.concat(F.partes).concat(F.amort);
+  // ── Scorecard ──
   var nErr  = allF.filter(function(f){return f.type==='error';}).length;
   var nWarn = allF.filter(function(f){return f.type==='warning';}).length;
+  var nInfo = allF.filter(function(f){return f.type==='comment'||f.type==='info';}).length;
   var nOk   = allF.filter(function(f){return f.type==='ok';}).length;
-  var nInfo = allF.filter(function(f){return f.type==='info'||f.type==='comment';}).length;
-
-  var scores = [
-    {lbl:'Errores',       n:nErr,  c:[210,40,40]},
-    {lbl:'Advertencias',  n:nWarn, c:[200,130,10]},
-    {lbl:'Observaciones', n:nInfo, c:[13,71,161]},
-    {lbl:'Correctos',     n:nOk,   c:[22,120,55]},
+  var cards = [
+    {lbl:'Errores',      n:nErr,  c:[200,35,35]},
+    {lbl:'Advertencias', n:nWarn, c:[180,115,5]},
+    {lbl:'Observaciones',n:nInfo, c:[13,71,161]},
+    {lbl:'Correctos',    n:nOk,   c:[20,115,50]},
   ];
-  var boxW = cW/4-3;
-  scores.forEach(function(s,i){
-    var bx = mL+i*(boxW+4);
-    doc.setFillColor(s.c[0],s.c[1],s.c[2]);
-    doc.roundedRect(bx, y, boxW, 18, 2, 2, 'F');
+  var bW = (cW-9)/4;
+  cards.forEach(function(sc,i){
+    var bx = mL + i*(bW+3);
+    doc.setFillColor(sc.c[0],sc.c[1],sc.c[2]);
+    doc.roundedRect(bx, y, bW, 17, 2,2,'F');
     doc.setFontSize(18); doc.setTextColor(255,255,255); doc.setFont('helvetica','bold');
-    doc.text(String(s.n), bx+boxW/2, y+12, {align:'center'});
-    doc.setFontSize(6.5); doc.setFont('helvetica','normal');
-    doc.text(s.lbl, bx+boxW/2, y+17, {align:'center'});
+    doc.text(String(sc.n), bx+bW/2, y+11, {align:'center'});
+    doc.setFontSize(6); doc.setFont('helvetica','normal');
+    doc.text(sc.lbl, bx+bW/2, y+16, {align:'center'});
   });
-  y += 26;
+  y += 22;
 
-  // ── Documentos revisados ──
-  var contratoName = (docs&&docs.contrato)?docs.contrato.name:'—';
-  var pagareName   = (docs&&docs.pagare)  ?docs.pagare.name:'—';
-  var excelName    = (docs&&docs.excel&&docs.excel.name!=='[omitido]')?docs.excel.name:'No adjuntada';
-
-  doc.setFillColor(245,247,252); doc.roundedRect(mL,y,cW,18,2,2,'F');
-  doc.setFontSize(7); doc.setTextColor(80,100,130); doc.setFont('helvetica','bold');
+  // ── Documentos analizados ──
+  var cNom = (window.docs&&window.docs.contrato) ? window.docs.contrato.name : '—';
+  var pNom = (window.docs&&window.docs.pagare)   ? window.docs.pagare.name   : '—';
+  doc.setFillColor(244,246,252);
+  doc.roundedRect(mL, y, cW, 14, 2,2,'F');
+  doc.setDrawColor(180,195,220); doc.setLineWidth(0.25);
+  doc.roundedRect(mL, y, cW, 14, 2,2,'S');
+  doc.setFontSize(6.5); doc.setTextColor(70,90,130); doc.setFont('helvetica','bold');
   doc.text('DOCUMENTOS ANALIZADOS', mL+4, y+5);
-  doc.setFont('helvetica','normal'); doc.setTextColor(40,55,80);
-  doc.text('📑 Contrato:', mL+4, y+10);
-  doc.setFont('helvetica','normal'); doc.text(contratoName, mL+26, y+10);
-  doc.text('📋 Pagaré:', mL+4, y+15);
-  doc.text(pagareName, mL+26, y+15);
-  doc.text('📊 Carátula Excel:', mL+90, y+10);
-  doc.text(excelName, mL+118, y+10);
-  y += 24;
+  doc.setFont('helvetica','normal'); doc.setTextColor(35,50,80);
+  doc.text('📑  Contrato: '+cNom, mL+4, y+10.5);
+  doc.text('📄  Pagaré: '+pNom, mL+4+cW/2, y+10.5);
+  y += 19;
 
-  /* ══════════════════════════════════════════════════
-     HELPERS DE LAYOUT
-  ══════════════════════════════════════════════════ */
+  /* ════════════════════════════════════════════════
+     SECCIÓN DICTAMEN FINAL (urgentes, ok, notas)
+  ════════════════════════════════════════════════ */
+  checkPage(16);
+  doc.setDrawColor(pal.hdr[0],pal.hdr[1],pal.hdr[2]); doc.setLineWidth(0.4);
+  doc.line(mL, y, W-mR, y); y += 5;
+  sectionBanner('🏁  DICTAMEN FINAL', pal.hdr[0],pal.hdr[1],pal.hdr[2]);
 
-  function pageHeader() {
-    doc.setFillColor(8,28,80); doc.rect(0,0,W,10,'F');
-    doc.setFontSize(7); doc.setTextColor(180,200,235); doc.setFont('helvetica','bold');
-    doc.text('PROAKTIVA — DICTAMEN DE PAGARÉ', mL, 7);
-    doc.text(fechaHoy, W-mR, 7, {align:'right'});
-  }
-
-  function checkPage(needed) {
-    if (y+needed > H-16) { doc.addPage(); pageHeader(); y=16; }
-  }
-
-  function secBanner(titulo, r,g,b) {
-    checkPage(14);
-    doc.setFillColor(r,g,b); doc.rect(mL,y,cW,9,'F');
-    doc.setFontSize(8); doc.setTextColor(255,255,255); doc.setFont('helvetica','bold');
-    doc.text(titulo, mL+4, y+6.2);
-    y += 12;
-  }
-
-  var badgeCfg = {
-    error:   { lbl:'ERROR',    bg:[210,38,38],   tbg:[255,244,244] },
-    warning: { lbl:'AVISO',    bg:[190,120,10],  tbg:[255,250,230] },
-    ok:      { lbl:'OK',       bg:[22,120,55],   tbg:[238,252,240] },
-    comment: { lbl:'NOTA',     bg:[13,71,161],   tbg:[238,244,255] },
-    info:    { lbl:'INFO',     bg:[60,90,140],   tbg:[242,246,255] },
-  };
-
-  function drawFinding(f) {
-    var cfg = badgeCfg[f.type] || badgeCfg.info;
-    var txt = (f.point?'['+f.point+'] ':'') + (f.title?f.title+' — ':'') + (f.detail||'');
-    if (f.quote) txt += '\n▸ '+f.quote;
-    var lines = doc.splitTextToSize(txt, cW-26);
-    var fH = Math.max(10, lines.length*4.6+6);
-    checkPage(fH+3);
-    // Badge
-    doc.setFillColor(cfg.bg[0],cfg.bg[1],cfg.bg[2]);
-    doc.roundedRect(mL, y, 18, fH, 1.5, 1.5, 'F');
-    var bl = doc.splitTextToSize(cfg.lbl, 16);
-    doc.setFontSize(5.5); doc.setTextColor(255,255,255); doc.setFont('helvetica','bold');
-    bl.forEach(function(b,i){ doc.text(b, mL+9, y+fH/2-bl.length*1.8+i*3.8+1.5, {align:'center'}); });
-    // Contenido
-    doc.setFillColor(cfg.tbg[0],cfg.tbg[1],cfg.tbg[2]);
-    doc.roundedRect(mL+20, y, cW-20, fH, 1.5, 1.5, 'F');
-    doc.setFontSize(7.8); doc.setTextColor(25,30,40); doc.setFont('helvetica','normal');
-    doc.text(lines, mL+23, y+5);
-    y += fH+3;
-  }
-
-  /* ══════════════════════════════════════════════════
-     SECCIONES DE HALLAZGOS
-  ══════════════════════════════════════════════════ */
-
-  // Datos del pagaré
-  if (F.datos.length) {
-    checkPage(20);
-    secBanner('📋  Datos del pagaré — Puntos 1 al 8', 30,80,140);
-    F.datos.forEach(drawFinding);
-    y += 4;
-  }
-
-  // Partes y firmas
-  if (F.partes.length) {
-    checkPage(20);
-    secBanner('👤  Partes y firmas — Puntos 3 y 10', 60,50,120);
-    F.partes.forEach(drawFinding);
-    y += 4;
-  }
-
-  // Amortizaciones
-  if (F.amort.length) {
-    checkPage(20);
-    secBanner('📊  Amortizaciones — Puntos 7 y 9', 20,90,80);
-    F.amort.forEach(drawFinding);
-    y += 4;
-  }
-
-  /* ══════════════════════════════════════════════════
-     DICTAMEN FINAL
-  ══════════════════════════════════════════════════ */
-  checkPage(30);
-  doc.setDrawColor(180,195,215); doc.setLineWidth(0.3);
-  doc.line(mL, y, W-mR, y); y += 6;
-
-  secBanner('🏁  Dictamen final', pal.hdr[0],pal.hdr[1],pal.hdr[2]);
-
-  // Urgentes
   if (d.critical && d.critical.length) {
-    d.critical.forEach(function(c){
-      drawFinding({type:'error', title:'URGENTE', detail:c});
-    });
+    d.critical.forEach(function(c){ drawFinding({type:'error',  title:'URGENTE', detail:c}); });
     y += 2;
   }
-  // OK points
   if (d.ok_points && d.ok_points.length) {
-    d.ok_points.forEach(function(c){
-      drawFinding({type:'ok', detail:c});
-    });
+    d.ok_points.forEach(function(c){ drawFinding({type:'ok',      detail:c}); });
     y += 2;
   }
-  // Comments
   if (d.comments && d.comments.length) {
-    d.comments.forEach(function(c){
-      drawFinding({type:'comment', detail:c});
-    });
+    d.comments.forEach(function(c){ drawFinding({type:'comment',  detail:c}); });
     y += 2;
   }
-  // Recomendación
   if (d.recommendation) {
-    checkPage(14);
-    doc.setFillColor(13,71,161); doc.roundedRect(mL,y,cW,10,2,2,'F');
-    doc.setFontSize(8); doc.setTextColor(255,255,255); doc.setFont('helvetica','bold');
-    doc.text('RECOMENDACIÓN', mL+4, y+7);
-    y += 13;
+    checkPage(20);
+    doc.setFillColor(13,71,161); doc.roundedRect(mL,y,cW,8,2,2,'F');
+    doc.setFontSize(7.5); doc.setTextColor(255,255,255); doc.setFont('helvetica','bold');
+    doc.text('RECOMENDACIÓN Y SIGUIENTE PASO', mL+4, y+5.5);
+    y += 11;
     var rl = doc.splitTextToSize(d.recommendation, cW-10);
     var rh = rl.length*5+8;
     checkPage(rh);
     doc.setFillColor(235,242,255); doc.roundedRect(mL,y,cW,rh,2,2,'F');
-    doc.setFillColor(13,71,161); doc.roundedRect(mL,y,3,rh,1,1,'F');
-    doc.setFontSize(8.5); doc.setTextColor(20,40,100); doc.setFont('helvetica','normal');
+    doc.setFillColor(13,71,161);  doc.roundedRect(mL,y,3,rh,1,1,'F');
+    doc.setFontSize(8.5); doc.setTextColor(20,40,105); doc.setFont('helvetica','normal');
     doc.text(rl, mL+6, y+6);
     y += rh+6;
   }
 
-  /* ══════════════════════════════════════════════════
-     FOOTER TODAS LAS PÁGINAS
-  ══════════════════════════════════════════════════ */
+  /* ════════════════════════════════════════════════
+     HALLAZGOS DETALLADOS POR SECCIÓN
+  ════════════════════════════════════════════════ */
+  if (F.datos && F.datos.length) {
+    checkPage(18);
+    y += 4;
+    sectionBanner('📋  DATOS DEL PAGARÉ  —  Puntos 1, 2, 4, 5, 6, 8', 35,75,140);
+    F.datos.forEach(drawFinding);
+  }
+  if (F.partes && F.partes.length) {
+    checkPage(18);
+    y += 4;
+    sectionBanner('👤  PARTES Y FIRMAS  —  Puntos 3 y 10', 65,50,125);
+    F.partes.forEach(drawFinding);
+  }
+  if (F.amort && F.amort.length) {
+    checkPage(18);
+    y += 4;
+    sectionBanner('📊  AMORTIZACIONES Y PLAZOS  —  Puntos 7, 9A, 9B, 9C', 20,95,85);
+    F.amort.forEach(drawFinding);
+  }
+
+  /* ════════════════════════════════════════════════
+     FOOTER EN TODAS LAS PÁGINAS
+  ════════════════════════════════════════════════ */
   var nPages = doc.internal.getNumberOfPages();
   for (var p=1; p<=nPages; p++) {
     doc.setPage(p);
-    doc.setFillColor(230,235,245); doc.rect(0, H-11, W, 11, 'F');
-    doc.setDrawColor(13,71,161); doc.setLineWidth(0.3);
+    doc.setFillColor(228,233,245); doc.rect(0, H-11, W, 11, 'F');
+    doc.setDrawColor(13,71,161); doc.setLineWidth(0.25);
     doc.line(0, H-11, W, H-11);
-    doc.setFontSize(6.5); doc.setTextColor(80,100,130); doc.setFont('helvetica','normal');
+    doc.setFontSize(6.2); doc.setTextColor(75,95,130); doc.setFont('helvetica','normal');
     doc.text('Proaktiva SAPI de CV, SOFOM, ENR  ·  Documento confidencial de uso interno  ·  Generado por ToolsPK', mL, H-5.5);
     doc.text('Página '+p+' / '+nPages, W-mR, H-5.5, {align:'right'});
   }
 
   doc.save('Dictamen_Pagare_'+new Date().toLocaleDateString('es-MX').replace(/\//g,'-')+'.pdf');
-}
 }
 </script>
         </div>
