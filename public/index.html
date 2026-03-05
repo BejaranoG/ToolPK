@@ -1420,6 +1420,7 @@ function showPanel(name) {
 
 <script type="text/babel">
 
+const { useState, useMemo } = React;
 
 const formatMXN = (v) =>
   new Intl.NumberFormat("es-MX", { style: "currency", currency: "MXN", maximumFractionDigits: 0 }).format(v);
