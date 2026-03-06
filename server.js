@@ -43,6 +43,15 @@ app.get('/api/status', (req, res) => {
   });
 });
 
+// Named page routes
+app.get('/pagare', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'pagare.html'));
+});
+app.get('/aforo', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'aforo.html'));
+});
+
+// Catch-all -> home
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
