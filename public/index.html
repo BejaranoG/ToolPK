@@ -174,6 +174,60 @@ html, body { height: 100%; font-family: "IBM Plex Sans", sans-serif; color: var(
 
 /* ── AFORO TOOL WRAPPER ── */
 #panel-aforo .panel-scroll { background: #f5f2ed; }
+
+/* ══════════════════════════════════════════════
+   RESPONSIVE — MOBILE
+══════════════════════════════════════════════ */
+.hamburger-btn {
+  display: none;
+  position: fixed; top: 12px; left: 14px; z-index: 300;
+  width: 38px; height: 38px;
+  background: var(--dark); border: none; border-radius: 8px;
+  cursor: pointer; flex-direction: column;
+  align-items: center; justify-content: center; gap: 5px;
+}
+.hamburger-btn span { display: block; width: 18px; height: 2px; background: #fff; border-radius: 2px; }
+.sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 199; }
+.sidebar-overlay.visible { display: block; }
+
+@media (max-width: 768px) {
+  .hamburger-btn { display: flex; }
+
+  .sidebar {
+    position: fixed !important;
+    top: 0; bottom: 0;
+    left: -260px;
+    width: 240px !important; min-width: 240px !important;
+    z-index: 200;
+    transition: left 0.25s ease;
+    overflow-y: auto;
+  }
+  .sidebar.open { left: 0; }
+
+  .main { margin-left: 0 !important; }
+
+  /* Home panel mobile */
+  .home-header { padding: 52px 20px 28px; }
+  .home-title  { font-size: 22px; }
+  .home-subtitle { font-size: 13px; }
+  .tools-grid { grid-template-columns: 1fr !important; padding: 20px 16px; gap: 12px; }
+  .tool-card  { padding: 18px; }
+
+  /* Aforo panel mobile */
+  .tool-header { padding: 10px 14px 10px 56px !important; flex-wrap: wrap; gap: 6px; min-height: 52px; }
+  .tool-header-title { font-size: 14px; }
+  .back-btn { padding: 6px 10px; font-size: 12px; }
+}
+
+@media (max-width: 480px) {
+  .home-title { font-size: 18px; }
+  .home-subtitle { font-size: 13px; }
+  .tool-card-title { font-size: 14px; }
+  .tool-card { padding: 18px 16px; }
+  .home-header { padding: 56px 16px 24px; }
+  .tools-grid { padding: 16px 12px; }
+}
+
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>

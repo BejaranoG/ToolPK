@@ -174,6 +174,56 @@ html, body { height: 100%; font-family: "IBM Plex Sans", sans-serif; color: var(
 
 /* ── AFORO TOOL WRAPPER ── */
 #panel-aforo .panel-scroll { background: #f5f2ed; }
+
+/* ══════════════════════════════════════════════
+   RESPONSIVE — MOBILE
+══════════════════════════════════════════════ */
+.hamburger-btn {
+  display: none;
+  position: fixed; top: 12px; left: 14px; z-index: 300;
+  width: 38px; height: 38px;
+  background: var(--dark); border: none; border-radius: 8px;
+  cursor: pointer; flex-direction: column;
+  align-items: center; justify-content: center; gap: 5px;
+}
+.hamburger-btn span { display: block; width: 18px; height: 2px; background: #fff; border-radius: 2px; }
+.sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 199; }
+.sidebar-overlay.visible { display: block; }
+
+@media (max-width: 768px) {
+  .hamburger-btn { display: flex; }
+
+  .sidebar {
+    position: fixed !important;
+    top: 0; bottom: 0;
+    left: -260px;
+    width: 240px !important; min-width: 240px !important;
+    z-index: 200;
+    transition: left 0.25s ease;
+    overflow-y: auto;
+  }
+  .sidebar.open { left: 0; }
+
+  .main { margin-left: 0 !important; }
+
+  /* Home panel mobile */
+  .home-header { padding: 52px 20px 28px; }
+  .home-title  { font-size: 22px; }
+  .home-subtitle { font-size: 13px; }
+  .tools-grid { grid-template-columns: 1fr !important; padding: 20px 16px; gap: 12px; }
+  .tool-card  { padding: 18px; }
+
+  /* Aforo panel mobile */
+  .tool-header { padding: 10px 14px 10px 56px !important; flex-wrap: wrap; gap: 6px; min-height: 52px; }
+  .tool-header-title { font-size: 14px; }
+  .back-btn { padding: 6px 10px; font-size: 12px; }
+}
+
+@media (max-width: 480px) {
+  .home-title { font-size: 19px; }
+  .tool-card-title { font-size: 14px; }
+}
+
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
@@ -640,7 +690,19 @@ function AforoApp() {
         @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500;600&display=swap');
         .aforo-app { font-family: 'DM Sans', sans-serif; background: #f5f2ed; min-height: 100%; }
         .aforo-main { display: grid; grid-template-columns: 1fr 340px; gap: 0; max-width: 1200px; margin: 0 auto; padding: 32px 24px; }
-        @media (max-width: 860px) { .aforo-main { grid-template-columns: 1fr; } }
+        @media (max-width: 860px) { 
+          .aforo-main { grid-template-columns: 1fr; padding: 20px 16px; }
+        }
+        @media (max-width: 480px) {
+          .aforo-main { padding: 12px 10px; }
+          .aforo-form { padding-right: 0 !important; }
+          .asection-header { padding: 10px 14px; }
+          .asection-body { padding: 14px !important; }
+          .arow-2 { grid-template-columns: 1fr !important; }
+          .atoggles-grid { grid-template-columns: 1fr 1fr !important; }
+          .aforo-kpis .akpi-value.big { font-size: 18px; }
+          .aforo-pdf-btn { width: 100%; justify-content: center; }
+        }
         .aforo-form { padding-right: 28px; display: flex; flex-direction: column; gap: 20px; }
         .asection { background: white; border: 1px solid #e0dbd2; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
         .asection-header { background: #faf8f5; border-bottom: 1px solid #e0dbd2; padding: 12px 18px; display: flex; align-items: center; gap: 10px; }
