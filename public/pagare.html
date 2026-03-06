@@ -994,14 +994,12 @@ function renderFindings(bodyId, findings) {
   }
   document.getElementById(bodyId).innerHTML = findings.map(function(f) {
     var pointHtml = f.point ? '<div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.07em;margin-bottom:3px">' + esc(f.point) + '</div>' : '';
-    var quoteHtml = '';
     return '<div class="finding f-' + typeClass(f.type) + '">'
       + '<span class="fbadge">' + badgeText(f.type) + '</span>'
       + '<div class="fcontent">'
       + pointHtml
       + '<div class="ftitle">' + esc(f.title||'') + '</div>'
       + '<div class="fdetail">' + esc(f.detail||'') + '</div>'
-      + quoteHtml
       + '</div></div>';
   }).join('');
 }
@@ -1095,14 +1093,9 @@ async function exportarPDF() {
     var pointTxt  = f.point  ? '['+f.point+']  ' : '';
     var titleTxt  = f.title  || '';
     var detailTxt = f.detail || '';
-    var quoteTxt  = '';
-
     var titleLines  = doc.splitTextToSize(pointTxt + titleTxt, cW-28);
     var detailLines = doc.splitTextToSize(detailTxt, cW-28);
-    var quoteLines  = quoteTxt ? doc.splitTextToSize(quoteTxt, cW-30) : [];
-
-    var totalH = titleLines.length*5 + detailLines.length*4.5
-               + (quoteLines.length ? quoteLines.length*4.2+5 : 0) + 8;
+    var totalH = titleLines.length*5 + detailLines.length*4.5 + 8;
     totalH = Math.max(12, totalH);
     checkPage(totalH + 3);
 
@@ -1128,12 +1121,6 @@ async function exportarPDF() {
       doc.setFontSize(7.5); doc.setTextColor(30,35,45); doc.setFont('helvetica','normal');
       doc.text(detailLines, mL+23, cy);
       cy += detailLines.length*4.5 + 1;
-    }
-    if (quoteLines.length) {
-      doc.setFillColor(cfg.bg[0],cfg.bg[1],cfg.bg[2]);
-      doc.roundedRect(mL+22, cy+1, cW-24, quoteLines.length*4.2+4, 1,1,'F');
-      doc.setFontSize(6.8); doc.setTextColor(255,255,255); doc.setFont('helvetica','normal');
-      doc.text(quoteLines, mL+25, cy+4.5);
     }
     y += totalH + 3;
   }
