@@ -465,63 +465,30 @@ html[data-theme="dark"] .sidebar {
   box-shadow: inset -1px 0 0 rgba(255,255,255,0.05);
 }
 .theme-toggle {
-  width: calc(100% - 16px);
-  margin: 8px;
-  border: 1px solid rgba(255,255,255,0.09);
-  border-radius: 12px;
-  background: rgba(255,255,255,0.06);
-  color: rgba(255,255,255,0.92);
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 12px;
-  cursor: pointer;
-  transition: transform 0.18s ease, background 0.18s ease, border-color 0.18s ease;
-}
-.theme-toggle:hover {
-  background: rgba(255,255,255,0.10);
-  border-color: rgba(255,255,255,0.16);
-}
-.theme-toggle:active {
-  transform: scale(0.98);
-}
-.theme-toggle-icon {
-  width: 30px;
-  height: 30px;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(255,255,255,0.09);
-  font-size: 15px;
-  flex-shrink: 0;
-}
-.theme-toggle-copy {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-}
-.theme-toggle-label {
-  font-size: 12px;
-  font-weight: 600;
-  line-height: 1.2;
-}
-.theme-toggle-state {
-  font-size: 10px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: rgba(255,255,255,0.48);
-  margin-top: 2px;
-}
-.sidebar:not(:hover) .theme-toggle {
   width: 42px;
   height: 42px;
   margin: 8px auto;
   padding: 0;
+  display: flex;
+  align-items: center;
   justify-content: center;
+  background: rgba(255,255,255,0.07);
+  border: 1px solid rgba(255,255,255,0.10);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.12s ease;
+  flex-shrink: 0;
 }
-.sidebar:not(:hover) .theme-toggle-copy {
-  display: none;
+.theme-toggle:hover {
+  background: rgba(255,255,255,0.14);
+}
+.theme-toggle:active { transform: scale(0.95); }
+.theme-toggle-icon {
+  font-size: 17px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 html[data-theme="dark"] #panel-pagare .panel-scroll,
 html[data-theme="dark"] #panel-aforo .panel-scroll,
@@ -529,18 +496,7 @@ html[data-theme="dark"] #panel-calc .panel-scroll,
 html[data-theme="dark"] #panel-bitacora .panel-scroll {
   background: var(--surface2) !important;
 }
-@media (max-width: 768px) {
-  .theme-toggle {
-    width: calc(100% - 16px) !important;
-    height: auto !important;
-    margin: 8px !important;
-    padding: 10px 12px !important;
-    justify-content: flex-start !important;
-  }
-  .theme-toggle-copy {
-    display: flex !important;
-  }
-}
+
 
 /* === SIDEBAR FINAL ALIGNMENT + TPK === */
 .sidebar-logo {
@@ -655,110 +611,6 @@ html[data-theme="dark"] #panel-bitacora .panel-scroll {
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
-<style id="toolspk-theme-floating-patch">
-/* ═══════════════════════════════════════════════════
-   TOOLSPK — PATCH FLOATING THEME + ICON ALIGNMENT
-═══════════════════════════════════════════════════ */
-.sidebar .nav-item {
-  display: flex !important;
-  align-items: center !important;
-}
-
-.sidebar .nav-icon {
-  width: 32px !important;
-  height: 32px !important;
-  min-width: 32px !important;
-  min-height: 32px !important;
-  padding: 0 !important;
-  margin: 0 !important;
-  flex: 0 0 32px !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  text-align: center !important;
-  line-height: 1 !important;
-}
-
-.sidebar .nav-glyph {
-  width: 1.15em;
-  height: 1.15em;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  line-height: 1;
-  text-align: center;
-  font-style: normal;
-}
-
-.sidebar:not(:hover) .nav-icon {
-  margin: 0 auto !important;
-}
-
-.theme-toggle,
-.sidebar:not(:hover) .theme-toggle {
-  position: fixed !important;
-  right: 20px !important;
-  bottom: 20px !important;
-  left: auto !important;
-  width: auto !important;
-  min-width: 180px;
-  max-width: calc(100vw - 32px);
-  height: 50px !important;
-  margin: 0 !important;
-  padding: 10px 14px !important;
-  justify-content: flex-start !important;
-  border-radius: 14px !important;
-  z-index: 9999 !important;
-  box-shadow: 0 14px 34px rgba(10, 21, 32, 0.22), 0 4px 14px rgba(14,95,168,0.12) !important;
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-}
-
-.theme-toggle-copy,
-.sidebar:not(:hover) .theme-toggle-copy {
-  display: flex !important;
-}
-
-html[data-theme="light"] .theme-toggle {
-  background: rgba(255,255,255,0.92) !important;
-  color: var(--ink) !important;
-  border: 1px solid rgba(14,95,168,0.12) !important;
-}
-
-html[data-theme="light"] .theme-toggle-icon {
-  background: rgba(14,95,168,0.08) !important;
-}
-
-html[data-theme="light"] .theme-toggle-state {
-  color: var(--muted) !important;
-}
-
-html[data-theme="dark"] .theme-toggle {
-  background: rgba(15,26,39,0.92) !important;
-  color: rgba(255,255,255,0.94) !important;
-  border: 1px solid rgba(255,255,255,0.08) !important;
-}
-
-html[data-theme="dark"] .theme-toggle-icon {
-  background: rgba(255,255,255,0.08) !important;
-}
-
-html[data-theme="dark"] .theme-toggle-state {
-  color: rgba(255,255,255,0.52) !important;
-}
-
-@media (max-width: 768px) {
-  .theme-toggle,
-  .sidebar:not(:hover) .theme-toggle {
-    right: 16px !important;
-    bottom: 16px !important;
-    min-width: 0 !important;
-    width: auto !important;
-    max-width: calc(100vw - 24px) !important;
-  }
-}
-</style>
-
 </head>
 <body>
 <div id="app">
@@ -800,18 +652,11 @@ html[data-theme="dark"] .theme-toggle-state {
       <span>Bitácora de Gestiones</span>
     </div>
 
-
-    
-    <button class="theme-toggle" id="themeToggle" type="button" aria-label="Cambiar entre modo claro y modo oscuro">
-      <span class="theme-toggle-icon" id="themeToggleIcon">☀️</span>
-      <span class="theme-toggle-copy">
-        <span class="theme-toggle-label">Apariencia</span>
-        <span class="theme-toggle-state" id="themeToggleState">Modo claro</span>
-      </span>
-    </button>
-
     <div class="sidebar-spacer"></div>
-    <div class="sidebar-footer">ToolsPK v1.0 · Proaktiva</div>
+    <button class="theme-toggle" id="themeToggle" type="button" aria-label="Cambiar tema">
+      <span class="theme-toggle-icon" id="themeToggleIcon">☀️</span>
+    </button>
+    <div class="sidebar-footer">ToolsPK v3.3 · Proaktiva</div>
   </nav>
 
   
