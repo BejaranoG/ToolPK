@@ -3,9 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="mobile-web-app-capable" content="yes">
-<title>ToolsPK — Proaktiva</title>
+<title>Bitácora de Gestiones | ToolsPK</title>
 <script>
 (function(){
   try {
@@ -17,17 +15,12 @@
   }
 })();
 </script>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600&family=IBM+Plex+Mono:wght@400&family=IBM+Plex+Sans:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
-
-<!-- Pagare dependencies -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=IBM+Plex+Sans:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-
-<!-- React for Aforo -->
-<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
 <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-
 <style>
 /* ═══════════════════════════════════════════════════
    PORTAL TOOLSPK — ESTILOS GLOBALES
@@ -653,7 +646,28 @@ html[data-theme="dark"] #panel-bitacora .panel-scroll {
 }
 
 </style>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+#panel-bitacora .panel-scroll { background: var(--surface2); padding: 0; transition: background 0.25s ease, color 0.25s ease; }
+.main { flex: 1; display: flex; flex-direction: column; overflow: hidden; min-width: 0; }
+.panels { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+.panel { display: none; flex: 1; flex-direction: column; overflow: hidden; }
+.panel.active { display: flex; }
+.panel-scroll { flex: 1; overflow-y: auto; }
+#bitacora-root { height: 100%; background: var(--surface2); transition: background 0.25s ease, color 0.25s ease; }
+@media (max-width: 768px) {
+  .hamburger-btn { display: flex; }
+  .sidebar {
+    position: fixed !important; top: 0; bottom: 0;
+    left: -260px; width: 240px !important; min-width: 240px !important;
+    z-index: 200; transition: left 0.25s ease !important; overflow-y: auto;
+  }
+  .sidebar:hover { width: 240px !important; }
+  .sidebar.open { left: 0; }
+  .sidebar .sidebar-logo-name, .sidebar .sidebar-logo-sub, .sidebar .sidebar-section,
+  .sidebar .sidebar-footer, .sidebar .nav-badge,
+  .sidebar .nav-item > span:not(.nav-icon) { opacity: 1; }
+}
+</style>
 
 <style id="toolspk-theme-floating-patch">
 /* ═══════════════════════════════════════════════════
@@ -759,10 +773,83 @@ html[data-theme="dark"] .theme-toggle-state {
 }
 </style>
 
+
+<style id="toolspk-bitacora-fullbleed-patch">
+/* ═══════════════════════════════════════════════════
+   TOOLSPK — BITÁCORA FULL WIDTH / FULL HEIGHT
+═══════════════════════════════════════════════════ */
+#main.main {
+  max-width: none !important;
+  width: calc(100vw - 58px) !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+#panel-bitacora,
+#panel-bitacora .panel-scroll,
+#bitacora-root {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+#panel-bitacora .panel-scroll {
+  background: var(--surface2) !important;
+  padding: 0 !important;
+}
+
+#bitacora-root,
+#bitacora-root .app-wrap {
+  min-height: 100% !important;
+}
+
+#bitacora-root .app-wrap {
+  width: 100% !important;
+  background: var(--bg) !important;
+}
+
+#bitacora-root .main {
+  max-width: none !important;
+  width: 100% !important;
+  margin: 0 !important;
+  padding: 28px 32px !important;
+}
+
+@media (max-width: 768px) {
+  #main.main {
+    width: 100% !important;
+  }
+
+  #bitacora-root .main {
+    padding: 18px 16px 24px !important;
+  }
+}
+</style>
+
+
+<style id="bitacora-fullwidth-hard-patch">
+#panel-bitacora .panel-scroll {
+  padding: 0 !important;
+}
+#bitacora-root,
+#bitacora-root .app-wrap,
+#bitacora-root .main {
+  width: 100% !important;
+}
+#bitacora-root .main {
+  max-width: none !important;
+  margin: 0 !important;
+  padding: 28px 32px !important;
+}
+@media (max-width: 768px) {
+  #bitacora-root .main {
+    padding: 16px !important;
+  }
+}
+</style>
+
 </head>
 <body>
 <div id="app">
-
 <!-- ═══════════ SIDEBAR ═══════════ -->
   <button class="hamburger-btn" id="hamburgerBtn" onclick="toggleSidebar()" aria-label="Menú">
   <span></span><span></span><span></span>
@@ -778,7 +865,7 @@ html[data-theme="dark"] .theme-toggle-state {
 
     <div class="sidebar-section">Herramientas</div>
 
-    <div class="nav-item" id="nav-home" class="nav-item active" onclick="window.location.href='/index.html'">
+    <div class="nav-item" id="nav-home" onclick="window.location.href='/index.html'">
       <div class="nav-icon"><span class="nav-glyph">🏠</span></div>
       <span>Inicio</span>
     </div>
@@ -795,7 +882,7 @@ html[data-theme="dark"] .theme-toggle-state {
       <div class="nav-icon"><span class="nav-glyph">🧮</span></div>
       <span>Calculadora de Crédito</span>
     </div>
-    <div class="nav-item" id="nav-bitacora" onclick="window.location.href='/bitacora.html'">
+    <div class="nav-item" id="nav-bitacora" class="nav-item active" onclick="window.location.href='/bitacora.html'">
       <div class="nav-icon"><span class="nav-glyph">📒</span></div>
       <span>Bitácora de Gestiones</span>
     </div>
@@ -818,51 +905,2040 @@ html[data-theme="dark"] .theme-toggle-state {
 
 <div class="main" id="main">
   <div class="panels">
-    <div class="panel active" id="panel-home">
+    <div class="panel active" id="panel-bitacora">
       <div class="panel-scroll">
-        <div class="home-header">
-          <div class="home-header-content">
-            <div class="home-greeting">Proaktiva SAPI de CV, SOFOM, ENR</div>
-            <div class="home-title">Portal de Herramientas<br>Internas</div>
-            <div class="home-sub">Selecciona una herramienta para comenzar.</div>
-          </div>
-        </div>
-        <div class="tools-grid">
-          <div class="tool-card" onclick="window.location.href='/pagare.html'">
-            <div class="tool-card-icon blue">📋</div>
-            <div class="tool-card-name">Revisión de Pagarés</div>
-            <div class="tool-card-desc">Analiza pagarés contra contratos y carátulas Excel con IA. Detecta errores en 10 puntos clave de validación.</div>
-            <div class="tool-card-tag ai">✦ Powered by IA</div>
-            <div class="tool-card-arrow">→</div>
-          </div>
-          <div class="tool-card" onclick="window.location.href='/aforo.html'">
-            <div class="tool-card-icon gold">🏠</div>
-            <div class="tool-card-name">Aforo de Garantía</div>
-            <div class="tool-card-desc">Calcula el aforo requerido para una garantía hipotecaria según las políticas de Proaktiva. Resultado en tiempo real.</div>
-            <div class="tool-card-tag calc">⚡ Cálculo instantáneo</div>
-            <div class="tool-card-arrow">→</div>
-          </div>
-          <div class="tool-card" onclick="window.location.href='/calc.html'">
-            <div class="tool-card-icon blue">🧮</div>
-            <div class="tool-card-name">Calculadora de Crédito</div>
-            <div class="tool-card-desc">Calcula pagos mensuales, intereses y tablas de amortización bajo distintos esquemas de crédito.</div>
-            <div class="tool-card-tag calc">⚡ Cálculo instantáneo</div>
-            <div class="tool-card-arrow">→</div>
-          </div>
-          <div class="tool-card" onclick="window.location.href='/bitacora.html'">
-            <div class="tool-card-icon gold">📒</div>
-            <div class="tool-card-name">Bitácora de Gestiones</div>
-            <div class="tool-card-desc">Registra y da seguimiento a las gestiones de cobranza. Carga archivos Excel, filtra y exporta datos.</div>
-            <div class="tool-card-tag ai">✦ Gestión integral</div>
-            <div class="tool-card-arrow">→</div>
-          </div>
-        </div>
+        <div id="bitacora-root"></div>
       </div>
     </div>
   </div>
 </div>
-
 </div>
+
+<script type="text/babel">
+const { useState, useEffect, useCallback, useMemo, useRef } = React;
+
+
+// ─── CONFIG ───
+const EXEC_NAME = "Gerardo Emiliano Bejarano Ruiz";
+const LEGACY_STORAGE_KEY = "gestiones-historico";
+const AUTH_TOKEN_KEY = "bitacora-auth-token";
+const API_BASE = "";
+
+const DROPDOWN_OPTIONS = {
+  reincidente: ["Si", "No"],
+  etapa: ["ETAPA 1", "ETAPA 2", "ETAPA 3"],
+  areaResponsable: ["RECUPERACION", "COMERCIAL"],
+  tipoGestion: ["Llamada", "Whatsapp", "Visita", "Correo", "Otro"],
+  impago: ["Si", "No"],
+  estadoGestion: [
+    "GESTION PREVENTIVA",
+    "GESTION ADMINISTRATIVA",
+    "GESTION PREVENTIVA, Y DE COBRANZA",
+    "ESPERA DE PROMESA DE PAGO",
+    "ESPERA DE RESPUESTA",
+    "PROMESA DE PAGO",
+    "SIN RESPUESTA",
+    "SIN EXITO",
+    "TRATAMIENTO",
+    "TRASPASO A COMERCIAL",
+    "MENSAJES FRECUENTES",
+    "RESPUESTA DEL CLIENTE",
+  ],
+  fechaCompromiso: [
+    "A SU VENCIMIENTO",
+    "ESPERA DE PROMESA DE PAGO",
+    "N/A",
+    "NO EXISTE",
+    "FECHA ESPECÍFICA",
+  ],
+  siguienteAccion: [
+    "SEGUIMIENTO",
+    "NOTIFICACION",
+    "RECORDATORIO",
+    "ESPERA DE RESPUESTA",
+    "ESPERA DE PAGO",
+    "BUSCAR LLAMADA",
+    "FECHA ESPECÍFICA",
+  ],
+  prioridad: ["Alta", "Media", "Baja"],
+};
+
+// ─── CARTERA COLUMN MAP ───
+const CARTERA_COLS = {
+  FECHA_SALDO: 0, CLIENTE: 3, FOLIO_CLIENTE: 4, RFC: 9,
+  LOCALIDAD: 14, ESTADO: 15, SUCURSAL: 18, EJECUTIVO_LINEA: 19,
+  STATUS: 31, STATUS_COBRANZA: 32, IFRS9: 33, DIAS_IMPAGO: 48,
+  SALDO_INSOLUTO: 60, SALDO_CAPITAL_IMPAGO: 62, SALDO_NETO: 91,
+};
+
+// ─── STYLES ───
+const css = `
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Instrument+Serif:ital@0;1&display=swap');
+
+:root,
+html[data-theme="light"] {
+  --bg: #f3f7fc;
+  --surface: #ffffff;
+  --surface2: #edf3fa;
+  --surface3: #e4edf7;
+  --border: #d7e2ee;
+  --border-accent: #c4d1df;
+  --text: #18283a;
+  --text2: #547089;
+  --text3: #7f95aa;
+  --accent: #0e5fa8;
+  --accent2: #1a7dd4;
+  --accent-glow: rgba(14,95,168,0.14);
+  --success: #1e9d67;
+  --warning: #c9922a;
+  --danger: #d14343;
+  --gold: #c9922a;
+}
+
+html[data-theme="dark"] {
+  --bg: #0a0c10;
+  --surface: #12151c;
+  --surface2: #1a1e28;
+  --surface3: #222733;
+  --border: #2a3040;
+  --border-accent: #3d4560;
+  --text: #e8eaf0;
+  --text2: #9aa0b4;
+  --text3: #636b82;
+  --accent: #4f8cff;
+  --accent2: #3a6fd8;
+  --accent-glow: rgba(79,140,255,0.15);
+  --success: #3ecf8e;
+  --warning: #f0b429;
+  --danger: #ef4444;
+  --gold: #c9a84c;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+.app-wrap {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── LOGIN ── */
+.login-screen {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, var(--bg) 0%, var(--surface2) 52%, var(--bg) 100%);
+  position: relative;
+  overflow: hidden;
+}
+
+.login-screen::before {
+  content: '';
+  position: absolute;
+  top: -50%; left: -50%;
+  width: 200%; height: 200%;
+  background: radial-gradient(circle at 30% 40%, var(--accent-glow) 0%, transparent 50%),
+              radial-gradient(circle at 70% 60%, rgba(201,168,76,0.08) 0%, transparent 50%);
+  animation: loginBg 20s ease-in-out infinite alternate;
+}
+
+@keyframes loginBg {
+  0% { transform: translate(0,0) rotate(0deg); }
+  100% { transform: translate(-3%,2%) rotate(3deg); }
+}
+
+.login-card {
+  position: relative;
+  z-index: 2;
+  width: 400px;
+  padding: 48px 40px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  box-shadow: 0 24px 80px rgba(14,95,168,0.14);
+}
+
+html[data-theme="dark"] .login-card {
+  box-shadow: 0 24px 80px rgba(0,0,0,0.5);
+}
+
+.login-card h1 {
+  font-family: 'Instrument Serif', serif;
+  font-size: 32px;
+  font-weight: 400;
+  letter-spacing: -0.5px;
+  margin-bottom: 4px;
+  color: var(--text);
+}
+
+.login-card .subtitle {
+  color: var(--text3);
+  font-size: 13px;
+  margin-bottom: 32px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+.login-card label {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text2);
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+
+.login-card input {
+  width: 100%;
+  padding: 12px 14px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  font-size: 14px;
+  font-family: 'DM Sans', sans-serif;
+  margin-bottom: 20px;
+  transition: border-color 0.2s;
+}
+
+.login-card input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-glow);
+}
+
+.login-btn {
+  width: 100%;
+  padding: 13px;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  letter-spacing: 0.5px;
+}
+
+.login-btn:hover { background: var(--accent2); transform: translateY(-1px); }
+.login-btn:disabled { opacity: 0.7; cursor: not-allowed; transform: none; }
+
+.login-error {
+  background: rgba(239,68,68,0.1);
+  border: 1px solid rgba(239,68,68,0.3);
+  color: var(--danger);
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  margin-bottom: 16px;
+}
+
+/* ── HEADER ── */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 32px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+
+.header-brand {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.header-brand .logo {
+  width: 36px; height: 36px;
+  background: linear-gradient(135deg, var(--accent), var(--gold));
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 16px;
+  color: #fff;
+}
+
+.header-brand h2 {
+  font-family: 'Instrument Serif', serif;
+  font-size: 22px;
+  font-weight: 400;
+  letter-spacing: -0.3px;
+}
+
+.header-nav {
+  display: flex;
+  gap: 4px;
+  background: var(--surface2);
+  padding: 4px;
+  border-radius: 10px;
+}
+
+.nav-btn {
+  padding: 8px 18px;
+  border: none;
+  background: transparent;
+  color: var(--text2);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  border-radius: 7px;
+  transition: all 0.2s;
+  font-family: 'DM Sans', sans-serif;
+}
+
+.nav-btn:hover { color: var(--text); }
+.nav-btn.active { background: var(--accent); color: #fff; }
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.user-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--text2);
+}
+
+.user-avatar {
+  width: 32px; height: 32px;
+  background: var(--surface3);
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--accent);
+}
+
+.logout-btn {
+  padding: 7px 14px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  color: var(--text2);
+  font-size: 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+  transition: all 0.2s;
+}
+
+.logout-btn:hover { border-color: var(--danger); color: var(--danger); }
+
+
+.storage-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  color: var(--text2);
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.storage-pill .dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--warning);
+  box-shadow: 0 0 0 3px rgba(201,146,42,0.16);
+}
+
+.storage-pill.ok .dot {
+  background: var(--success);
+  box-shadow: 0 0 0 3px rgba(30,157,103,0.16);
+}
+
+.storage-pill.local .dot {
+  background: var(--warning);
+}
+
+.storage-pill.error .dot {
+  background: var(--danger);
+  box-shadow: 0 0 0 3px rgba(209,67,67,0.16);
+}
+
+.storage-pill strong {
+  color: var(--text);
+  font-weight: 700;
+}
+
+/* ── MAIN CONTENT ── */
+.main {
+  flex: 1;
+  padding: 28px 32px;
+  max-width: 1400px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+/* ── UPLOAD SECTION ── */
+.upload-zone {
+  border: 2px dashed var(--border);
+  border-radius: 14px;
+  padding: 40px;
+  text-align: center;
+  background: var(--surface);
+  transition: all 0.3s;
+  cursor: pointer;
+  margin-bottom: 28px;
+}
+
+.upload-zone:hover, .upload-zone.drag-over {
+  border-color: var(--accent);
+  background: var(--accent-glow);
+}
+
+.upload-zone .icon {
+  font-size: 40px;
+  margin-bottom: 12px;
+  opacity: 0.6;
+}
+
+.upload-zone h3 {
+  font-size: 16px;
+  font-weight: 500;
+  margin-bottom: 6px;
+}
+
+.upload-zone p {
+  color: var(--text3);
+  font-size: 13px;
+}
+
+.upload-status {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 18px;
+  background: rgba(62,207,142,0.08);
+  border: 1px solid rgba(62,207,142,0.2);
+  border-radius: 10px;
+  margin-bottom: 28px;
+  font-size: 13px;
+  color: var(--success);
+}
+
+/* ── FORM ── */
+.form-section {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 28px;
+  margin-bottom: 28px;
+}
+
+.form-section h3 {
+  font-family: 'Instrument Serif', serif;
+  font-size: 22px;
+  font-weight: 400;
+  margin-bottom: 20px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--border);
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 18px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.form-group.full-width {
+  grid-column: 1 / -1;
+}
+
+.form-group label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text2);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.form-group select,
+.form-group input,
+.form-group textarea {
+  padding: 10px 12px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  font-size: 13px;
+  font-family: 'DM Sans', sans-serif;
+  transition: border-color 0.2s;
+}
+
+.form-group select:focus,
+.form-group input:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-glow);
+}
+
+.form-group textarea {
+  min-height: 80px;
+  resize: vertical;
+}
+
+.form-group .auto-value {
+  padding: 10px 12px;
+  background: rgba(79,140,255,0.06);
+  border: 1px solid rgba(79,140,255,0.15);
+  border-radius: 8px;
+  font-size: 13px;
+  color: var(--accent);
+  font-weight: 500;
+}
+
+.form-group .auto-value.gold {
+  background: rgba(201,168,76,0.08);
+  border-color: rgba(201,168,76,0.2);
+  color: var(--gold);
+}
+
+.btn-row {
+  display: flex;
+  gap: 12px;
+  margin-top: 24px;
+  justify-content: flex-end;
+}
+
+.btn {
+  padding: 11px 24px;
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn-primary {
+  background: var(--accent);
+  color: #fff;
+}
+.btn-primary:hover { background: var(--accent2); transform: translateY(-1px); }
+.btn-primary:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+.btn-secondary {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  color: var(--text2);
+}
+.btn-secondary:hover { border-color: var(--text3); color: var(--text); }
+
+.btn-success {
+  background: var(--success);
+  color: #0a0c10;
+}
+.btn-success:hover { opacity: 0.9; }
+
+.btn-gold {
+  background: var(--gold);
+  color: #0a0c10;
+}
+.btn-gold:hover { opacity: 0.9; }
+
+.btn-danger {
+  background: transparent;
+  border: 1px solid rgba(239,68,68,0.3);
+  color: var(--danger);
+}
+.btn-danger:hover { background: rgba(239,68,68,0.08); }
+
+/* ── TABLE ── */
+.table-section {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+.table-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--border);
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.table-header h3 {
+  font-family: 'Instrument Serif', serif;
+  font-size: 22px;
+  font-weight: 400;
+}
+
+.table-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.filters-bar {
+  display: flex;
+  gap: 10px;
+  padding: 16px 24px;
+  border-bottom: 1px solid var(--border);
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.filter-input {
+  padding: 8px 12px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  font-size: 12px;
+  font-family: 'DM Sans', sans-serif;
+  min-width: 140px;
+}
+
+.filter-input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.filter-input::placeholder { color: var(--text3); }
+
+.table-wrap {
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+th {
+  padding: 12px 14px;
+  text-align: left;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text3);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  background: var(--surface2);
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+  position: sticky;
+  top: 0;
+}
+
+td {
+  padding: 11px 14px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text2);
+  white-space: nowrap;
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+tr:hover td { background: var(--surface2); }
+
+.badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+.badge-alta { background: rgba(239,68,68,0.12); color: var(--danger); }
+.badge-media { background: rgba(240,180,41,0.12); color: var(--warning); }
+.badge-baja { background: rgba(62,207,142,0.12); color: var(--success); }
+
+.badge-etapa1 { background: rgba(62,207,142,0.12); color: var(--success); }
+.badge-etapa2 { background: rgba(240,180,41,0.12); color: var(--warning); }
+.badge-etapa3 { background: rgba(239,68,68,0.12); color: var(--danger); }
+
+.toque-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  font-size: 11px;
+  font-weight: 700;
+  background: var(--accent-glow);
+  color: var(--accent);
+  border: 1px solid rgba(79,140,255,0.2);
+}
+
+.toque-badge.high {
+  background: rgba(201,168,76,0.12);
+  color: var(--gold);
+  border-color: rgba(201,168,76,0.25);
+}
+
+/* ── STATS ── */
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-bottom: 28px;
+}
+
+.stat-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px;
+}
+
+.stat-card .label {
+  font-size: 11px;
+  color: var(--text3);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.stat-card .value {
+  font-family: 'Instrument Serif', serif;
+  font-size: 28px;
+  color: var(--text);
+}
+
+.stat-card .value.accent { color: var(--accent); }
+.stat-card .value.gold { color: var(--gold); }
+.stat-card .value.success { color: var(--success); }
+
+/* ── TOAST ── */
+.toast {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  padding: 14px 22px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  font-size: 13px;
+  color: var(--text);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.4);
+  z-index: 999;
+  animation: toastIn 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.toast.success { border-color: rgba(62,207,142,0.3); }
+.toast.error { border-color: rgba(239,68,68,0.3); }
+
+@keyframes toastIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ── CLIENT SELECTOR ── */
+.client-search-wrap {
+  position: relative;
+}
+
+.client-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  max-height: 220px;
+  overflow-y: auto;
+  background: var(--surface2);
+  border: 1px solid var(--border-accent);
+  border-radius: 8px;
+  z-index: 20;
+  margin-top: 4px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+}
+
+.client-dropdown .item {
+  padding: 10px 14px;
+  cursor: pointer;
+  border-bottom: 1px solid var(--border);
+  transition: background 0.15s;
+}
+
+.client-dropdown .item:hover { background: var(--surface3); }
+
+.client-dropdown .item .name {
+  font-size: 13px;
+  color: var(--text);
+  font-weight: 500;
+}
+
+.client-dropdown .item .meta {
+  font-size: 11px;
+  color: var(--text3);
+  margin-top: 2px;
+}
+
+.selected-client-card {
+  background: rgba(79,140,255,0.06);
+  border: 1px solid rgba(79,140,255,0.15);
+  border-radius: 10px;
+  padding: 14px 18px;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.selected-client-card .info h4 {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--accent);
+}
+
+.selected-client-card .info p {
+  font-size: 12px;
+  color: var(--text3);
+  margin-top: 2px;
+}
+
+.clear-btn {
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--text3);
+  padding: 5px 10px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 11px;
+  font-family: 'DM Sans', sans-serif;
+}
+
+.clear-btn:hover { border-color: var(--danger); color: var(--danger); }
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--surface); }
+::-webkit-scrollbar-thumb { background: var(--border-accent); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text3); }
+
+/* ── PAGINATION ── */
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 16px;
+}
+
+.page-btn {
+  padding: 6px 12px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  color: var(--text2);
+  border-radius: 6px;
+  font-size: 12px;
+  cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+}
+
+.page-btn:hover { border-color: var(--accent); }
+.page-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+.page-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--text3);
+}
+.empty-state .icon { font-size: 48px; margin-bottom: 12px; opacity: 0.4; }
+.empty-state h4 { font-size: 16px; color: var(--text2); margin-bottom: 6px; }
+.empty-state p { font-size: 13px; }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 768px) {
+  .header { padding: 12px 16px; flex-wrap: wrap; gap: 10px; }
+  .main { padding: 16px; }
+  .form-grid { grid-template-columns: 1fr; }
+  .stats-row { grid-template-columns: 1fr 1fr; }
+  .login-card { width: 90%; padding: 32px 24px; }
+}
+`;
+
+// ─── HELPERS ───
+function formatMoney(n) {
+  if (n == null || isNaN(n)) return "$0.00";
+  return "$" + Number(n).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+function formatDate(d) {
+  if (!d) return "";
+  if (d instanceof Date) {
+    return d.toISOString().split("T")[0];
+  }
+  return String(d).split("T")[0].split(" ")[0];
+}
+
+function todayStr() {
+  return new Date().toISOString().split("T")[0];
+}
+
+function getMonthKey(dateStr) {
+  if (!dateStr) return "";
+  const parts = String(dateStr).split("-");
+  return parts[0] + "-" + parts[1];
+}
+
+function normalizeHeader(value) {
+  return String(value || "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toUpperCase()
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function parseAmount(value) {
+  if (value == null || value === "" || value === "--") return 0;
+  if (typeof value === "number") return Number.isFinite(value) ? value : 0;
+
+  let str = String(value).trim();
+  if (!str || str === "--") return 0;
+
+  let negative = false;
+  if (str.startsWith("(") && str.endsWith(")")) {
+    negative = true;
+    str = str.slice(1, -1);
+  }
+
+  str = str
+    .replace(/\$/g, "")
+    .replace(/,/g, "")
+    .replace(/\s+/g, "")
+    .replace(/[^0-9.-]/g, "");
+
+  if (!str || str === "-" || str === ".") return 0;
+
+  const n = Number(str);
+  if (!Number.isFinite(n)) return 0;
+  return negative ? -Math.abs(n) : n;
+}
+
+function findHeaderIndex(headers, candidates) {
+  const normalized = headers.map(normalizeHeader);
+  for (const candidate of candidates) {
+    const idx = normalized.indexOf(normalizeHeader(candidate));
+    if (idx !== -1) return idx;
+  }
+  return -1;
+}
+
+function extractStageRank(value) {
+  const txt = normalizeHeader(value);
+  const match = txt.match(/ETAPA\s*(\d+)/);
+  return match ? Number(match[1]) : 0;
+}
+
+function stageLabelFromRank(rank) {
+  return rank > 0 ? `ETAPA ${rank}` : "";
+}
+
+function pickMostFrequent(counterObj) {
+  const entries = Object.entries(counterObj || {}).filter(([k]) => k && k !== "--");
+  if (!entries.length) return "";
+  entries.sort((a, b) => {
+    if (b[1] !== a[1]) return b[1] - a[1];
+    return a[0].localeCompare(b[0]);
+  });
+  return entries[0][0];
+}
+
+function addCount(counterObj, value) {
+  const key = String(value || "").trim();
+  if (!key || key === "--") return;
+  counterObj[key] = (counterObj[key] || 0) + 1;
+}
+
+function getImpagoColumnIndexes(headers) {
+  const impagoHeaders = [
+    "SALDO CAPITAL IMPAGO",
+    "SALDO CAPITAL VENCIDO EXIGIBLE",
+    "SALDO CAPITAL VENCIDO NO EXIGIBLE",
+    "SALDO INTERES ORDINARIO IMPAGO",
+    "SALDO IVA INTERES ORDINARIO IMPAGO",
+    "SALDO INTERES ORDINARIO VENCIDO EXIGIBLE",
+    "SALDO IVA INTERES ORDINARIO VENCIDO EXIGIBLE",
+    "SALDO INTERES ORDINARIO VENCIDO NO EXIGIBLE",
+    "SALDO IVA INTERES ORDINARIO VENCIDO NO EXIGIBLE",
+    "SALDO INTERES REFINANCIADO IMPAGO",
+    "SALDO INTERES REFINANCIADO VENCIDO EXIGIBLE",
+    "SALDO INTERES REFINANCIADO VENCIDO NO EXIGIBLE",
+    "SALDO INTERES MORATORIO CALCULADO",
+    "SALDO IVA INTERES MORATORIO CALCULADO"
+  ];
+
+  return impagoHeaders
+    .map(name => findHeaderIndex(headers, [name]))
+    .filter(idx => idx >= 0);
+}
+
+function sumRowImpago(row, impagoIndexes) {
+  return impagoIndexes.reduce((sum, idx) => sum + parseAmount(row[idx]), 0);
+}
+
+// ─── XLSX PARSER (minimal) ───
+async function parseXLSX(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const wb = XLSX.read(new Uint8Array(e.target.result), { type: "array", cellDates: true });
+        const ws = wb.Sheets[wb.SheetNames[0]];
+        const data = XLSX.utils.sheet_to_json(ws, { header: 1, defval: "" });
+        resolve(data);
+      } catch (err) {
+        reject(err);
+      }
+    };
+    reader.onerror = () => reject(new Error("Error reading file"));
+    reader.readAsArrayBuffer(file);
+  });
+}
+
+async function exportToXLSX(gestiones, filename) {
+  const headers = [
+    "Folio Cliente", "Fecha de Gestión", "Ejecutivo", "Cliente",
+    "Reincidente", "Etapa", "Monto en Impago Total", "Área Responsable", "Saldo Neto Total",
+    "Tipo de Gestión", "Impago", "Estado de la Gestión", "Fecha Compromiso de Pago",
+    "Toque", "Siguiente Acción", "Prioridad", "Comentario"
+  ];
+  const rows = gestiones.map(g => [
+    g.folioCliente, g.fechaGestion, g.ejecutivo, g.cliente,
+    g.reincidente, g.etapa, g.montoImpago, g.areaResponsable, g.saldoNeto,
+    g.tipoGestion, g.impago, g.estadoGestion, g.fechaCompromiso,
+    g.toque, g.siguienteAccion, g.prioridad, g.comentario
+  ]);
+  const ws = XLSX.utils.aoa_to_sheet([headers, ...rows]);
+  
+  // Column widths
+  ws["!cols"] = headers.map((h, i) => ({ wch: i === 16 ? 50 : Math.max(h.length + 4, 16) }));
+  
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Gestiones");
+  XLSX.writeFile(wb, filename);
+}
+
+// ─── STORAGE HELPERS ───
+function getAuthToken() {
+  try { return localStorage.getItem(AUTH_TOKEN_KEY) || ""; } catch { return ""; }
+}
+
+function setAuthToken(token) {
+  try {
+    if (token) localStorage.setItem(AUTH_TOKEN_KEY, token);
+    else localStorage.removeItem(AUTH_TOKEN_KEY);
+  } catch {}
+}
+
+async function apiFetch(url, options = {}) {
+  const headers = { ...(options.headers || {}) };
+  if (options.body && !headers["Content-Type"]) {
+    headers["Content-Type"] = "application/json";
+  }
+
+  const token = getAuthToken();
+  if (token) headers["Authorization"] = `Bearer ${token}`;
+
+  const response = await fetch(API_BASE + url, { ...options, headers });
+  let data = null;
+  try { data = await response.json(); } catch {}
+
+  if (!response.ok) {
+    const error = new Error(data?.error || `Error HTTP ${response.status}`);
+    error.status = response.status;
+    throw error;
+  }
+
+  return data;
+}
+
+function getLegacyGestiones() {
+  try {
+    const raw = localStorage.getItem(LEGACY_STORAGE_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+}
+
+async function loginBitacora(user, pass) {
+  const data = await apiFetch("/api/bitacora/login", {
+    method: "POST",
+    body: JSON.stringify({ user, pass })
+  });
+
+  if (!data?.token) {
+    throw new Error("No se recibió token de sesión");
+  }
+
+  setAuthToken(data.token);
+  return data;
+}
+
+async function loadGestiones() {
+  const data = await apiFetch("/api/bitacora/gestiones");
+  return Array.isArray(data?.gestiones) ? data.gestiones : [];
+}
+
+async function createGestion(record) {
+  const data = await apiFetch("/api/bitacora/gestiones", {
+    method: "POST",
+    body: JSON.stringify(record)
+  });
+  return data?.gestion || record;
+}
+
+async function clearGestionesCloud() {
+  await apiFetch("/api/bitacora/gestiones", { method: "DELETE" });
+}
+
+async function importLegacyGestiones(gestiones) {
+  const data = await apiFetch("/api/bitacora/gestiones/import", {
+    method: "POST",
+    body: JSON.stringify({ gestiones })
+  });
+  return Array.isArray(data?.gestiones) ? data.gestiones : [];
+}
+
+async function getBitacoraStatus() {
+  return apiFetch("/api/bitacora/status");
+}
+
+// ─── COMPONENTS ───
+
+function Toast({ message, type, onClose }) {
+  useEffect(() => {
+    const t = setTimeout(onClose, 3000);
+    return () => clearTimeout(t);
+  }, [onClose]);
+  return <div className={`toast ${type}`}>{type === "success" ? "✓" : "✕"} {message}</div>;
+}
+
+function LoginScreen({ onLogin, loadingSession = false }) {
+  const [user, setUser] = useState("");
+  const [pass, setPass] = useState("");
+  const [error, setError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+
+  const handleLogin = async () => {
+    if (submitting || loadingSession) return;
+
+    try {
+      setError("");
+      setSubmitting(true);
+      await onLogin(user.trim(), pass);
+    } catch (e) {
+      setError(e?.message || "No fue posible iniciar sesión");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="login-screen">
+      <div className="login-card">
+        <h1>Bitácora de Gestiones</h1>
+        <p className="subtitle">Proaktiva · Control de Cobranza</p>
+        {error && <div className="login-error">{error}</div>}
+        <label>Usuario</label>
+        <input
+          type="text" placeholder="usuario"
+          value={user} onChange={e => { setUser(e.target.value); setError(""); }}
+          onKeyDown={e => e.key === "Enter" && handleLogin()}
+        />
+        <label>Contraseña</label>
+        <input
+          type="password" placeholder="••••••••"
+          value={pass} onChange={e => { setPass(e.target.value); setError(""); }}
+          onKeyDown={e => e.key === "Enter" && handleLogin()}
+        />
+        <button className="login-btn" onClick={handleLogin} disabled={submitting || loadingSession}>
+          {loadingSession ? "Validando..." : submitting ? "Ingresando..." : "Iniciar Sesión"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function ClientSelector({ clients, selected, onSelect, onClear }) {
+  const [search, setSearch] = useState("");
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+
+  const filtered = useMemo(() => {
+    if (!search.trim()) return clients.slice(0, 30);
+    const q = search.toLowerCase();
+    return clients.filter(c =>
+      c.nombre.toLowerCase().includes(q) || String(c.folio).includes(q)
+    ).slice(0, 30);
+  }, [clients, search]);
+
+  useEffect(() => {
+    const handleClick = (e) => {
+      if (ref.current && !ref.current.contains(e.target)) setOpen(false);
+    };
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, []);
+
+  if (selected) {
+    return (
+      <div className="selected-client-card">
+        <div className="info">
+          <h4>{selected.nombre}</h4>
+          <p>Folio: {selected.folio} · {selected.etapa} · Saldo Neto: {formatMoney(selected.saldoNeto)}</p>
+        </div>
+        <button className="clear-btn" onClick={onClear}>✕ Cambiar</button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="client-search-wrap" ref={ref}>
+      <div className="form-group">
+        <label>Buscar Cliente (Nombre o Folio)</label>
+        <input
+          type="text"
+          placeholder="Escribe nombre o folio del cliente..."
+          value={search}
+          onChange={e => { setSearch(e.target.value); setOpen(true); }}
+          onFocus={() => setOpen(true)}
+        />
+      </div>
+      {open && filtered.length > 0 && (
+        <div className="client-dropdown">
+          {filtered.map((c, i) => (
+            <div key={i} className="item" onClick={() => { onSelect(c); setOpen(false); setSearch(""); }}>
+              <div className="name">{c.nombre}</div>
+              <div className="meta">Folio: {c.folio} · {c.etapa} · Impago: {formatMoney(c.montoImpago)} · Saldo: {formatMoney(c.saldoNeto)}</div>
+            </div>
+          ))}
+        </div>
+      )}
+      {open && filtered.length === 0 && search.trim() && (
+        <div className="client-dropdown">
+          <div className="item"><div className="meta">Sin resultados</div></div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function RegistroView({ carteraClients, gestiones, onSave, toast }) {
+  const [selected, setSelected] = useState(null);
+  const [form, setForm] = useState({
+    fechaGestion: todayStr(),
+    reincidente: "", areaResponsable: "",
+    tipoGestion: "", impago: "", estadoGestion: "",
+    fechaCompromiso: "", fechaCompromisoDate: "", siguienteAccion: "",
+    siguienteAccionDate: "", prioridad: "", comentario: ""
+  });
+
+  const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
+
+  const currentMonthKey = getMonthKey(todayStr());
+  
+  const calculatedToque = useMemo(() => {
+    if (!selected) return 0;
+    const monthGestiones = gestiones.filter(
+      g => String(g.folioCliente) === String(selected.folio) && getMonthKey(g.fechaGestion) === currentMonthKey
+    );
+    return monthGestiones.length + 1;
+  }, [selected, gestiones, currentMonthKey]);
+
+  const toqueDisplay = calculatedToque > 4 ? "+4" : String(calculatedToque);
+
+  const canSubmit = selected && form.fechaGestion && form.tipoGestion && form.estadoGestion && form.prioridad;
+
+  useEffect(() => {
+    if (!selected) return;
+    setForm(f => ({ ...f, impago: selected.montoImpago > 0.1 ? "Si" : "No" }));
+  }, [selected]);
+
+  const handleSubmit = () => {
+    if (!canSubmit) return;
+
+    const fechaComp = form.fechaCompromiso === "FECHA ESPECÍFICA" ? form.fechaCompromisoDate : form.fechaCompromiso;
+    const sigAccion = form.siguienteAccion === "FECHA ESPECÍFICA" ? form.siguienteAccionDate : form.siguienteAccion;
+
+    const record = {
+      id: Date.now().toString(36) + Math.random().toString(36).substr(2, 5),
+      folioCliente: selected.folio,
+      fechaGestion: form.fechaGestion || todayStr(),
+      ejecutivo: selected.ejecutivo || EXEC_NAME,
+      cliente: selected.nombre,
+      reincidente: form.reincidente || "No",
+      etapa: selected.etapa,
+      montoImpago: selected.montoImpago,
+      areaResponsable: form.areaResponsable || "RECUPERACION",
+      saldoNeto: selected.saldoNeto,
+      tipoGestion: form.tipoGestion,
+      impago: form.impago || (selected.montoImpago > 0.1 ? "Si" : "No"),
+      estadoGestion: form.estadoGestion,
+      fechaCompromiso: fechaComp || "N/A",
+      toque: toqueDisplay,
+      siguienteAccion: sigAccion || "SEGUIMIENTO",
+      prioridad: form.prioridad,
+      comentario: form.comentario,
+      diasImpago: selected.diasImpago,
+      status: selected.status,
+      statusCobranza: selected.statusCobranza,
+    };
+
+    onSave(record);
+    setForm({
+      fechaGestion: todayStr(),
+      reincidente: "", areaResponsable: "",
+      tipoGestion: "", impago: "", estadoGestion: "",
+      fechaCompromiso: "", fechaCompromisoDate: "", siguienteAccion: "",
+      siguienteAccionDate: "", prioridad: "", comentario: ""
+    });
+    setSelected(null);
+  };
+
+  return (
+    <div>
+      {carteraClients.length === 0 ? (
+        <div className="upload-zone" style={{ marginBottom: 0 }}>
+          <div className="icon">📋</div>
+          <h3>Sube la Cartera Activa primero</h3>
+          <p>Ve a la pestaña de carga para subir el archivo de cartera activa</p>
+        </div>
+      ) : (
+        <>
+          <ClientSelector
+            clients={carteraClients}
+            selected={selected}
+            onSelect={setSelected}
+            onClear={() => setSelected(null)}
+          />
+
+          {selected && (
+            <div className="form-section">
+              <h3>Registrar Gestión</h3>
+
+              {/* Auto-filled data */}
+              <div className="form-grid" style={{ marginBottom: 20 }}>
+                <div className="form-group">
+                  <label>Fecha de Gestión</label>
+                  <input
+                    type="date"
+                    value={form.fechaGestion}
+                    onChange={e => set("fechaGestion", e.target.value)}
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Ejecutivo</label>
+                  <div className="auto-value">{selected.ejecutivo || EXEC_NAME}</div>
+                </div>
+                <div className="form-group">
+                  <label>Etapa (IFRS9)</label>
+                  <div className="auto-value">{selected.etapa}</div>
+                </div>
+                <div className="form-group">
+                  <label>Monto en Impago Total</label>
+                  <div className="auto-value">{formatMoney(selected.montoImpago)}</div>
+                </div>
+                <div className="form-group">
+                  <label>Saldo Neto Total</label>
+                  <div className="auto-value">{formatMoney(selected.saldoNeto)}</div>
+                </div>
+                <div className="form-group">
+                  <label>Días de Impago</label>
+                  <div className="auto-value">{selected.diasImpago}</div>
+                </div>
+                <div className="form-group">
+                  <label>Status</label>
+                  <div className="auto-value">{selected.status}</div>
+                </div>
+                <div className="form-group">
+                  <label>Toque (Auto)</label>
+                  <div className="auto-value gold">
+                    {toqueDisplay} — Gestión #{calculatedToque} del mes
+                  </div>
+                </div>
+              </div>
+
+              {/* Manual fields */}
+              <div className="form-grid">
+                {[
+                  ["reincidente", "Reincidente", DROPDOWN_OPTIONS.reincidente],
+                  ["areaResponsable", "Área Responsable", DROPDOWN_OPTIONS.areaResponsable],
+                  ["tipoGestion", "Tipo de Gestión", DROPDOWN_OPTIONS.tipoGestion],
+                  ["impago", "Impago", DROPDOWN_OPTIONS.impago],
+                  ["estadoGestion", "Estado de la Gestión", DROPDOWN_OPTIONS.estadoGestion],
+                  ["fechaCompromiso", "Fecha Compromiso de Pago", DROPDOWN_OPTIONS.fechaCompromiso],
+                  ["siguienteAccion", "Siguiente Acción", DROPDOWN_OPTIONS.siguienteAccion],
+                  ["prioridad", "Prioridad", DROPDOWN_OPTIONS.prioridad],
+                ].map(([key, label, opts]) => (
+                  <div className="form-group" key={key}>
+                    <label>{label}</label>
+                    <select value={form[key]} onChange={e => set(key, e.target.value)}>
+                      <option value="">— Seleccionar —</option>
+                      {opts.map(o => <option key={o} value={o}>{o}</option>)}
+                    </select>
+                    {key === "fechaCompromiso" && form.fechaCompromiso === "FECHA ESPECÍFICA" && (
+                      <input type="date" value={form.fechaCompromisoDate} onChange={e => set("fechaCompromisoDate", e.target.value)} style={{ marginTop: 6 }} />
+                    )}
+                    {key === "siguienteAccion" && form.siguienteAccion === "FECHA ESPECÍFICA" && (
+                      <input type="date" value={form.siguienteAccionDate} onChange={e => set("siguienteAccionDate", e.target.value)} style={{ marginTop: 6 }} />
+                    )}
+                  </div>
+                ))}
+              </div>
+
+              <div className="form-group full-width" style={{ marginTop: 18 }}>
+                <label>Comentario</label>
+                <textarea
+                  placeholder="Describe la gestión realizada..."
+                  value={form.comentario}
+                  onChange={e => set("comentario", e.target.value)}
+                />
+              </div>
+
+              <div className="btn-row">
+                <button className="btn btn-secondary" onClick={() => {
+                  setForm({ fechaGestion: todayStr(), reincidente: "", areaResponsable: "", tipoGestion: "", impago: "", estadoGestion: "", fechaCompromiso: "", fechaCompromisoDate: "", siguienteAccion: "", siguienteAccionDate: "", prioridad: "", comentario: "" });
+                }}>Limpiar</button>
+                <button className="btn btn-primary" disabled={!canSubmit} onClick={handleSubmit}>
+                  Registrar Gestión
+                </button>
+              </div>
+            </div>
+          )}
+        </>
+      )}
+    </div>
+  );
+}
+
+function HistorialView({ gestiones, toast }) {
+  const [filters, setFilters] = useState({ cliente: "", folio: "", tipo: "", prioridad: "", etapa: "", desde: "", hasta: "" });
+  const [page, setPage] = useState(1);
+  const perPage = 20;
+
+  const setFilter = (k, v) => { setFilters(f => ({ ...f, [k]: v })); setPage(1); };
+
+  const filtered = useMemo(() => {
+    return gestiones.filter(g => {
+      if (filters.cliente && !g.cliente.toLowerCase().includes(filters.cliente.toLowerCase())) return false;
+      if (filters.folio && !String(g.folioCliente).includes(filters.folio)) return false;
+      if (filters.tipo && g.tipoGestion !== filters.tipo) return false;
+      if (filters.prioridad && g.prioridad !== filters.prioridad) return false;
+      if (filters.etapa && g.etapa !== filters.etapa) return false;
+      if (filters.desde && g.fechaGestion < filters.desde) return false;
+      if (filters.hasta && g.fechaGestion > filters.hasta) return false;
+      return true;
+    });
+  }, [gestiones, filters]);
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / perPage));
+  const paginated = filtered.slice((page - 1) * perPage, page * perPage);
+
+  const handleExportXLSX = async () => {
+    try {
+      await exportToXLSX(filtered, `Gestiones_${todayStr()}.xlsx`);
+      toast("Excel exportado correctamente", "success");
+    } catch { toast("Error al exportar", "error"); }
+  };
+
+  const stats = useMemo(() => {
+    const thisMonth = gestiones.filter(g => getMonthKey(g.fechaGestion) === getMonthKey(todayStr()));
+    const uniqueClients = new Set(thisMonth.map(g => g.folioCliente));
+    return {
+      total: gestiones.length,
+      thisMonth: thisMonth.length,
+      uniqueClientsMonth: uniqueClients.size,
+      alta: thisMonth.filter(g => g.prioridad === "Alta").length,
+    };
+  }, [gestiones]);
+
+  return (
+    <div>
+      <div className="stats-row">
+        <div className="stat-card">
+          <div className="label">Total Gestiones</div>
+          <div className="value accent">{stats.total}</div>
+        </div>
+        <div className="stat-card">
+          <div className="label">Gestiones del Mes</div>
+          <div className="value gold">{stats.thisMonth}</div>
+        </div>
+        <div className="stat-card">
+          <div className="label">Clientes Gestionados (Mes)</div>
+          <div className="value success">{stats.uniqueClientsMonth}</div>
+        </div>
+        <div className="stat-card">
+          <div className="label">Prioridad Alta (Mes)</div>
+          <div className="value" style={{ color: "var(--danger)" }}>{stats.alta}</div>
+        </div>
+      </div>
+
+      <div className="table-section">
+        <div className="table-header">
+          <h3>Historial de Gestiones</h3>
+          <div className="table-actions">
+            <button className="btn btn-success" onClick={handleExportXLSX}>↓ Excel</button>
+          </div>
+        </div>
+
+        <div className="filters-bar">
+          <input className="filter-input" placeholder="Cliente..." value={filters.cliente} onChange={e => setFilter("cliente", e.target.value)} />
+          <input className="filter-input" placeholder="Folio..." value={filters.folio} onChange={e => setFilter("folio", e.target.value)} style={{ width: 100 }} />
+          <select className="filter-input" value={filters.tipo} onChange={e => setFilter("tipo", e.target.value)}>
+            <option value="">Tipo gestión</option>
+            {DROPDOWN_OPTIONS.tipoGestion.map(o => <option key={o}>{o}</option>)}
+          </select>
+          <select className="filter-input" value={filters.prioridad} onChange={e => setFilter("prioridad", e.target.value)}>
+            <option value="">Prioridad</option>
+            {DROPDOWN_OPTIONS.prioridad.map(o => <option key={o}>{o}</option>)}
+          </select>
+          <select className="filter-input" value={filters.etapa} onChange={e => setFilter("etapa", e.target.value)}>
+            <option value="">Etapa</option>
+            {DROPDOWN_OPTIONS.etapa.map(o => <option key={o}>{o}</option>)}
+          </select>
+          <input className="filter-input" type="date" value={filters.desde} onChange={e => setFilter("desde", e.target.value)} title="Desde" />
+          <input className="filter-input" type="date" value={filters.hasta} onChange={e => setFilter("hasta", e.target.value)} title="Hasta" />
+          {Object.values(filters).some(v => v) && (
+            <button className="btn btn-danger" style={{ padding: "6px 10px", fontSize: 11 }} onClick={() => setFilters({ cliente: "", folio: "", tipo: "", prioridad: "", etapa: "", desde: "", hasta: "" })}>
+              Limpiar filtros
+            </button>
+          )}
+        </div>
+
+        {filtered.length === 0 ? (
+          <div className="empty-state">
+            <div className="icon">📭</div>
+            <h4>Sin gestiones registradas</h4>
+            <p>Las gestiones que registres aparecerán aquí</p>
+          </div>
+        ) : (
+          <>
+            <div className="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Fecha</th>
+                    <th>Folio</th>
+                    <th>Cliente</th>
+                    <th>Etapa</th>
+                    <th>Tipo</th>
+                    <th>Estado</th>
+                    <th>Toque</th>
+                    <th>Prioridad</th>
+                    <th>Monto Impago</th>
+                    <th>Saldo Neto</th>
+                    <th>Compromiso</th>
+                    <th>Sig. Acción</th>
+                    <th>Comentario</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {paginated.map(g => (
+                    <tr key={g.id}>
+                      <td style={{ color: "var(--text)", fontWeight: 500 }}>{g.fechaGestion}</td>
+                      <td>{g.folioCliente}</td>
+                      <td style={{ maxWidth: 180 }} title={g.cliente}>{g.cliente}</td>
+                      <td>
+                        <span className={`badge ${g.etapa === "ETAPA 1" ? "badge-etapa1" : g.etapa === "ETAPA 2" ? "badge-etapa2" : "badge-etapa3"}`}>
+                          {g.etapa}
+                        </span>
+                      </td>
+                      <td>{g.tipoGestion}</td>
+                      <td style={{ maxWidth: 160 }} title={g.estadoGestion}>{g.estadoGestion}</td>
+                      <td>
+                        <span className={`toque-badge ${(g.toque === "+4" || Number(g.toque) >= 4) ? "high" : ""}`}>
+                          {g.toque}
+                        </span>
+                      </td>
+                      <td>
+                        <span className={`badge badge-${g.prioridad.toLowerCase()}`}>{g.prioridad}</span>
+                      </td>
+                      <td>{formatMoney(g.montoImpago)}</td>
+                      <td>{formatMoney(g.saldoNeto)}</td>
+                      <td style={{ maxWidth: 130 }}>{g.fechaCompromiso}</td>
+                      <td style={{ maxWidth: 130 }}>{g.siguienteAccion}</td>
+                      <td style={{ maxWidth: 220 }} title={g.comentario}>{g.comentario}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <div className="pagination">
+              <button className="page-btn" disabled={page === 1} onClick={() => setPage(p => p - 1)}>← Anterior</button>
+              {Array.from({ length: Math.min(totalPages, 7) }, (_, i) => {
+                let p;
+                if (totalPages <= 7) p = i + 1;
+                else if (page <= 4) p = i + 1;
+                else if (page >= totalPages - 3) p = totalPages - 6 + i;
+                else p = page - 3 + i;
+                return (
+                  <button key={p} className={`page-btn ${p === page ? "active" : ""}`} onClick={() => setPage(p)}>
+                    {p}
+                  </button>
+                );
+              })}
+              <button className="page-btn" disabled={page === totalPages} onClick={() => setPage(p => p + 1)}>Siguiente →</button>
+              <span style={{ fontSize: 11, color: "var(--text3)", marginLeft: 8 }}>
+                {filtered.length} registros
+              </span>
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ─── MAIN APP ───
+function App() {
+  const [loggedIn, setLoggedIn] = useState(false);
+  const [view, setView] = useState("registro");
+  const [carteraClients, setCarteraClients] = useState([]);
+  const [carteraFileName, setCarteraFileName] = useState("");
+  const [gestiones, setGestiones] = useState([]);
+  const [toastData, setToastData] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [authChecking, setAuthChecking] = useState(true);
+  const [storageStatus, setStorageStatus] = useState({ label: "Verificando", mode: "loading", ok: false });
+  const [dragOver, setDragOver] = useState(false);
+  const fileRef = useRef(null);
+
+  const showToast = useCallback((msg, type = "success") => {
+    setToastData({ msg, type });
+  }, []);
+
+
+const refreshStorageStatus = useCallback(async () => {
+  try {
+    const status = await getBitacoraStatus();
+    const isPg = String(status?.storage || '').toLowerCase() === 'postgres';
+    const connected = Boolean(status?.connected);
+    setStorageStatus({
+      label: isPg ? (connected ? 'Postgres conectado' : 'Postgres sin conexión') : 'JSON local',
+      mode: !isPg ? 'local' : connected ? 'ok' : 'error',
+      ok: isPg && connected
+    });
+  } catch (e) {
+    setStorageStatus({ label: 'Estado no disponible', mode: 'error', ok: false });
+  }
+}, []);
+
+useEffect(() => {
+  refreshStorageStatus();
+}, [refreshStorageStatus]);
+
+  const hydrateGestiones = useCallback(async () => {
+    const cloudGestiones = await loadGestiones();
+    const legacyGestiones = getLegacyGestiones();
+
+    if (cloudGestiones.length === 0 && legacyGestiones.length > 0) {
+      const shouldMigrate = window.confirm(
+        `Se encontraron ${legacyGestiones.length} gestiones guardadas solo en este dispositivo. ¿Deseas migrarlas a la nube para consultarlas desde cualquier equipo?`
+      );
+
+      if (shouldMigrate) {
+        const migrated = await importLegacyGestiones(legacyGestiones);
+        try {
+          localStorage.setItem(LEGACY_STORAGE_KEY + "-backup", JSON.stringify(legacyGestiones));
+          localStorage.removeItem(LEGACY_STORAGE_KEY);
+        } catch {}
+        showToast(`Se migraron ${migrated.length} gestiones a la nube`, "success");
+        return migrated;
+      }
+    }
+
+    return cloudGestiones;
+  }, [showToast]);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const token = getAuthToken();
+        if (!token) return;
+
+        setLoading(true);
+        const remoteGestiones = await hydrateGestiones();
+        setGestiones(remoteGestiones);
+        setLoggedIn(true);
+      } catch (e) {
+        setAuthToken("");
+        setGestiones([]);
+        setLoggedIn(false);
+      } finally {
+        setLoading(false);
+        setAuthChecking(false);
+      }
+    })();
+  }, [hydrateGestiones]);
+
+  const handleLogin = useCallback(async (user, pass) => {
+    setLoading(true);
+    try {
+      await loginBitacora(user, pass);
+      await refreshStorageStatus();
+      const remoteGestiones = await hydrateGestiones();
+      setGestiones(remoteGestiones);
+      setLoggedIn(true);
+    } finally {
+      setLoading(false);
+      setAuthChecking(false);
+    }
+  }, [hydrateGestiones, refreshStorageStatus]);
+
+  const processCartera = useCallback(async (file) => {
+    try {
+      setLoading(true);
+      const rows = await parseXLSX(file);
+      if (rows.length < 2) throw new Error("Archivo vacío");
+
+      // Find header row
+      let headerIdx = 0;
+      for (let i = 0; i < Math.min(5, rows.length); i++) {
+        const row = rows[i];
+        if (row && row.some(c => normalizeHeader(c).includes("FOLIO CLIENTE"))) {
+          headerIdx = i;
+          break;
+        }
+      }
+
+      const headers = rows[headerIdx].map(h => String(h || "").trim());
+
+      const colMap = {
+        cliente: findHeaderIndex(headers, ["CLIENTE"]),
+        folio: findHeaderIndex(headers, ["FOLIO CLIENTE"]),
+        rfc: findHeaderIndex(headers, ["RFC"]),
+        localidad: findHeaderIndex(headers, ["LOCALIDAD"]),
+        estado: findHeaderIndex(headers, ["ESTADO"]),
+        sucursal: findHeaderIndex(headers, ["SUCURSAL"]),
+        status: findHeaderIndex(headers, ["STATUS"]),
+        statusCobranza: findHeaderIndex(headers, ["STATUS DE COBRANZA"]),
+        ifrs9: findHeaderIndex(headers, ["IFRS9"]),
+        diasImpago: findHeaderIndex(headers, ["DÍAS DE IMPAGO", "DIAS DE IMPAGO"]),
+        saldoNeto: findHeaderIndex(headers, ["SALDO NETO"]),
+        ejecutivoLinea: findHeaderIndex(headers, ["EJECUTIVO LÍNEA", "EJECUTIVO LINEA"]),
+        ejecutivoDisposicion: findHeaderIndex(headers, ["EJECUTIVO DISPOSICIÓN", "EJECUTIVO DISPOSICION"]),
+      };
+
+      if (colMap.folio < 0 || colMap.cliente < 0) {
+        throw new Error("No se encontraron las columnas clave de CLIENTE / FOLIO CLIENTE en la cartera.");
+      }
+
+      const impagoIndexes = getImpagoColumnIndexes(headers);
+      if (!impagoIndexes.length) {
+        throw new Error("No se encontraron columnas de impago/vencido en la cartera.");
+      }
+
+      const clientMap = {};
+      for (let i = headerIdx + 1; i < rows.length; i++) {
+        const row = rows[i];
+        if (!row || row.length === 0) continue;
+
+        const folio = String(row[colMap.folio] || "").trim();
+        if (!folio || folio === "--") continue;
+
+        if (!clientMap[folio]) {
+          clientMap[folio] = {
+            folio,
+            nombre: String(row[colMap.cliente] || "").trim(),
+            rfc: colMap.rfc >= 0 ? String(row[colMap.rfc] || "").trim() : "",
+            localidad: colMap.localidad >= 0 ? String(row[colMap.localidad] || "").trim() : "",
+            estado: colMap.estado >= 0 ? String(row[colMap.estado] || "").trim() : "",
+            sucursal: colMap.sucursal >= 0 ? String(row[colMap.sucursal] || "").trim() : "",
+            status: colMap.status >= 0 ? String(row[colMap.status] || "").trim() : "",
+            statusCobranza: colMap.statusCobranza >= 0 ? String(row[colMap.statusCobranza] || "").trim() : "",
+            etapa: "",
+            etapaRank: 0,
+            diasImpago: 0,
+            montoImpago: 0,
+            saldoNeto: 0,
+            ejecutivo: "",
+            _execLinea: {},
+            _execDisposicion: {},
+          };
+        }
+
+        const client = clientMap[folio];
+
+        const rowImpago = sumRowImpago(row, impagoIndexes);
+        client.montoImpago += rowImpago;
+        client.saldoNeto += colMap.saldoNeto >= 0 ? parseAmount(row[colMap.saldoNeto]) : 0;
+
+        const etapaTexto = colMap.ifrs9 >= 0 ? String(row[colMap.ifrs9] || "").trim() : "";
+        const etapaRank = extractStageRank(etapaTexto);
+        if (etapaRank > client.etapaRank) {
+          client.etapaRank = etapaRank;
+          client.etapa = stageLabelFromRank(etapaRank) || etapaTexto;
+        } else if (!client.etapa && etapaTexto) {
+          client.etapa = etapaTexto;
+        }
+
+        const dias = colMap.diasImpago >= 0 ? parseAmount(row[colMap.diasImpago]) : 0;
+        if (dias > client.diasImpago) client.diasImpago = dias;
+
+        if (colMap.ejecutivoLinea >= 0) addCount(client._execLinea, row[colMap.ejecutivoLinea]);
+        if (colMap.ejecutivoDisposicion >= 0) addCount(client._execDisposicion, row[colMap.ejecutivoDisposicion]);
+      }
+
+      const clients = Object.values(clientMap)
+        .map(client => {
+          client.ejecutivo = pickMostFrequent(client._execLinea) || pickMostFrequent(client._execDisposicion) || EXEC_NAME;
+          delete client._execLinea;
+          delete client._execDisposicion;
+          delete client.etapaRank;
+          client.montoImpago = Number(client.montoImpago.toFixed(2));
+          client.saldoNeto = Number(client.saldoNeto.toFixed(2));
+          client.diasImpago = Math.round(client.diasImpago || 0);
+          if (!client.etapa) client.etapa = "ETAPA 1";
+          return client;
+        })
+        .sort((a, b) => a.nombre.localeCompare(b.nombre));
+
+      setCarteraClients(clients);
+      setCarteraFileName(file.name);
+      showToast(`Cartera cargada: ${clients.length} clientes encontrados`, "success");
+    } catch (e) {
+      showToast("Error al procesar archivo: " + e.message, "error");
+    } finally {
+      setLoading(false);
+    }
+  }, [showToast]);
+
+  const handleFileDrop = useCallback((e) => {
+    e.preventDefault();
+    setDragOver(false);
+    const file = e.dataTransfer?.files?.[0] || e.target?.files?.[0];
+    if (file && (file.name.endsWith(".xlsx") || file.name.endsWith(".xls"))) {
+      processCartera(file);
+    } else {
+      showToast("Solo se aceptan archivos .xlsx", "error");
+    }
+  }, [processCartera, showToast]);
+
+  const handleSaveGestion = useCallback(async (record) => {
+    try {
+      setLoading(true);
+      const saved = await createGestion(record);
+      setGestiones(prev => [saved, ...prev.filter(g => g.id !== saved.id)]);
+      showToast("Gestión registrada exitosamente", "success");
+    } catch (e) {
+      if (e?.status === 401) {
+        setAuthToken("");
+        setLoggedIn(false);
+        setGestiones([]);
+        showToast("Tu sesión expiró. Inicia sesión nuevamente.", "error");
+        return;
+      }
+      showToast("No fue posible guardar la gestión: " + (e?.message || "Error desconocido"), "error");
+    } finally {
+      setLoading(false);
+    }
+  }, [showToast]);
+
+  const handleDeleteAll = useCallback(async () => {
+    if (confirm("¿Estás seguro de eliminar TODAS las gestiones? Esta acción no se puede deshacer.")) {
+      try {
+        setLoading(true);
+        await clearGestionesCloud();
+        setGestiones([]);
+        showToast("Todas las gestiones fueron eliminadas", "success");
+      } catch (e) {
+        if (e?.status === 401) {
+          setAuthToken("");
+          setLoggedIn(false);
+          setGestiones([]);
+          showToast("Tu sesión expiró. Inicia sesión nuevamente.", "error");
+          return;
+        }
+        showToast("No fue posible eliminar las gestiones: " + (e?.message || "Error desconocido"), "error");
+      } finally {
+        setLoading(false);
+      }
+    }
+  }, [showToast]);
+
+  if (!loggedIn) return (
+    <>
+      <style>{css}</style>
+      <LoginScreen onLogin={handleLogin} loadingSession={authChecking || loading} />
+    </>
+  );
+
+  return (
+    <>
+      <style>{css}</style>
+      <div className="app-wrap">
+        <header className="header">
+          <div className="header-brand">
+            <div className="logo">P</div>
+            <h2>Bitácora de Gestiones</h2>
+          </div>
+          <nav className="header-nav">
+            <button className={`nav-btn ${view === "registro" ? "active" : ""}`} onClick={() => setView("registro")}>
+              Registrar
+            </button>
+            <button className={`nav-btn ${view === "historial" ? "active" : ""}`} onClick={() => setView("historial")}>
+              Historial
+            </button>
+            <button className={`nav-btn ${view === "cartera" ? "active" : ""}`} onClick={() => setView("cartera")}>
+              Cartera
+            </button>
+          </nav>
+          <div className="header-right">
+            <div className={`storage-pill ${storageStatus.mode}`} title="Estado del almacenamiento de la bitácora">
+              <span className="dot"></span>
+              <span><strong>{storageStatus.label}</strong></span>
+            </div>
+            <div className="user-badge">
+              <div className="user-avatar">GB</div>
+              <span>Gerardo B.</span>
+            </div>
+            <button className="logout-btn" onClick={() => { setAuthToken(""); setLoggedIn(false); setGestiones([]); }}>Cerrar Sesión</button>
+          </div>
+        </header>
+
+        <main className="main">
+          {view === "cartera" && (
+            <div>
+              <input
+                ref={fileRef}
+                type="file"
+                accept=".xlsx,.xls"
+                style={{ display: "none" }}
+                onChange={handleFileDrop}
+              />
+              <div
+                className={`upload-zone ${dragOver ? "drag-over" : ""}`}
+                onClick={() => fileRef.current?.click()}
+                onDragOver={e => { e.preventDefault(); setDragOver(true); }}
+                onDragLeave={() => setDragOver(false)}
+                onDrop={handleFileDrop}
+              >
+                <div className="icon">📁</div>
+                <h3>Subir Cartera Activa</h3>
+                <p>Arrastra el archivo .xlsx o haz clic para seleccionar</p>
+              </div>
+
+              {carteraFileName && (
+                <div className="upload-status">
+                  ✓ {carteraFileName} — {carteraClients.length} clientes cargados
+                </div>
+              )}
+
+              {carteraClients.length > 0 && (
+                <div className="table-section">
+                  <div className="table-header">
+                    <h3>Clientes en Cartera ({carteraClients.length})</h3>
+                  </div>
+                  <div className="table-wrap">
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>Folio</th>
+                          <th>Cliente</th>
+                          <th>Etapa</th>
+                          <th>Status</th>
+                          <th>Días Impago</th>
+                          <th>Monto Impago</th>
+                          <th>Saldo Neto</th>
+                          <th>Localidad</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {carteraClients.map(c => (
+                          <tr key={c.folio}>
+                            <td style={{ color: "var(--text)", fontWeight: 500 }}>{c.folio}</td>
+                            <td style={{ maxWidth: 200 }} title={c.nombre}>{c.nombre}</td>
+                            <td>
+                              <span className={`badge ${c.etapa.includes("1") ? "badge-etapa1" : c.etapa.includes("2") ? "badge-etapa2" : "badge-etapa3"}`}>
+                                {c.etapa}
+                              </span>
+                            </td>
+                            <td>{c.status}</td>
+                            <td>{c.diasImpago}</td>
+                            <td>{formatMoney(c.montoImpago)}</td>
+                            <td>{formatMoney(c.saldoNeto)}</td>
+                            <td>{c.localidad}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {view === "registro" && (
+            <RegistroView
+              carteraClients={carteraClients}
+              gestiones={gestiones}
+              onSave={handleSaveGestion}
+              toast={showToast}
+            />
+          )}
+
+          {view === "historial" && (
+            <HistorialView gestiones={gestiones} toast={showToast} />
+          )}
+        </main>
+      </div>
+
+      {toastData && (
+        <Toast message={toastData.msg} type={toastData.type} onClose={() => setToastData(null)} />
+      )}
+    </>
+  );
+}
+
+
+const root = ReactDOM.createRoot(document.getElementById('bitacora-root'));
+root.render(<App />);
+</script>
 
 
 <script>
