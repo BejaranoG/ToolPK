@@ -1,5 +1,5 @@
 /* ══════════════════════════════════════════════════════
-   ToolsPK V1.0.0 — Design System (Modernized)
+   ToolsPK V1.0.1 — Design System (Modernized)
    Proaktiva SAPI de CV, SOFOM, ENR
 ══════════════════════════════════════════════════════ */
 
@@ -38,6 +38,8 @@
   --muted2: #8fa4b8;
   --sidebar-bg: #0a1520;
   --sidebar-bg2: #0f1e2e;
+  --dark: #0a1520;
+  --dark2: #0f1e2e;
   --radius: 14px;
   --radius-sm: 8px;
   --radius-lg: 18px;
