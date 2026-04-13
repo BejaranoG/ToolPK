@@ -111,7 +111,7 @@
   <button class="theme-toggle" id="themeToggle" type="button" aria-label="Cambiar tema">
     <span class="theme-toggle-icon" id="themeToggleIcon">☀️</span>
   </button>
-  <div class="sidebar-footer">ToolsPK V1.1.1 · Proaktiva</div>
+  <div class="sidebar-footer">ToolsPK V1.2.0 · Proaktiva</div>
 </nav>
 
 <div class="main" id="main">
@@ -1144,6 +1144,45 @@ function sumRowImpago(row, impagoIndexes) {
   return impagoIndexes.reduce((sum, idx) => sum + parseAmount(row[idx]), 0);
 }
 
+// ─── CSV PARSER (for Google Sheets) ───
+function parseCSV(text) {
+  const rows = [];
+  let current = [];
+  let field = "";
+  let inQuotes = false;
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+    if (inQuotes) {
+      if (ch === '"' && text[i+1] === '"') { field += '"'; i++; }
+      else if (ch === '"') { inQuotes = false; }
+      else { field += ch; }
+    } else {
+      if (ch === '"') { inQuotes = true; }
+      else if (ch === ',') { current.push(field); field = ""; }
+      else if (ch === '\n' || (ch === '\r' && text[i+1] === '\n')) {
+        current.push(field); field = "";
+        if (current.some(c => c.trim())) rows.push(current);
+        current = [];
+        if (ch === '\r') i++;
+      } else { field += ch; }
+    }
+  }
+  if (field || current.length) { current.push(field); if (current.some(c => c.trim())) rows.push(current); }
+  return rows;
+}
+
+async function fetchCarteraCSV() {
+  const resp = await fetch("/api/cartera-sheets", {
+    headers: { "Authorization": "Bearer " + getAuthToken() }
+  });
+  if (!resp.ok) {
+    const err = await resp.json().catch(() => ({}));
+    throw new Error(err.error || "Error al conectar con Google Sheets");
+  }
+  const csv = await resp.text();
+  return parseCSV(csv);
+}
+
 // ─── XLSX PARSER (minimal) ───
 async function parseXLSX(file) {
   return new Promise((resolve, reject) => {
@@ -1769,8 +1808,6 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [authChecking, setAuthChecking] = useState(true);
   const [storageStatus, setStorageStatus] = useState({ label: "Verificando", mode: "loading", ok: false });
-  const [dragOver, setDragOver] = useState(false);
-  const fileRef = useRef(null);
 
   const showToast = useCallback((msg, type = "success") => {
     setToastData({ msg, type });
@@ -1848,17 +1885,18 @@ useEffect(() => {
       const remoteGestiones = await hydrateGestiones();
       setGestiones(remoteGestiones);
       setLoggedIn(true);
+      // Auto-load cartera from Google Sheets
+      setTimeout(() => loadCarteraFromSheets(), 300);
     } finally {
       setLoading(false);
       setAuthChecking(false);
     }
-  }, [hydrateGestiones, refreshStorageStatus]);
+  }, [hydrateGestiones, refreshStorageStatus, loadCarteraFromSheets]);
 
-  const processCartera = useCallback(async (file) => {
+  const processCartera = useCallback(async (rows, sourceName) => {
     try {
       setLoading(true);
-      const rows = await parseXLSX(file);
-      if (rows.length < 2) throw new Error("Archivo vacío");
+      if (rows.length < 2) throw new Error("Datos vacíos");
 
       // Find header row
       let headerIdx = 0;
@@ -1963,7 +2001,7 @@ useEffect(() => {
         .sort((a, b) => a.nombre.localeCompare(b.nombre));
 
       setCarteraClients(clients);
-      setCarteraFileName(file.name);
+      setCarteraFileName(sourceName || "Google Sheets");
       showToast(`Cartera cargada: ${clients.length} clientes encontrados`, "success");
     } catch (e) {
       showToast("Error al procesar archivo: " + e.message, "error");
@@ -1972,14 +2010,13 @@ useEffect(() => {
     }
   }, [showToast]);
 
-  const handleFileDrop = useCallback((e) => {
-    e.preventDefault();
-    setDragOver(false);
-    const file = e.dataTransfer?.files?.[0] || e.target?.files?.[0];
-    if (file && (file.name.endsWith(".xlsx") || file.name.endsWith(".xls"))) {
-      processCartera(file);
-    } else {
-      showToast("Solo se aceptan archivos .xlsx", "error");
+  const loadCarteraFromSheets = useCallback(async () => {
+    try {
+      const rows = await fetchCarteraCSV();
+      await processCartera(rows, "Google Sheets · Cartera Activa");
+    } catch (e) {
+      showToast("Error al cargar cartera: " + e.message, "error");
+      setLoading(false);
     }
   }, [processCartera, showToast]);
 
@@ -2072,30 +2109,16 @@ useEffect(() => {
         <main className="main">
           {view === "cartera" && (
             <div>
-              <input
-                ref={fileRef}
-                type="file"
-                accept=".xlsx,.xls"
-                style={{ display: "none" }}
-                onChange={handleFileDrop}
-              />
-              <div
-                className={`upload-zone ${dragOver ? "drag-over" : ""}`}
-                onClick={() => fileRef.current?.click()}
-                onDragOver={e => { e.preventDefault(); setDragOver(true); }}
-                onDragLeave={() => setDragOver(false)}
-                onDrop={handleFileDrop}
-              >
-                <div className="icon">📁</div>
-                <h3>Subir Cartera Activa</h3>
-                <p>Arrastra el archivo .xlsx o haz clic para seleccionar</p>
+              <div style={{display:'flex',alignItems:'center',gap:14,marginBottom:20,flexWrap:'wrap'}}>
+                <button className="btn btn-primary" onClick={loadCarteraFromSheets} disabled={loading} style={{display:'flex',alignItems:'center',gap:8}}>
+                  {loading ? "⏳ Cargando..." : "🔄 Sincronizar cartera desde Sheets"}
+                </button>
+                {carteraFileName && (
+                  <span style={{fontSize:12,color:'var(--text2)'}}>
+                    ✓ {carteraFileName} — {carteraClients.length} clientes
+                  </span>
+                )}
               </div>
-
-              {carteraFileName && (
-                <div className="upload-status">
-                  ✓ {carteraFileName} — {carteraClients.length} clientes cargados
-                </div>
-              )}
 
               {carteraClients.length > 0 && (
                 <div className="table-section">

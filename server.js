@@ -354,6 +354,25 @@ app.get('/api/bitacora/status', async (req, res) => {
   }
 });
 
+// ── GOOGLE SHEETS CARTERA PROXY ──────────────────────────────────────────
+const SHEETS_ID = process.env.SHEETS_CARTERA_ID || '1bpNfE9UN_L0rSVN4wCgCwKM8Ui2HNSdw6wMcBDGYwvw';
+const SHEETS_GID = process.env.SHEETS_CARTERA_GID || '0'; // Cartera Activa
+
+app.get('/api/cartera-sheets', requireBitacoraAuth, async (req, res) => {
+  try {
+    const url = `https://docs.google.com/spreadsheets/d/${SHEETS_ID}/export?format=csv&gid=${SHEETS_GID}`;
+    const resp = await fetch(url, { timeout: 30000 });
+    if (!resp.ok) throw new Error(`Google Sheets respondió ${resp.status}`);
+    const csv = await resp.text();
+    if (!csv || csv.length < 50) throw new Error('El Sheet devolvió contenido vacío');
+    res.set('Content-Type', 'text/csv; charset=utf-8');
+    res.send(csv);
+  } catch (err) {
+    console.error('Cartera Sheets error:', err.message);
+    res.status(502).json({ error: 'No se pudo conectar al Google Sheet: ' + err.message });
+  }
+});
+
 
 // ── DOC EXTRACTION ────────────────────────────────────────────────────────
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 25 * 1024 * 1024 } });
