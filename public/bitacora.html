@@ -111,7 +111,7 @@
   <button class="theme-toggle" id="themeToggle" type="button" aria-label="Cambiar tema">
     <span class="theme-toggle-icon" id="themeToggleIcon">☀️</span>
   </button>
-  <div class="sidebar-footer">ToolsPK V1.1.0 · Proaktiva</div>
+  <div class="sidebar-footer">ToolsPK V1.1.1 · Proaktiva</div>
 </nav>
 
 <div class="main" id="main">
@@ -418,6 +418,17 @@ html[data-theme="dark"] .login-card {
 
 .nav-btn:hover { color: var(--text); }
 .nav-btn.active { background: var(--accent); color: #fff; }
+
+/* Nav/header elements on dark gradient background */
+.tool-page-header .nav-btn { color: rgba(255,255,255,0.6); border-radius: 6px; }
+.tool-page-header .nav-btn:hover { color: #fff; background: rgba(255,255,255,0.1); }
+.tool-page-header .nav-btn.active { background: rgba(255,255,255,0.18); color: #fff; }
+.tool-page-header .user-badge { color: rgba(255,255,255,0.7); }
+.tool-page-header .user-badge .user-avatar { background: rgba(255,255,255,0.15); color: #fff; }
+.tool-page-header .storage-pill { background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.15); color: rgba(255,255,255,0.7); }
+.tool-page-header .storage-pill .dot { background: #4de89a; }
+.tool-page-header .logout-btn { background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.15); color: rgba(255,255,255,0.6); }
+.tool-page-header .logout-btn:hover { border-color: rgba(255,100,100,0.5); color: #ff8a8a; background: rgba(255,100,100,0.1); }
 
 .header-right {
   display: flex;
@@ -2025,12 +2036,16 @@ useEffect(() => {
     <>
       <style>{css}</style>
       <div className="app-wrap">
-        <header className="header">
-          <div className="header-brand">
-            <div className="logo">P</div>
-            <h2>Bitácora de Gestiones</h2>
+        <header className="tool-page-header" style={{height:'auto',minHeight:60,padding:'10px 32px',flexWrap:'wrap',gap:'12px'}}>
+          <div className="tool-page-header-left">
+            <a href="/" className="tool-back-btn">← Inicio</a>
+            <div className="tph-divider"></div>
+            <div>
+              <div className="tph-title">Bitácora de Gestiones</div>
+              <div className="tph-sub">ToolsPK · Proaktiva</div>
+            </div>
           </div>
-          <nav className="header-nav">
+          <nav style={{display:'flex',gap:4}}>
             <button className={`nav-btn ${view === "registro" ? "active" : ""}`} onClick={() => setView("registro")}>
               Registrar
             </button>
@@ -2041,7 +2056,7 @@ useEffect(() => {
               Cartera
             </button>
           </nav>
-          <div className="header-right">
+          <div className="tool-page-header-right">
             <div className={`storage-pill ${storageStatus.mode}`} title="Estado del almacenamiento de la bitácora">
               <span className="dot"></span>
               <span><strong>{storageStatus.label}</strong></span>

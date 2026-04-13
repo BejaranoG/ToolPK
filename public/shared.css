@@ -1,5 +1,5 @@
 /* ══════════════════════════════════════════════════════
-   ToolsPK V1.1.0 — Design System (Modernized)
+   ToolsPK V1.1.1 — Design System (Modernized)
    Proaktiva SAPI de CV, SOFOM, ENR
 ══════════════════════════════════════════════════════ */
 
@@ -442,12 +442,46 @@ html[data-theme="dark"] .tool-card-tag.calc { background: rgba(201,146,42,0.14);
   box-shadow: 0 4px 12px rgba(14,95,168,0.3);
 }
 
-/* ── TOOL HEADER BAR ───────────────────────────────── */
+/* ── UNIFIED TOOL PAGE HEADER ──────────────────────── */
+.tool-page-header {
+  background: linear-gradient(105deg, #071422 0%, #0c2d52 50%, #145fa0 100%);
+  padding: 0 32px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+  box-shadow: 0 2px 16px rgba(14,95,168,0.25);
+  animation: fadeIn 0.3s ease;
+  position: relative;
+  z-index: 5;
+}
+.tool-page-header-left { display: flex; align-items: center; gap: 14px; }
+.tool-back-btn {
+  display: flex; align-items: center; gap: 4px;
+  color: rgba(255,255,255,0.65); font-size: 12px; font-weight: 500;
+  text-decoration: none; border: 1px solid rgba(255,255,255,0.20);
+  border-radius: 6px; padding: 5px 12px;
+  font-family: var(--font-sans); transition: all 0.2s ease; white-space: nowrap;
+}
+.tool-back-btn:hover { color: #fff; border-color: rgba(255,255,255,0.45); background: rgba(255,255,255,0.08); }
+.tph-divider { width: 1px; height: 28px; background: rgba(255,255,255,0.18); flex-shrink: 0; }
+.tph-title { color: #fff; font-family: var(--font-serif); font-size: 16px; font-weight: 500; }
+.tph-sub { color: rgba(255,255,255,0.45); font-size: 10.5px; margin-top: 1px; letter-spacing: 0.03em; }
+.tool-page-header-right { display: flex; align-items: center; gap: 10px; }
+.tph-badge {
+  font-size: 10px; color: rgba(255,255,255,0.50); font-family: var(--font-mono);
+  border: 1px solid rgba(255,255,255,0.15); border-radius: 5px; padding: 3px 8px;
+}
+html[data-theme="dark"] .tool-page-header {
+  background: linear-gradient(105deg, #040c16 0%, #081e38 50%, #0c3a6a 100%);
+  box-shadow: 0 2px 16px rgba(0,0,0,0.4);
+}
+/* Legacy kept for compatibility */
 .tool-header {
   background: var(--surface); border-bottom: 1px solid var(--border);
   padding: 14px 28px; display: flex; align-items: center; gap: 14px; flex-shrink: 0;
   transition: background 0.3s ease, border-color 0.3s ease;
-  animation: fadeIn 0.3s ease;
 }
 .back-btn {
   display: flex; align-items: center; gap: 5px;
@@ -456,14 +490,8 @@ html[data-theme="dark"] .tool-card-tag.calc { background: rgba(201,146,42,0.14);
   font-size: 12px; color: var(--muted); font-family: var(--font-sans);
   transition: all 0.2s ease;
 }
-.back-btn:hover {
-  background: var(--surface2); color: var(--ink);
-  transform: translateX(-2px);
-}
-.tool-header-title {
-  font-family: var(--font-serif); font-size: 17px; color: var(--ink);
-  transition: color 0.3s ease;
-}
+.back-btn:hover { background: var(--surface2); color: var(--ink); transform: translateX(-2px); }
+.tool-header-title { font-family: var(--font-serif); font-size: 17px; color: var(--ink); transition: color 0.3s ease; }
 
 /* ── DARK MODE — Input/form/label overrides ────────── */
 html[data-theme="dark"] input,
@@ -527,6 +555,11 @@ html[data-theme="dark"] #panel-bitacora .panel-scroll { background: var(--surfac
   .tool-card { padding: 20px; }
   .tool-header { padding: 10px 14px 10px 56px; flex-wrap: wrap; gap: 6px; min-height: 52px; }
   .tool-header-title { font-size: 14px; }
+  .tool-page-header { padding: 0 14px 0 56px; height: 52px; }
+  .tph-title { font-size: 14px; }
+  .tph-sub { display: none; }
+  .tph-divider { height: 22px; }
+  .tool-back-btn { font-size: 11px; padding: 4px 8px; }
 }
 @media (max-width: 480px) {
   .home-title { font-size: 18px; }

@@ -126,15 +126,22 @@ html[data-theme="dark"] .aforo-bar-bg { background: rgba(255,255,255,0.08); }
   <button class="theme-toggle" id="themeToggle" type="button" aria-label="Cambiar tema">
     <span class="theme-toggle-icon" id="themeToggleIcon">☀️</span>
   </button>
-  <div class="sidebar-footer">ToolsPK V1.1.0 · Proaktiva</div>
+  <div class="sidebar-footer">ToolsPK V1.1.1 · Proaktiva</div>
 </nav>
 
 <div class="main" id="main">
   <div class="panels">
     <div class="panel active" id="panel-aforo">
-      <div class="tool-header">
-        <button class="back-btn" onclick="window.location.href='/index.html'">← Volver</button>
-        <span class="tool-header-title">Aforo de Garantía</span>
+      <div class="tool-page-header">
+        <div class="tool-page-header-left">
+          <a href="/" class="tool-back-btn">← Inicio</a>
+          <div class="tph-divider"></div>
+          <div>
+            <div class="tph-title">Aforo de Garantía</div>
+            <div class="tph-sub">ToolsPK · Proaktiva</div>
+          </div>
+        </div>
+        <div class="tool-page-header-right"></div>
       </div>
       <div class="panel-scroll">
         <div id="aforo-root"></div>
