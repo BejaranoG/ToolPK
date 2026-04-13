@@ -32,7 +32,10 @@
 .header-back{color:rgba(255,255,255,.7);font-size:12px;text-decoration:none;border:1px solid rgba(255,255,255,.3);border-radius:5px;padding:4px 10px}
 
 /* Main */
-.main{max-width:960px;margin:0 auto;padding:28px 24px 60px}
+.gen-layout{max-width:1280px;margin:0 auto;padding:28px 24px 60px;display:grid;grid-template-columns:1fr 400px;gap:28px;align-items:start}
+.gen-form-col{min-width:0}
+.gen-preview-col{position:sticky;top:24px}
+@media(max-width:1024px){.gen-layout{grid-template-columns:1fr;}.gen-preview-col{position:static;order:-1}}
 .section-title{font-family:"Playfair Display",serif;font-size:22px;margin-bottom:6px}
 .section-sub{color:var(--muted);font-size:13px;margin-bottom:24px}
 
@@ -104,6 +107,33 @@
   .header{padding:0 16px;height:56px}
 }
 
+/* Money input */
+.money-input-wrap{position:relative}
+.money-input-wrap .money-prefix{position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:13px;color:var(--muted);font-weight:500;pointer-events:none}
+.money-input-wrap input{padding-left:24px!important}
+
+/* Live preview */
+.preview-panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow)}
+.preview-header{background:linear-gradient(135deg,#0a1f35,#0e5fa8);padding:14px 20px;display:flex;align-items:center;gap:10px}
+.preview-header-dot{width:8px;height:8px;background:#4de89a;border-radius:50%;box-shadow:0 0 6px #4de89a;animation:pulse-dot 2s infinite}
+@keyframes pulse-dot{0%,100%{opacity:1}50%{opacity:.4}}
+.preview-header h3{color:#fff;font-size:14px;font-weight:600;letter-spacing:.03em}
+.preview-header span{color:rgba(255,255,255,.45);font-size:10px;margin-left:auto;text-transform:uppercase;letter-spacing:.1em}
+.preview-body{padding:24px 22px;font-size:12.5px;line-height:1.8;color:var(--ink);max-height:calc(100vh - 180px);overflow-y:auto}
+.preview-body .pv-title{text-align:center;font-family:"Playfair Display",serif;font-size:18px;font-weight:600;letter-spacing:.1em;margin-bottom:16px;color:var(--ink)}
+.preview-body .pv-row{display:flex;gap:6px;margin-bottom:2px}
+.preview-body .pv-label{font-weight:600;color:var(--muted);white-space:nowrap;min-width:110px;font-size:11px;text-transform:uppercase;letter-spacing:.04em}
+.preview-body .pv-value{color:var(--ink);font-weight:400}
+.preview-body .pv-section{font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:.08em;margin:16px 0 6px;color:var(--blue,#0e5fa8);border-bottom:1px solid var(--border);padding-bottom:4px}
+.preview-body .pv-text{margin-bottom:8px}
+.preview-body .pv-monto{font-family:"IBM Plex Mono",monospace;font-size:14px;font-weight:700;color:var(--ink)}
+.preview-body .pv-monto-letra{font-size:11.5px;color:var(--muted);font-style:italic;margin-top:2px}
+.preview-body .pv-firma{display:inline-block;width:160px;border-bottom:1px solid var(--border);margin-top:24px;padding-bottom:20px;text-align:center;font-size:11px;color:var(--muted)}
+.preview-body .pv-placeholder{color:var(--muted);font-style:italic;opacity:.6}
+.preview-body .pv-amort-table{width:100%;border-collapse:collapse;margin:8px 0;font-size:11px}
+.preview-body .pv-amort-table th{background:var(--surface2);padding:5px 8px;text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);border-bottom:1px solid var(--border)}
+.preview-body .pv-amort-table td{padding:4px 8px;border-bottom:1px solid var(--border);font-family:"IBM Plex Mono",monospace}
+
 /* Dark mode for generador */
 /* ── Dark mode: switch all local variables ── */
 html[data-theme="dark"] {
@@ -160,6 +190,13 @@ html[data-theme="dark"] .amort-table input {
   color: #e0ecf8 !important;
   border-color: #22384f !important;
 }
+html[data-theme="dark"] .preview-header {
+  background: linear-gradient(135deg, #08121d, #0b2847);
+}
+html[data-theme="dark"] .preview-body { color: #e0ecf8; }
+html[data-theme="dark"] .pv-title { color: #e0ecf8; }
+html[data-theme="dark"] .pv-amort-table th { background: rgba(58,157,232,0.12); color: #9fc8e8; }
+html[data-theme="dark"] .money-prefix { color: #6a8aa8; }
 html[data-theme="dark"] .header-back {
   color: rgba(255,255,255,0.7);
   border-color: rgba(255,255,255,0.3);
@@ -221,7 +258,7 @@ html[data-theme="dark"] .aval-row button {
   <button class="theme-toggle" id="themeToggle" type="button" aria-label="Cambiar tema">
     <span class="theme-toggle-icon" id="themeToggleIcon">☀️</span>
   </button>
-  <div class="sidebar-footer">ToolsPK V1.0.1 · Proaktiva</div>
+  <div class="sidebar-footer">ToolsPK V1.1.0 · Proaktiva</div>
 </nav>
 
 <div class="main" id="main">
@@ -240,7 +277,8 @@ html[data-theme="dark"] .aval-row button {
   </div>
 </div>
 
-<div class="main">
+<div class="gen-layout">
+<div class="gen-form-col">
 
 <!-- ═══ STEP 1: Upload ═══ -->
 <h2 class="section-title">Genera un pagaré a partir del contrato</h2>
@@ -278,11 +316,17 @@ html[data-theme="dark"] .aval-row button {
     </div>
     <div class="form-group">
       <label>Monto del crédito (contrato)</label>
-      <input type="text" id="f-monto-credito" placeholder="$1,000,000.00">
+      <div class="money-input-wrap">
+        <span class="money-prefix">$</span>
+        <input type="text" id="f-monto-credito" inputmode="decimal" placeholder="1,000,000.00" data-money>
+      </div>
     </div>
     <div class="form-group">
       <label>Monto del pagaré (disposición)</label>
-      <input type="text" id="f-monto-pagare" placeholder="$1,000,000.00">
+      <div class="money-input-wrap">
+        <span class="money-prefix">$</span>
+        <input type="text" id="f-monto-pagare" inputmode="decimal" placeholder="1,000,000.00" data-money>
+      </div>
     </div>
   </div>
 
@@ -317,7 +361,7 @@ html[data-theme="dark"] .aval-row button {
     </div>
     <div class="form-group" style="width:140px">
       <label id="lbl-tasa">Puntos sobre TIIE</label>
-      <input type="text" id="f-tasa" placeholder="17.00">
+      <input type="text" id="f-tasa" inputmode="decimal" placeholder="17.00" data-rate>
     </div>
   </div>
 
@@ -366,7 +410,25 @@ html[data-theme="dark"] .aval-row button {
   <div><strong style="color:#1a3a7a">Nota:</strong> Los datos extraídos por IA deben verificarse antes de generar el documento final. Esta herramienta es un asistente, no sustituye la revisión manual.</div>
 </div>
 
-</div><!-- /main -->
+</div><!-- /gen-form-col -->
+
+<!-- ═══ LIVE PREVIEW ═══ -->
+<div class="gen-preview-col">
+  <div class="preview-panel">
+    <div class="preview-header">
+      <div class="preview-header-dot"></div>
+      <h3>Vista previa</h3>
+      <span>Tiempo real</span>
+    </div>
+    <div class="preview-body" id="live-preview">
+      <div style="text-align:center;color:var(--muted);padding:40px 20px;font-size:13px">
+        Completa los campos para ver la vista previa del pagaré.
+      </div>
+    </div>
+  </div>
+</div>
+
+</div><!-- /gen-layout -->
 
       </div>
     </div>
@@ -540,7 +602,7 @@ function addAmortRow(fecha, capital) {
   var tr = document.createElement('tr');
   tr.innerHTML = '<td style="width:40px;text-align:center;color:var(--muted)">' + idx + '</td>'
     + '<td><input type="date" class="amort-fecha" value="' + (fecha || '') + '"></td>'
-    + '<td><input type="text" class="amort-capital" placeholder="$0.00" value="' + (capital || '') + '"></td>'
+    + '<td><div class="money-input-wrap"><span class="money-prefix">$</span><input type="text" inputmode="decimal" class="amort-capital" placeholder="0.00" value="' + (capital ? formatMoney(capital) : '') + '"></div></td>'
     + '<td class="remove-row" onclick="removeAmortRow(this)" title="Eliminar">✕</td>';
   tbody.appendChild(tr);
 }
@@ -646,6 +708,202 @@ async function generarDocx() {
     console.error(e);
   }
 }
+
+// ── MONEY FORMATTING ─────────────────────────────────────────────────────
+
+function formatMoney(value) {
+  var raw = String(value).replace(/[^0-9.]/g, '');
+  var parts = raw.split('.');
+  var intPart = parts[0] || '';
+  var decPart = parts.length > 1 ? parts[1].slice(0, 2) : '';
+  // Add commas
+  intPart = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  return decPart !== '' ? intPart + '.' + decPart : intPart;
+}
+
+function parseMoney(value) {
+  return parseFloat(String(value).replace(/[^0-9.]/g, '')) || 0;
+}
+
+function setupMoneyInput(input) {
+  input.addEventListener('input', function() {
+    var pos = this.selectionStart;
+    var oldLen = this.value.length;
+    this.value = formatMoney(this.value);
+    var newLen = this.value.length;
+    var newPos = pos + (newLen - oldLen);
+    this.setSelectionRange(newPos, newPos);
+    updatePreview();
+  });
+  input.addEventListener('keydown', function(e) {
+    var allowed = ['Backspace','Delete','ArrowLeft','ArrowRight','Tab','Home','End'];
+    if (allowed.includes(e.key)) return;
+    if (e.ctrlKey || e.metaKey) return;
+    if (e.key === '.' && !this.value.includes('.')) return;
+    if (e.key >= '0' && e.key <= '9') return;
+    e.preventDefault();
+  });
+}
+
+function setupRateInput(input) {
+  input.addEventListener('input', function() { updatePreview(); });
+  input.addEventListener('keydown', function(e) {
+    var allowed = ['Backspace','Delete','ArrowLeft','ArrowRight','Tab','Home','End'];
+    if (allowed.includes(e.key)) return;
+    if (e.ctrlKey || e.metaKey) return;
+    if (e.key === '.' && !this.value.includes('.')) return;
+    if (e.key >= '0' && e.key <= '9') return;
+    e.preventDefault();
+  });
+}
+
+// Init money inputs
+document.querySelectorAll('[data-money]').forEach(setupMoneyInput);
+document.querySelectorAll('[data-rate]').forEach(setupRateInput);
+
+// ── CLIENT-SIDE NUMBER TO WORDS (Spanish) ────────────────────────────────
+
+var CL_UNITS = ['','uno','dos','tres','cuatro','cinco','seis','siete','ocho','nueve'];
+var CL_TEENS = ['diez','once','doce','trece','catorce','quince','dieciséis','diecisiete','dieciocho','diecinueve'];
+var CL_TENS  = ['','diez','veinte','treinta','cuarenta','cincuenta','sesenta','setenta','ochenta','noventa'];
+var CL_HUND  = ['','ciento','doscientos','trescientos','cuatrocientos','quinientos','seiscientos','setecientos','ochocientos','novecientos'];
+
+function clToWords(n) {
+  if (n === 0) return 'cero';
+  if (n === 100) return 'cien';
+  var p = [];
+  if (n >= 1e6) { var m = Math.floor(n/1e6); p.push(m===1?'un millón':clToWords(m)+' millones'); n %= 1e6; }
+  if (n >= 1e3) { var t = Math.floor(n/1e3); p.push(t===1?'mil':clToWords(t)+' mil'); n %= 1e3; }
+  if (n >= 100) { if(n===100){p.push('cien');n=0;} else {p.push(CL_HUND[Math.floor(n/100)]);n%=100;} }
+  if (n>=20) { if(n>20&&n<30){p.push('veinti'+CL_UNITS[n-20]);n=0;} else {var t2=Math.floor(n/10),u=n%10;p.push(u?CL_TENS[t2]+' y '+CL_UNITS[u]:CL_TENS[t2]);n=0;} }
+  else if (n>=10) { p.push(CL_TEENS[n-10]); n=0; }
+  else if (n>0)   { p.push(CL_UNITS[n]); }
+  return p.join(' ').replace(/\s+/g,' ').trim();
+}
+
+function clMontoLetra(s) {
+  var n = parseMoney(s);
+  if (n === 0) return '';
+  var e = Math.floor(n), c = Math.round((n-e)*100);
+  var w = clToWords(e);
+  w = w[0].toUpperCase() + w.slice(1);
+  var de = (e >= 1e6 && e % 1e6 === 0) ? ' de ' : ' ';
+  return w + de + 'pesos ' + String(c).padStart(2,'0') + '/100 M.N.';
+}
+
+// ── LIVE PREVIEW ─────────────────────────────────────────────────────────
+
+function updatePreview() {
+  var d = collectData();
+  var el = document.getElementById('live-preview');
+
+  // Check if any data exists
+  if (!d.suscriptor && !d.monto_pagare && !d.numero_contrato) {
+    el.innerHTML = '<div style="text-align:center;color:var(--muted);padding:40px 20px;font-size:13px">Completa los campos para ver la vista previa del pagaré.</div>';
+    return;
+  }
+
+  var fechaStr = '___________';
+  if (d.fecha) {
+    try {
+      fechaStr = new Date(d.fecha + 'T12:00:00').toLocaleDateString('es-MX', { day: 'numeric', month: 'long', year: 'numeric' });
+    } catch(e) {}
+  }
+
+  var montoRaw = parseMoney(d.monto_pagare);
+  var montoFmt = montoRaw > 0 ? '$' + formatMoney(String(montoRaw.toFixed(2))) : '—';
+  var montoLetra = montoRaw > 0 ? clMontoLetra(d.monto_pagare) : '';
+
+  var suscriptorDisplay = d.suscriptor || '<span class="pv-placeholder">Suscriptor</span>';
+  if (d.es_moral && d.representante) {
+    suscriptorDisplay += ', representada por ' + d.representante;
+  }
+
+  var tasaDisplay = '';
+  if (d.tasa) {
+    if (d.tipo_tasa === 'tiie') {
+      tasaDisplay = 'Tasa T.I.I.E. más ' + d.tasa + ' puntos porcentuales.';
+    } else {
+      tasaDisplay = 'Tasa Fija anual de ' + d.tasa + '%.';
+    }
+  }
+
+  var amortHtml = '';
+  if (d.amortizaciones.length > 0) {
+    amortHtml = '<div class="pv-section">Tabla de amortización</div>';
+    amortHtml += '<table class="pv-amort-table"><thead><tr><th>#</th><th>Fecha</th><th>Capital</th></tr></thead><tbody>';
+    d.amortizaciones.forEach(function(row, i) {
+      var fv = row.fecha || '—';
+      var cv = row.capital ? '$' + formatMoney(row.capital) : '—';
+      amortHtml += '<tr><td>' + (i+1) + '</td><td>' + fv + '</td><td>' + cv + '</td></tr>';
+    });
+    amortHtml += '</tbody></table>';
+  }
+
+  var avalesHtml = '';
+  if (d.avales.length > 0) {
+    avalesHtml = '<div class="pv-section">Avales</div>';
+    d.avales.forEach(function(a) {
+      avalesHtml += '<div class="pv-text">' + a + '</div>';
+    });
+  }
+
+  el.innerHTML =
+    '<div class="pv-title">PAGARÉ</div>'
+    + '<div class="pv-row"><span class="pv-label">No. Contrato</span><span class="pv-value">' + (d.numero_contrato || '—') + '</span></div>'
+    + '<div class="pv-row"><span class="pv-label">Tipo crédito</span><span class="pv-value">' + (d.tipo_credito || '—') + '</span></div>'
+    + '<div class="pv-row"><span class="pv-label">Suscriptor</span><span class="pv-value">' + suscriptorDisplay + '</span></div>'
+    + (d.domicilio ? '<div class="pv-row"><span class="pv-label">Domicilio</span><span class="pv-value">' + d.domicilio + '</span></div>' : '')
+    + '<div class="pv-section">Monto</div>'
+    + '<div class="pv-monto">' + montoFmt + '</div>'
+    + (montoLetra ? '<div class="pv-monto-letra">(' + montoLetra + ')</div>' : '')
+    + (tasaDisplay ? '<div class="pv-section">Tasa ordinaria</div><div class="pv-text">' + tasaDisplay + '</div>' : '')
+    + '<div class="pv-text" style="margin-top:12px">Suscrito en <strong>' + (d.ciudad || '___') + '</strong>, el día <strong>' + fechaStr + '</strong>.</div>'
+    + amortHtml
+    + avalesHtml
+    + '<div class="pv-section">Firmas</div>'
+    + '<div style="display:flex;gap:20px;flex-wrap:wrap">'
+    + '<div class="pv-firma">' + (d.suscriptor || 'Suscriptor') + '</div>'
+    + (d.avales.length ? '<div class="pv-firma">' + d.avales[0] + '</div>' : '')
+    + '</div>';
+}
+
+// ── WIRE UP ALL INPUTS FOR LIVE PREVIEW ──────────────────────────────────
+
+document.querySelectorAll('#f-contrato-num,#f-tipo,#f-suscriptor,#f-representante,#f-domicilio,#f-ciudad,#f-fecha,#f-es-moral,#f-num-amort').forEach(function(inp) {
+  inp.addEventListener('input', updatePreview);
+  inp.addEventListener('change', updatePreview);
+});
+
+// Observe amort table and avales for changes (MutationObserver)
+var previewObserver = new MutationObserver(function() { setTimeout(updatePreview, 50); });
+previewObserver.observe(document.getElementById('amort-body'), { childList: true, subtree: true, characterData: true, attributes: true });
+previewObserver.observe(document.getElementById('avales-list'), { childList: true, subtree: true, characterData: true, attributes: true });
+// Also listen for input events on dynamically added fields
+document.addEventListener('input', function(e) {
+  if (e.target.classList.contains('amort-fecha') || e.target.classList.contains('amort-capital') || e.target.classList.contains('aval-nombre')) {
+    updatePreview();
+  }
+  // Auto-format amort capital fields
+  if (e.target.classList.contains('amort-capital')) {
+    var pos = e.target.selectionStart;
+    var oldLen = e.target.value.length;
+    e.target.value = formatMoney(e.target.value);
+    var newLen = e.target.value.length;
+    e.target.setSelectionRange(pos + (newLen - oldLen), pos + (newLen - oldLen));
+  }
+});
+// Block non-numeric on amort capital fields
+document.addEventListener('keydown', function(e) {
+  if (e.target.classList.contains('amort-capital')) {
+    var allowed = ['Backspace','Delete','ArrowLeft','ArrowRight','Tab','Home','End'];
+    if (allowed.includes(e.key)) return;
+    if (e.ctrlKey || e.metaKey) return;
+    if (e.key === '.' && !e.target.value.includes('.')) return;
+    if (e.key >= '0' && e.key <= '9') return;
+    e.preventDefault();
+  }
+});
 
 // ── INIT ─────────────────────────────────────────────────────────────────
 updateAmortRows();

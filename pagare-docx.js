@@ -29,7 +29,8 @@ function montoLetra(s) {
   var n = parseFloat(String(s).replace(/[^0-9.]/g,''))||0;
   var e = Math.floor(n), c = Math.round((n-e)*100);
   var w = toWords(e); w = w[0].toUpperCase()+w.slice(1);
-  return w + ' pesos ' + String(c).padStart(2,'0') + '/100 M.N.';
+  var de = (e >= 1e6 && e % 1e6 === 0) ? ' de ' : ' ';
+  return w + de + 'pesos ' + String(c).padStart(2,'0') + '/100 M.N.';
 }
 function tasaLetra(t) {
   var n = parseFloat(t)||0, e = Math.floor(n), d = Math.round((n-e)*100);
