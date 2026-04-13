@@ -111,7 +111,7 @@
   <button class="theme-toggle" id="themeToggle" type="button" aria-label="Cambiar tema">
     <span class="theme-toggle-icon" id="themeToggleIcon">☀️</span>
   </button>
-  <div class="sidebar-footer">ToolsPK V1.2.0 · Proaktiva</div>
+  <div class="sidebar-footer">ToolsPK V1.2.2 · Proaktiva</div>
 </nav>
 
 <div class="main" id="main">
@@ -1299,6 +1299,10 @@ async function clearGestionesCloud() {
   await apiFetch("/api/bitacora/gestiones", { method: "DELETE" });
 }
 
+async function deleteGestionCloud(id) {
+  await apiFetch("/api/bitacora/gestiones/" + encodeURIComponent(id), { method: "DELETE" });
+}
+
 async function importLegacyGestiones(gestiones) {
   const data = await apiFetch("/api/bitacora/gestiones/import", {
     method: "POST",
@@ -1443,15 +1447,16 @@ function RegistroView({ carteraClients, gestiones, onSave, toast }) {
 
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
 
-  const currentMonthKey = getMonthKey(todayStr());
+  const currentMonthKey = getMonthKey(form.fechaGestion || todayStr());
   
   const calculatedToque = useMemo(() => {
     if (!selected) return 0;
+    const targetMonth = getMonthKey(form.fechaGestion || todayStr());
     const monthGestiones = gestiones.filter(
-      g => String(g.folioCliente) === String(selected.folio) && getMonthKey(g.fechaGestion) === currentMonthKey
+      g => String(g.folioCliente) === String(selected.folio) && getMonthKey(g.fechaGestion) === targetMonth
     );
     return monthGestiones.length + 1;
-  }, [selected, gestiones, currentMonthKey]);
+  }, [selected, gestiones, form.fechaGestion]);
 
   const toqueDisplay = calculatedToque > 4 ? "+4" : String(calculatedToque);
 
@@ -1619,7 +1624,7 @@ function RegistroView({ carteraClients, gestiones, onSave, toast }) {
   );
 }
 
-function HistorialView({ gestiones, toast }) {
+function HistorialView({ gestiones, toast, onDelete }) {
   const [filters, setFilters] = useState({ cliente: "", folio: "", tipo: "", prioridad: "", etapa: "", desde: "", hasta: "" });
   const [page, setPage] = useState(1);
   const perPage = 20;
@@ -1641,6 +1646,23 @@ function HistorialView({ gestiones, toast }) {
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / perPage));
   const paginated = filtered.slice((page - 1) * perPage, page * perPage);
+
+  // Dynamic toque: count per client per month, chronological order
+  const toqueMap = useMemo(() => {
+    const map = {};
+    // Group ALL gestiones by folio+month, sort by date
+    const groups = {};
+    gestiones.forEach(g => {
+      const key = String(g.folioCliente) + "|" + getMonthKey(g.fechaGestion);
+      if (!groups[key]) groups[key] = [];
+      groups[key].push(g);
+    });
+    Object.values(groups).forEach(arr => {
+      arr.sort((a, b) => (a.fechaGestion || "").localeCompare(b.fechaGestion || ""));
+      arr.forEach((g, i) => { map[g.id] = i + 1; });
+    });
+    return map;
+  }, [gestiones]);
 
   const handleExportXLSX = async () => {
     try {
@@ -1738,6 +1760,7 @@ function HistorialView({ gestiones, toast }) {
                     <th>Compromiso</th>
                     <th>Sig. Acción</th>
                     <th>Comentario</th>
+                    <th style={{width:36}}></th>
                   </tr>
                 </thead>
                 <tbody>
@@ -1754,9 +1777,10 @@ function HistorialView({ gestiones, toast }) {
                       <td>{g.tipoGestion}</td>
                       <td style={{ maxWidth: 160 }} title={g.estadoGestion}>{g.estadoGestion}</td>
                       <td>
-                        <span className={`toque-badge ${(g.toque === "+4" || Number(g.toque) >= 4) ? "high" : ""}`}>
-                          {g.toque}
-                        </span>
+                        {(() => {
+                          const t = toqueMap[g.id] || Number(g.toque) || 1;
+                          return <span className={`toque-badge ${t >= 4 ? "high" : ""}`}>{t > 4 ? "+4" : t}</span>;
+                        })()}
                       </td>
                       <td>
                         <span className={`badge badge-${g.prioridad.toLowerCase()}`}>{g.prioridad}</span>
@@ -1766,6 +1790,15 @@ function HistorialView({ gestiones, toast }) {
                       <td style={{ maxWidth: 130 }}>{g.fechaCompromiso}</td>
                       <td style={{ maxWidth: 130 }}>{g.siguienteAccion}</td>
                       <td style={{ maxWidth: 220 }} title={g.comentario}>{g.comentario}</td>
+                      <td>
+                        <button
+                          onClick={() => onDelete && onDelete(g.id)}
+                          title="Eliminar gestión"
+                          style={{background:'none',border:'none',cursor:'pointer',fontSize:14,color:'var(--danger, #d14343)',opacity:0.6,padding:'2px 6px',borderRadius:4,transition:'opacity 0.15s'}}
+                          onMouseEnter={e => e.target.style.opacity=1}
+                          onMouseLeave={e => e.target.style.opacity=0.6}
+                        >✕</button>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -2062,6 +2095,25 @@ useEffect(() => {
     }
   }, [showToast]);
 
+  const handleDeleteGestion = useCallback(async (id) => {
+    if (!confirm("¿Eliminar esta gestión?")) return;
+    try {
+      setLoading(true);
+      await deleteGestionCloud(id);
+      setGestiones(prev => prev.filter(g => g.id !== id));
+      showToast("Gestión eliminada", "success");
+    } catch (e) {
+      if (e?.status === 401) {
+        setAuthToken(""); setLoggedIn(false); setGestiones([]);
+        showToast("Tu sesión expiró.", "error");
+        return;
+      }
+      showToast("Error al eliminar: " + (e?.message || "Error"), "error");
+    } finally {
+      setLoading(false);
+    }
+  }, [showToast]);
+
   if (!loggedIn) return (
     <>
       <style>{css}</style>
@@ -2174,7 +2226,7 @@ useEffect(() => {
           )}
 
           {view === "historial" && (
-            <HistorialView gestiones={gestiones} toast={showToast} />
+            <HistorialView gestiones={gestiones} toast={showToast} onDelete={handleDeleteGestion} />
           )}
         </main>
       </div>

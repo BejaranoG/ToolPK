@@ -268,6 +268,19 @@ async function clearGestiones() {
   await writeJsonGestiones([]);
 }
 
+async function deleteGestion(id) {
+  if (USE_POSTGRES) {
+    const result = await pool.query('DELETE FROM bitacora_gestiones WHERE id = $1', [id]);
+    return result.rowCount > 0;
+  }
+
+  const data = await readJsonGestiones();
+  const filtered = data.filter(item => item.id !== id);
+  if (filtered.length === data.length) return false;
+  await writeJsonGestiones(filtered);
+  return true;
+}
+
 app.post('/api/bitacora/login', async (req, res) => {
   const { user, pass } = req.body || {};
 
@@ -320,6 +333,17 @@ app.delete('/api/bitacora/gestiones', requireBitacoraAuth, async (req, res) => {
   } catch (error) {
     console.error('Bitácora delete error:', error);
     res.status(500).json({ error: 'No fue posible eliminar las gestiones.' });
+  }
+});
+
+app.delete('/api/bitacora/gestiones/:id', requireBitacoraAuth, async (req, res) => {
+  try {
+    const deleted = await deleteGestion(req.params.id);
+    if (!deleted) return res.status(404).json({ error: 'Gestión no encontrada.' });
+    res.json({ ok: true });
+  } catch (error) {
+    console.error('Bitácora delete single error:', error);
+    res.status(500).json({ error: 'No fue posible eliminar la gestión.' });
   }
 });
 
