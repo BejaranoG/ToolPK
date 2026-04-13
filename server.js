@@ -6,6 +6,8 @@ const path = require('path');
 const fs = require('fs');
 const fsp = require('fs/promises');
 const crypto = require('crypto');
+const multer = require('multer');
+const WordExtractor = require('word-extractor');
 let Pool = null;
 
 const app = express();
@@ -353,6 +355,48 @@ app.get('/api/bitacora/status', async (req, res) => {
 });
 
 
+// ── DOC EXTRACTION ────────────────────────────────────────────────────────
+const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 25 * 1024 * 1024 } });
+
+app.post('/api/extract-doc', upload.single('file'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: 'No se recibió archivo.' });
+    }
+    const extractor = new WordExtractor();
+    const doc = await extractor.extract(req.file.buffer);
+    const text = doc.getBody() || '';
+    if (!text.trim()) {
+      return res.status(422).json({ error: 'El archivo .doc no contiene texto extraíble.' });
+    }
+    res.json({ text });
+  } catch (err) {
+    console.error('DOC extraction error:', err.message);
+    res.status(500).json({ error: 'Error al leer el archivo .doc: ' + err.message });
+  }
+});
+
+
+// ── PAGARE DOCX GENERATION ────────────────────────────────────────────────
+const { buildPagare } = require('./pagare-docx');
+
+app.post('/api/generar-pagare', async (req, res) => {
+  try {
+    const data = req.body;
+    if (!data || !data.suscriptor) {
+      return res.status(400).json({ error: 'Datos incompletos.' });
+    }
+    const buffer = await buildPagare(data);
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+    res.setHeader('Content-Disposition', 'attachment; filename="Pagare.docx"');
+    res.send(buffer);
+  } catch (err) {
+    console.error('Pagare generation error:', err.message);
+    res.status(500).json({ error: 'Error al generar el pagaré: ' + err.message });
+  }
+});
+
+
 app.post('/api/analyze', async (req, res) => {
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) {
@@ -438,6 +482,10 @@ app.get('/calc', (req, res) => {
 
 app.get('/bitacora', (req, res) => {
   res.sendFile(path.join(PUBLIC_DIR, 'bitacora.html'));
+});
+
+app.get('/generador', (req, res) => {
+  res.sendFile(path.join(PUBLIC_DIR, 'generador.html'));
 });
 
 app.get('*', (req, res) => {
