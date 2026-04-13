@@ -26,6 +26,49 @@
 <style>
 #panel-aforo .panel-scroll { background: #f5f2ed; }
 html[data-theme="dark"] #panel-aforo .panel-scroll { background: var(--surface2); }
+
+/* ── Aforo dark mode: fix hardcoded light colors ── */
+html[data-theme="dark"] .asection { background: var(--surface); border-color: var(--border); box-shadow: 0 6px 24px rgba(0,0,0,0.2); }
+html[data-theme="dark"] .asection-header { background: var(--surface3, #132236); border-bottom-color: var(--border); }
+html[data-theme="dark"] .asection-title { color: var(--ink); }
+html[data-theme="dark"] .afield-label { color: var(--muted); }
+html[data-theme="dark"] .aforo-app input[type="text"],
+html[data-theme="dark"] .aforo-app select {
+  background: #0b1623;
+  color: #e0ecf8;
+  border-color: var(--border);
+}
+html[data-theme="dark"] .aforo-app input:focus {
+  border-color: var(--brand-light, #1a7dd4);
+  box-shadow: 0 0 0 3px rgba(26,125,212,0.18);
+}
+html[data-theme="dark"] .aforo-app input::placeholder { color: #6a8aa8; }
+html[data-theme="dark"] .aradio-option {
+  background: var(--surface);
+  border-color: var(--border);
+  color: var(--ink, #e0ecf8);
+}
+html[data-theme="dark"] .aradio-option:hover {
+  border-color: var(--brand-light, #1a7dd4);
+  background: rgba(14,95,168,0.08);
+}
+html[data-theme="dark"] .aradio-option.selected {
+  border-color: var(--brand-light, #1a7dd4);
+  background: rgba(14,95,168,0.12);
+}
+html[data-theme="dark"] .agrupo-tab {
+  background: var(--surface);
+  border-color: var(--border);
+  color: var(--muted);
+}
+html[data-theme="dark"] .agrupo-tab.active {
+  border-color: var(--brand-light, #1a7dd4);
+  background: rgba(14,95,168,0.12);
+  color: #e0ecf8;
+}
+html[data-theme="dark"] .atoggle-label { color: var(--ink, #e0ecf8); }
+html[data-theme="dark"] .aforo-kpis .akpi-label { color: var(--muted); }
+html[data-theme="dark"] .aforo-bar-bg { background: rgba(255,255,255,0.08); }
 </style>
 </head>
 <body>

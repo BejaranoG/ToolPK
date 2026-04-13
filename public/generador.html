@@ -18,7 +18,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&family=IBM+Plex+Sans:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/shared.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
 <style>
 :root{--dark:#0a1520;--blue:#0e5fa8;--blue2:#1a7dd4;--blue3:#3a9de8;--gold:#c9922a;--surface:#fff;--surface2:#f4f7fb;--border:#dce5f0;--ink:#1a2b3c;--muted:#6a85a0;--green:#1a7a4a;--green-bg:#eaf7f0;--red:#c0392b;--radius:14px;--shadow:0 4px 20px rgba(14,95,168,0.1)}
 
@@ -67,8 +67,7 @@
 .btn-primary:disabled{background:var(--muted);cursor:not-allowed;transform:none}
 .btn-secondary{background:transparent;border:2px solid var(--border);color:var(--ink)}
 .btn-secondary:hover{border-color:var(--ink)}
-.btn-gold{background:linear-gradient(135deg,#b8840a,#d4a020);color:#fff}
-.btn-gold:hover{background:linear-gradient(135deg,#9a6e08,#c09018)}
+
 .btn-row{display:flex;gap:10px;flex-wrap:wrap}
 
 /* Toggle */
@@ -106,25 +105,73 @@
 }
 
 /* Dark mode for generador */
+/* ── Dark mode: switch all local variables ── */
+html[data-theme="dark"] {
+  --surface: #0f1a27;
+  --surface2: #0b1420;
+  --border: #22384f;
+  --ink: #e0ecf8;
+  --muted: #7a9ab8;
+  --green-bg: rgba(26,122,74,0.12);
+  --blue-bg: rgba(14,95,168,0.18);
+  --shadow: 0 4px 20px rgba(0,0,0,0.25);
+}
 html[data-theme="dark"] .header {
   background: linear-gradient(105deg, #08121d 0%, #0b2847 58%, #0f4b86 100%);
 }
-html[data-theme="dark"] .card {
-  background: var(--surface);
-  border-color: var(--border);
-  color: var(--ink);
-}
+html[data-theme="dark"] body { background: var(--surface2); }
 html[data-theme="dark"] .card-title { color: var(--ink); }
 html[data-theme="dark"] input,
 html[data-theme="dark"] select,
 html[data-theme="dark"] textarea {
-  background: #0b1623;
-  color: var(--ink);
-  border-color: var(--border);
+  background: #0b1623 !important;
+  color: #e0ecf8 !important;
+  border-color: #22384f !important;
 }
+html[data-theme="dark"] input::placeholder,
+html[data-theme="dark"] textarea::placeholder {
+  color: #6a8aa8 !important;
+}
+html[data-theme="dark"] input:focus,
+html[data-theme="dark"] select:focus,
+html[data-theme="dark"] textarea:focus {
+  border-color: #2882d0 !important;
+}
+html[data-theme="dark"] input.auto-filled {
+  background: rgba(14,95,168,0.15) !important;
+  border-color: rgba(26,125,212,0.3) !important;
+}
+html[data-theme="dark"] label { color: #7a9ab8; }
 html[data-theme="dark"] .section-title { color: var(--ink); }
+html[data-theme="dark"] .section-sub { color: var(--muted); }
 html[data-theme="dark"] .preview-row { border-color: var(--border); }
 html[data-theme="dark"] #preview { color: var(--ink); background: var(--surface); }
+html[data-theme="dark"] .amort-table th {
+  background: rgba(58,157,232,0.12);
+  color: #9fc8e8;
+  border-color: #22384f;
+}
+html[data-theme="dark"] .amort-table td {
+  border-color: #1a2e42;
+  color: var(--ink);
+}
+html[data-theme="dark"] .amort-table input {
+  background: #0b1623 !important;
+  color: #e0ecf8 !important;
+  border-color: #22384f !important;
+}
+html[data-theme="dark"] .header-back {
+  color: rgba(255,255,255,0.7);
+  border-color: rgba(255,255,255,0.3);
+}
+html[data-theme="dark"] .btn-primary {
+  background: linear-gradient(135deg, #0e5fa8, #1e7dd4);
+}
+html[data-theme="dark"] .aval-row button {
+  background: rgba(192,57,43,0.15);
+  color: #ff8a7a;
+  border-color: rgba(192,57,43,0.3);
+}
 </style>
 </head>
 <body>
@@ -309,7 +356,6 @@ html[data-theme="dark"] #preview { color: var(--ink); background: var(--surface)
   <div class="card-title"><span class="step-badge">3</span> Generar pagaré</div>
   <div class="btn-row">
     <button class="btn btn-primary" onclick="generarDocx()">📄 Descargar DOCX</button>
-    <button class="btn btn-gold" onclick="generarPDF()">📕 Descargar PDF</button>
   </div>
   <div id="gen-status" style="margin-top:10px;font-size:12px;color:var(--muted)"></div>
 </div>
@@ -595,122 +641,6 @@ async function generarDocx() {
     a.click();
     URL.revokeObjectURL(url);
     status.textContent = '✓ DOCX descargado';
-  } catch (e) {
-    status.textContent = '⚠️ ' + e.message;
-    console.error(e);
-  }
-}
-
-// ── GENERATE PDF (client-side) ───────────────────────────────────────────
-
-function generarPDF() {
-  var d = collectData();
-  if (!d.suscriptor || !d.monto_pagare) {
-    alert('Completa al menos el suscriptor y el monto del pagaré.');
-    return;
-  }
-  var status = document.getElementById('gen-status');
-  status.textContent = '⏳ Generando PDF...';
-
-  try {
-    var { jsPDF } = window.jspdf;
-    var pdf = new jsPDF({ unit: 'mm', format: 'letter' });
-    var W = 215.9, mL = 20, mR = 20, cW = W - mL - mR;
-    var y = 20;
-
-    function checkPage(need) { if (y + need > 265) { pdf.addPage(); y = 20; } }
-
-    // Title
-    pdf.setFont('helvetica', 'bold'); pdf.setFontSize(16); pdf.setTextColor(10, 30, 60);
-    pdf.text('PAGARÉ', W / 2, y, { align: 'center' }); y += 12;
-
-    // Info box
-    var info = [
-      ['No. Contrato', d.numero_contrato],
-      ['Tipo de crédito', d.tipo_credito],
-      ['Monto', d.monto_pagare],
-      ['Suscriptor', d.suscriptor + (d.es_moral && d.representante ? ' representada por ' + d.representante : '')],
-      ['Domicilio', d.domicilio]
-    ];
-    pdf.setFontSize(8);
-    info.forEach(function(row) {
-      checkPage(12);
-      pdf.setFont('helvetica', 'bold'); pdf.setTextColor(60, 80, 110);
-      pdf.text(row[0] + ':', mL, y);
-      pdf.setFont('helvetica', 'normal'); pdf.setTextColor(20, 30, 50);
-      var lines = pdf.splitTextToSize(row[1] || '-', cW - 35);
-      pdf.text(lines, mL + 35, y);
-      y += Math.max(6, lines.length * 4) + 2;
-    });
-    y += 6;
-
-    // Tasa
-    checkPage(10);
-    pdf.setFont('helvetica', 'bold'); pdf.setFontSize(9);
-    pdf.text('TASA ORDINARIA', mL, y); y += 5;
-    pdf.setFont('helvetica', 'normal'); pdf.setFontSize(8);
-    var tasaText = d.tipo_tasa === 'tiie'
-      ? 'Tasa T.I.I.E. más ' + d.tasa + '% puntos porcentuales.'
-      : 'Tasa Fija anual de ' + d.tasa + '%.';
-    pdf.text(tasaText, mL, y); y += 10;
-
-    // Ciudad y fecha
-    checkPage(10);
-    pdf.setFontSize(8);
-    var fechaStr = d.fecha ? new Date(d.fecha + 'T12:00:00').toLocaleDateString('es-MX', { day: 'numeric', month: 'long', year: 'numeric' }) : '___________';
-    pdf.text('Suscrito en ' + d.ciudad + ', el día ' + fechaStr + '.', mL, y);
-    y += 10;
-
-    // Amortization table
-    if (d.amortizaciones.length) {
-      checkPage(20);
-      pdf.setFont('helvetica', 'bold'); pdf.setFontSize(9);
-      pdf.text('TABLA DE AMORTIZACIÓN', mL, y); y += 6;
-
-      pdf.setFillColor(230, 238, 248); pdf.rect(mL, y, cW, 6, 'F');
-      pdf.setFontSize(7); pdf.setTextColor(50, 70, 100);
-      pdf.text('#', mL + 2, y + 4);
-      pdf.text('Fecha vencimiento', mL + 15, y + 4);
-      pdf.text('Capital', mL + 80, y + 4);
-      y += 8;
-
-      pdf.setFont('helvetica', 'normal'); pdf.setTextColor(20, 30, 50);
-      d.amortizaciones.forEach(function(row, i) {
-        checkPage(6);
-        pdf.text(String(i + 1), mL + 2, y);
-        pdf.text(row.fecha || '-', mL + 15, y);
-        pdf.text(row.capital || '-', mL + 80, y);
-        y += 5;
-      });
-      y += 8;
-    }
-
-    // Signatures
-    checkPage(40);
-    pdf.setFont('helvetica', 'bold'); pdf.setFontSize(8);
-    pdf.text('SUSCRIPTOR:', mL, y);
-    pdf.text('AVAL(ES):', mL + cW / 2, y); y += 12;
-    pdf.setFont('helvetica', 'normal');
-    pdf.text('_____________________________', mL, y);
-    if (d.avales.length) pdf.text('_____________________________', mL + cW / 2, y);
-    y += 5;
-    pdf.text(d.suscriptor, mL, y);
-    if (d.avales.length) pdf.text(d.avales[0], mL + cW / 2, y);
-    y += 10;
-
-    // Additional avales
-    for (var i = 1; i < d.avales.length; i += 2) {
-      checkPage(20);
-      pdf.text('_____________________________', mL, y);
-      if (d.avales[i + 1]) pdf.text('_____________________________', mL + cW / 2, y);
-      y += 5;
-      pdf.text(d.avales[i], mL, y);
-      if (d.avales[i + 1]) pdf.text(d.avales[i + 1], mL + cW / 2, y);
-      y += 10;
-    }
-
-    pdf.save('Pagare_' + (d.suscriptor.split(' ')[0] || 'doc') + '.pdf');
-    status.textContent = '✓ PDF descargado';
   } catch (e) {
     status.textContent = '⚠️ ' + e.message;
     console.error(e);
