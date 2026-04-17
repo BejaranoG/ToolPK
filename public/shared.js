@@ -1,5 +1,5 @@
 /* ══════════════════════════════════════════════════════
-   ToolsPK V1.2.2 — Shared JavaScript
+   ToolsPK V1.2.3 — Shared JavaScript
    Sidebar · Theme · Proaktibot
 ══════════════════════════════════════════════════════ */
 

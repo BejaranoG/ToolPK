@@ -368,7 +368,7 @@ body { background: var(--bg); color: var(--ink); font-family: "IBM Plex Sans", s
   <button class="theme-toggle" id="themeToggle" type="button" aria-label="Cambiar tema">
     <span class="theme-toggle-icon" id="themeToggleIcon">☀️</span>
   </button>
-  <div class="sidebar-footer">ToolsPK V1.2.2 · Proaktiva</div>
+  <div class="sidebar-footer">ToolsPK V1.2.3 · Proaktiva</div>
 </nav>
 
 <div class="main" id="main">
@@ -629,7 +629,7 @@ function buildPromptDatos(C, P, today) {
     + 'El pagaré SIEMPRE debe suscribirse en "Mexicali, Baja California". Si dice otra ciudad: ERROR indicando cuál aparece.\n\n'
     + 'PUNTO 11 — Fecha de suscripción y número de páginas:\n'
     + 'a) Extrae la fecha de suscripción. Emite COMMENT con la fecha completa y el día de la semana. Si la fecha es posterior a hoy (' + today + '): ERROR.\n'
-    + 'b) Verifica el número de páginas declarado en el pagaré (ej: "Va en 2 (Dos) paginas"). Revisa que el número en LETRA esté escrito correctamente y que coincida con el número. Si no corresponde: ERROR indicando qué dice y qué debería decir.\n\n'
+    + 'b) Verifica el número de páginas declarado en el pagaré (ej: "Va en 2 (Dos) paginas"). Revisa que el número en LETRA esté escrito correctamente y que coincida con el número. La notación "pagina(s)" es correcta y NO es un error — es una forma expresiva válida para cubrir singular y plural. Solo reporta ERROR si el número en letra no corresponde al dígito.\n\n'
     + '=== CONTRATO ===\n' + C + '\n\n=== PAGARÉ ===\n' + P;
 }
 
